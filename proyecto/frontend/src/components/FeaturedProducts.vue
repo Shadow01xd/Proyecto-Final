@@ -1,8 +1,11 @@
 <script setup>
+import { defineEmits } from 'vue'
 import imgGPU from '@/assets/Img/rtx5090.png'
 import imgCPU from '@/assets/Img/Intel_i9.png'
 import imgNVMe from '@/assets/Img/NVMe.png'
 import imgRAM from '@/assets/Img/Ram.png'
+
+const emit = defineEmits(['add-to-cart'])
 
 const products = [
   { id: 1, name: 'GPU RTX 5090', category: 'Tarjeta Gráfica', price: '$2,499', rating: 4.9, reviews: 342, badge: 'Premium', image: imgGPU },
@@ -45,7 +48,12 @@ const products = [
 
               <div class="space-y-3 pt-2 border-t border-border">
                 <p class="text-2xl font-bold text-White">{{ p.price }}</p>
-                <button class="w-full rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2">Ver Detalles</button>
+                <button
+                  class="w-full rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2"
+                  @click="emit('add-to-cart', p)"
+                >
+                  Agregar al carrito
+                </button>
               </div>
             </div>
           </div>
