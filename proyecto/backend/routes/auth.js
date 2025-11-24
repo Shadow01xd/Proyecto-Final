@@ -142,8 +142,21 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Verificar contraseña
-    const passwordMatch = await bcrypt.compare(passwordHash, usuario.passwordHash);
+    // Verificar contraseña (soporta texto plano y hash bcrypt)
+    let passwordMatch = false;
+
+    // Verificar si la contraseña en BD es un hash bcrypt (empieza con $2a$, $2b$ o $2y$)
+    const isBcryptHash = usuario.passwordHash.startsWith('$2a$') ||
+                         usuario.passwordHash.startsWith('$2b$') ||
+                         usuario.passwordHash.startsWith('$2y$');
+
+    if (isBcryptHash) {
+      // Comparar con bcrypt
+      passwordMatch = await bcrypt.compare(passwordHash, usuario.passwordHash);
+    } else {
+      // Comparar texto plano
+      passwordMatch = (passwordHash === usuario.passwordHash);
+    }
 
     if (!passwordMatch) {
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
@@ -351,6 +364,58 @@ router.delete('/delete-account/:id', async (req, res) => {
   } catch (err) {
     console.error('Error al eliminar cuenta:', err);
     res.status(500).json({ error: 'Error al eliminar cuenta' });
+  }
+});
+
+// POST /api/auth/hash-password - Convertir contraseña de texto plano a hash (SOLO DESARROLLO)
+router.post('/hash-password', async (req, res) => {
+  const { emailUsuario } = req.body;
+
+  if (!emailUsuario) {
+    return res.status(400).json({ error: 'Email es requerido' });
+  }
+
+  try {
+    const pool = await getPool();
+
+    // Obtener usuario
+    const result = await pool.request()
+      .input('emailUsuario', emailUsuario)
+      .query('SELECT idUsuario, passwordHash FROM Usuarios WHERE emailUsuario = @emailUsuario');
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const usuario = result.recordset[0];
+    const currentPassword = usuario.passwordHash;
+
+    // Verificar si ya es un hash bcrypt
+    const isBcryptHash = currentPassword.startsWith('$2a$') ||
+                         currentPassword.startsWith('$2b$') ||
+                         currentPassword.startsWith('$2y$');
+
+    if (isBcryptHash) {
+      return res.json({ message: 'La contraseña ya está hasheada' });
+    }
+
+    // Hashear la contraseña actual (que está en texto plano)
+    const hashedPassword = await bcrypt.hash(currentPassword, 10);
+
+    // Actualizar en la base de datos
+    await pool.request()
+      .input('idUsuario', usuario.idUsuario)
+      .input('passwordHash', hashedPassword)
+      .query('UPDATE Usuarios SET passwordHash = @passwordHash WHERE idUsuario = @idUsuario');
+
+    res.json({
+      message: 'Contraseña actualizada a hash bcrypt correctamente',
+      oldPassword: currentPassword,
+      newHash: hashedPassword
+    });
+  } catch (err) {
+    console.error('Error al hashear contraseña:', err);
+    res.status(500).json({ error: 'Error al hashear contraseña' });
   }
 });
 

@@ -38,9 +38,14 @@ const handleSubmit = async () => {
 
     success.value = '¡Inicio de sesión exitoso!'
 
-    // Redirigir a la página principal después de 1 segundo
+    // Redirigir según el rol del usuario
     setTimeout(() => {
-      router.push('/')
+      const rolesAdmin = ['EMPLEADO', 'ADMIN', 'Empleado', 'Administrador', 'Admin']
+      if (rolesAdmin.includes(data.usuario.nombreRol)) {
+        router.push('/employee')
+      } else {
+        router.push('/')
+      }
     }, 1000)
 
   } catch (err) {
