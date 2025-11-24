@@ -18,6 +18,7 @@ router.get('/', async (req, res) => {
         p.stockProducto,
         p.garantiaMeses,
         p.skuProducto,
+        p.imgProducto,
         p.esActivo,
         c.nombreCategoria,
         pr.nombreEmpresa AS nombreProveedor
@@ -45,7 +46,8 @@ router.post('/', async (req, res) => {
     precioProducto,
     stockProducto,
     garantiaMeses,
-    skuProducto
+    skuProducto,
+    imgProducto
   } = req.body;
 
   // Validaciones básicas
@@ -85,11 +87,12 @@ router.post('/', async (req, res) => {
       .input('stockProducto', stockProducto)
       .input('garantiaMeses', garantiaMeses || 0)
       .input('skuProducto', skuProducto)
+      .input('imgProducto', imgProducto || null)
       .query(`
         INSERT INTO Productos
-        (idCategoria, idProveedor, nombreProducto, descripcionProducto, precioProducto, stockProducto, garantiaMeses, skuProducto, esActivo)
+        (idCategoria, idProveedor, nombreProducto, descripcionProducto, precioProducto, stockProducto, garantiaMeses, skuProducto, imgProducto, esActivo)
         VALUES
-        (@idCategoria, @idProveedor, @nombreProducto, @descripcionProducto, @precioProducto, @stockProducto, @garantiaMeses, @skuProducto, 1);
+        (@idCategoria, @idProveedor, @nombreProducto, @descripcionProducto, @precioProducto, @stockProducto, @garantiaMeses, @skuProducto, @imgProducto, 1);
         SELECT SCOPE_IDENTITY() AS idProducto;
       `);
 
@@ -120,7 +123,8 @@ router.put('/:id', async (req, res) => {
     precioProducto,
     stockProducto,
     garantiaMeses,
-    esActivo
+    esActivo,
+    imgProducto
   } = req.body;
 
   try {
@@ -146,6 +150,7 @@ router.put('/:id', async (req, res) => {
       .input('stockProducto', stockProducto)
       .input('garantiaMeses', garantiaMeses || 0)
       .input('esActivo', esActivo !== undefined ? esActivo : 1)
+      .input('imgProducto', imgProducto || null)
       .query(`
         UPDATE Productos
         SET idCategoria = @idCategoria,
@@ -155,6 +160,7 @@ router.put('/:id', async (req, res) => {
             precioProducto = @precioProducto,
             stockProducto = @stockProducto,
             garantiaMeses = @garantiaMeses,
+            imgProducto = @imgProducto,
             esActivo = @esActivo
         WHERE idProducto = @idProducto
       `);

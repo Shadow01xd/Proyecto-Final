@@ -1,20 +1,30 @@
 // db.js
 const sql = require('mssql');
 
-// Configuración directa (sin .env), igual que tu conexión PHP
-// $serverName = "localhost";
-// Database = "proyectoDBS2";
-// Uid = "Shadow01xd";
-// PWD = "PraiseTheFool";
+
+//const config = {
+//  user: 'Shadow01xd',
+//  password: 'PraiseTheFool',
+//  server: 'localhost',
+//  database: 'dbTiendaHardwarePC',
+//  options: {
+//    encrypt: false,
+//    trustServerCertificate: true
+//  }
+//};
+
 const config = {
-  user: 'Shadow01xd',
-  password: 'PraiseTheFool',
+  user: 'kenn',
+  password: '123',
   server: 'localhost',
+  port: 1433,
   database: 'dbTiendaHardwarePC',
   options: {
-    encrypt: false,
+    encrypt: true,
     trustServerCertificate: true
-  }
+  },
+  connectionTimeout: 30000,
+  requestTimeout: 30000
 };
 
 let pool;

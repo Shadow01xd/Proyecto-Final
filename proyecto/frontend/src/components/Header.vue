@@ -46,6 +46,14 @@ const loadUser = () => {
 }
 
 const logout = () => {
+  // limpiar carrito del usuario actual (clave por usuario y legacy)
+  try {
+    const u = usuario.value || JSON.parse(localStorage.getItem('usuario') || 'null')
+    if (u && u.idUsuario) {
+      localStorage.removeItem(`cart_${u.idUsuario}`)
+    }
+    localStorage.removeItem('cart')
+  } catch {}
   localStorage.removeItem('usuario')
   usuario.value = null
   isLoggedIn.value = false
@@ -83,9 +91,9 @@ const toggleUserMenu = () => {
     <div class="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8">
       <div class="flex items-center h-20">
         <!-- Brand -->
-        <div class="flex-shrink-0">
+        <RouterLink to="/" class="flex-shrink-0" aria-label="Ir al inicio">
           <h1 class="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">NovaTech</h1>
-        </div>
+        </RouterLink>
 
         <!-- Desktop nav -->
         <nav class="hidden md:flex gap-10 mx-auto">
@@ -105,7 +113,7 @@ const toggleUserMenu = () => {
           </button>
 
           <!-- Cart (always visible) -->
-          <button class="p-2.5 hover:bg-secondary rounded-lg transition-colors relative text-foreground" aria-label="Carrito">
+          <RouterLink to="/carrito" class="p-2.5 hover:bg-secondary rounded-lg transition-colors relative text-foreground" aria-label="Ir al carrito">
             <!-- Cart icon -->
             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2h2l2.76 12.74A2 2 0 0 0 8.75 16h8.75a2 2 0 0 0 2-1.64L21.95 6H5.12"/></svg>
             <span
@@ -114,7 +122,7 @@ const toggleUserMenu = () => {
             >
               {{ props.cartCount }}
             </span>
-          </button>
+          </RouterLink>
 
           <!-- User menu (hidden on mobile) -->
           <div class="relative hidden md:inline-flex">

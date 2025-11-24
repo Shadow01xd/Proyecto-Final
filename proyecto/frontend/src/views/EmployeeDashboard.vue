@@ -36,7 +36,8 @@ const productForm = ref({
   precioProducto: '',
   stockProducto: '',
   garantiaMeses: '',
-  skuProducto: ''
+  skuProducto: '',
+  imgProducto: ''
 })
 
 // === USUARIOS ===
@@ -140,7 +141,8 @@ const resetProductForm = () => {
     precioProducto: '',
     stockProducto: '',
     garantiaMeses: '',
-    skuProducto: ''
+    skuProducto: '',
+    imgProducto: ''
   }
 }
 
@@ -162,7 +164,8 @@ const guardarProducto = async () => {
       idProveedor: parseInt(productForm.value.idProveedor),
       precioProducto: parseFloat(productForm.value.precioProducto),
       stockProducto: parseInt(productForm.value.stockProducto),
-      garantiaMeses: parseInt(productForm.value.garantiaMeses) || 0
+      garantiaMeses: parseInt(productForm.value.garantiaMeses) || 0,
+      imgProducto: productForm.value.imgProducto || null
     }
 
     const response = await fetch(url, {
@@ -473,6 +476,7 @@ const cerrarSesion = () => {
           <table class="w-full">
             <thead class="bg-gray-50">
               <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Imagen</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">SKU</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Nombre</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Categoría</th>
@@ -483,6 +487,10 @@ const cerrarSesion = () => {
             </thead>
             <tbody class="divide-y divide-gray-200">
               <tr v-for="p in productos" :key="p.idProducto" class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-sm">
+                  <img v-if="p.imgProducto" :src="p.imgProducto" alt="img" class="w-12 h-12 object-cover rounded" />
+                  <div v-else class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No img</div>
+                </td>
                 <td class="px-4 py-3 text-sm font-mono text-gray-700">{{ p.skuProducto }}</td>
                 <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ p.nombreProducto }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600">{{ p.nombreCategoria }}</td>
@@ -730,6 +738,11 @@ const cerrarSesion = () => {
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Garantía (meses)</label>
               <input v-model="productForm.garantiaMeses" type="number" class="w-full border border-gray-300 rounded-lg px-3 py-2" />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">URL de imagen (imgProducto)</label>
+              <input v-model="productForm.imgProducto" placeholder="https://..." class="w-full border border-gray-300 rounded-lg px-3 py-2" />
+              <p class="text-xs text-gray-500 mt-1">Pega una URL de imagen válida. Se mostrará en la lista.</p>
             </div>
             <div class="col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>

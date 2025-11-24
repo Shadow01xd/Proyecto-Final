@@ -9,6 +9,7 @@ const ordenesRoutes = require('./routes/ordenes');
 const categoriasRoutes = require('./routes/categorias');
 const proveedoresRoutes = require('./routes/proveedores');
 const usuariosRoutes = require('./routes/usuarios');
+const carritoRoutes = require('./routes/carrito');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/api/ordenes', ordenesRoutes);
 app.use('/api/categorias', categoriasRoutes);
 app.use('/api/proveedores', proveedoresRoutes);
 app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/carrito', carritoRoutes);
 
 const PORT = 3000;
 

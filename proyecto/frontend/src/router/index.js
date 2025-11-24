@@ -5,6 +5,7 @@ import Register from '@/views/Register.vue'
 import Profile from '@/views/Profile.vue'
 import MyOrders from '@/views/MyOrders.vue'
 import EmployeeDashboard from '@/views/EmployeeDashboard.vue'
+import Carrito from '@/views/Carrito.vue'
 
 const routes = [
   { path: '/', name: 'home', component: HomeView },
@@ -12,7 +13,8 @@ const routes = [
   { path: '/register', name: 'register', component: Register },
   { path: '/profile', name: 'profile', component: Profile },
   { path: '/my-orders', name: 'my-orders', component: MyOrders },
-  { path: '/employee', name: 'employee', component: EmployeeDashboard }
+  { path: '/employee', name: 'employee', component: EmployeeDashboard },
+  { path: '/carrito', name: 'carrito', component: Carrito }
 ]
 
 const router = createRouter({

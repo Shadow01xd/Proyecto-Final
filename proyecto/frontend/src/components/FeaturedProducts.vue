@@ -1,18 +1,35 @@
 <script setup>
-import { defineEmits } from 'vue'
-import imgGPU from '@/assets/Img/rtx5090.png'
-import imgCPU from '@/assets/Img/Intel_i9.png'
-import imgNVMe from '@/assets/Img/NVMe.png'
-import imgRAM from '@/assets/Img/Ram.png'
+import { defineEmits, ref, onMounted } from 'vue'
 
 const emit = defineEmits(['add-to-cart'])
 
-const products = [
-  { id: 1, name: 'GPU RTX 5090', category: 'Tarjeta Gráfica', price: '$2,499', rating: 4.9, reviews: 342, badge: 'Premium', image: imgGPU },
-  { id: 2, name: 'CPU Intel i9-14900K', category: 'Procesador', price: '$699', rating: 4.8, reviews: 518, badge: 'Bestseller', image: imgCPU },
-  { id: 3, name: 'SSD NVMe 4TB', category: 'Almacenamiento', price: '$399', rating: 4.7, reviews: 291, badge: 'Popular', image: imgNVMe },
-  { id: 4, name: 'RAM DDR5 64GB', category: 'Memoria RAM', price: '$549', rating: 4.9, reviews: 187, badge: 'Premium', image: imgRAM },
-]
+const products = ref([])
+
+function toCard(p) {
+  return {
+    id: p.idProducto,
+    name: p.nombreProducto,
+    category: p.nombreCategoria,
+    price: `$${Number(p.precioProducto || 0).toFixed(2)}`,
+    rating: 4.8,
+    reviews: 100,
+    badge: 'Destacado',
+    image: p.imgProducto || 'https://via.placeholder.com/400x300?text=Producto'
+  }
+}
+
+async function loadProducts() {
+  try {
+    const res = await fetch('http://localhost:3000/api/productos')
+    if (!res.ok) throw new Error('No se pudieron cargar productos')
+    const data = await res.json()
+    products.value = (data || []).map(toCard)
+  } catch (e) {
+    products.value = []
+  }
+}
+
+onMounted(loadProducts)
 </script>
 
 <template>
