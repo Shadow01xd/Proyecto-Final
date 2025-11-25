@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import Header from '@/components/Header.vue'
+import Footer from '@/components/Footer.vue'
 
 const router = useRouter()
 
@@ -379,90 +381,89 @@ const cerrarSesion = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b">
-      <div class="container mx-auto px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-2xl font-bold text-gray-800">
-              {{ esAdmin ? '🔧 Panel de Administración' : '👔 Panel de Empleado' }}
-            </h1>
-            <p class="text-sm text-gray-600" v-if="usuario">
-              {{ usuario.nombreUsuario }} {{ usuario.apellidoUsuario }} • {{ usuario.nombreRol }}
-            </p>
-          </div>
-          <button
-            @click="cerrarSesion"
-            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
-          >
-            Cerrar Sesión
-          </button>
-        </div>
+  <div class="min-h-screen bg-background text-foreground">
+    <Header />
 
-        <!-- Tabs -->
-        <div class="flex gap-4 mt-6 border-b">
-          <button
-            @click="activeTab = 'productos'"
-            :class="[
-              'px-4 py-2 font-medium transition -mb-px',
-              activeTab === 'productos'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
-            ]"
-          >
-            📦 Productos
-          </button>
-          <button
-            v-if="esAdmin"
-            @click="activeTab = 'usuarios'"
-            :class="[
-              'px-4 py-2 font-medium transition -mb-px',
-              activeTab === 'usuarios'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
-            ]"
-          >
-            👥 Usuarios
-          </button>
-          <button
-            v-if="esAdmin"
-            @click="activeTab = 'empleados'"
-            :class="[
-              'px-4 py-2 font-medium transition -mb-px',
-              activeTab === 'empleados'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
-            ]"
-          >
-            👨‍💼 Empleados
-          </button>
+    <!-- Tabs/Header dentro del contenido principal -->
+    <div class="container mx-auto px-6 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">
+            {{ esAdmin ? '🔧 Panel de Administración' : '👔 Panel de Empleado' }}
+          </h1>
+          <p class="text-sm text-gray-600" v-if="usuario">
+            {{ usuario.nombreUsuario }} {{ usuario.apellidoUsuario }} • {{ usuario.nombreRol }}
+          </p>
         </div>
+        <button
+          @click="cerrarSesion"
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
+        >
+          Cerrar Sesión
+        </button>
       </div>
-    </header>
+
+      <div class="flex gap-4 mt-6 border-b border-border">
+        <button
+          @click="activeTab = 'productos'"
+          :class="[
+            'px-4 py-2 font-medium transition -mb-px',
+            activeTab === 'productos'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
+        >
+          📦 Productos
+        </button>
+        <button
+          v-if="esAdmin"
+          @click="activeTab = 'usuarios'"
+          :class="[
+            'px-4 py-2 font-medium transition -mb-px',
+            activeTab === 'usuarios'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
+        >
+          👥 Usuarios
+        </button>
+        <button
+          v-if="esAdmin"
+          @click="activeTab = 'empleados'"
+          :class="[
+            'px-4 py-2 font-medium transition -mb-px',
+            activeTab === 'empleados'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
+        >
+          👨‍💼 Empleados
+        </button>
+      </div>
+    </div>
 
     <!-- Main Content -->
     <main class="container mx-auto px-6 py-8">
       <!-- Loading -->
       <div v-if="loading" class="text-center py-12">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p class="mt-4 text-gray-600">Cargando...</p>
+        <p class="mt-4 text-muted-foreground">Cargando...</p>
       </div>
 
       <!-- Messages -->
-      <div v-if="error" class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+      <div v-if="error" class="mb-6 bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg">
         {{ error }}
       </div>
-      <div v-if="success" class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+      <div v-if="success" class="mb-6 bg-green-500/10 border border-green-500 text-green-500 px-4 py-3 rounded-lg">
         {{ success }}
       </div>
 
       <!-- TAB: PRODUCTOS -->
-      <div v-if="activeTab === 'productos' && !loading" class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b flex items-center justify-between">
+      <div v-if="activeTab === 'productos' && !loading" class="bg-card rounded-xl shadow-sm overflow-hidden border border-border">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
-            <h2 class="text-xl font-bold text-gray-800">Gestión de Productos</h2>
-            <p class="text-sm text-gray-600">Total: {{ productos.length }} productos</p>
+            <h2 class="text-xl font-bold">Gestión de Productos</h2>
+            <p class="text-sm text-muted-foreground">Total: {{ productos.length }} productos</p>
           </div>
           <button
             @click="abrirProductModal()"
@@ -474,7 +475,7 @@ const cerrarSesion = () => {
 
         <div class="overflow-x-auto">
           <table class="w-full">
-            <thead class="bg-gray-50">
+            <thead class="bg-secondary/50">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Imagen</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">SKU</th>
@@ -485,15 +486,15 @@ const cerrarSesion = () => {
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr v-for="p in productos" :key="p.idProducto" class="hover:bg-gray-50">
+            <tbody class="divide-y divide-border">
+              <tr v-for="p in productos" :key="p.idProducto" class="hover:bg-secondary/40">
                 <td class="px-4 py-3 text-sm">
                   <img v-if="p.imgProducto" :src="p.imgProducto" alt="img" class="w-12 h-12 object-cover rounded" />
-                  <div v-else class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No img</div>
+                  <div v-else class="w-12 h-12 bg-secondary rounded flex items-center justify-center text-xs text-muted-foreground">No img</div>
                 </td>
-                <td class="px-4 py-3 text-sm font-mono text-gray-700">{{ p.skuProducto }}</td>
-                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ p.nombreProducto }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600">{{ p.nombreCategoria }}</td>
+                <td class="px-4 py-3 text-sm font-mono">{{ p.skuProducto }}</td>
+                <td class="px-4 py-3 text-sm font-medium">{{ p.nombreProducto }}</td>
+                <td class="px-4 py-3 text-sm text-muted-foreground">{{ p.nombreCategoria }}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-blue-600">
                   ${{ Number(p.precioProducto || 0).toFixed(2) }}
                 </td>
@@ -508,7 +509,7 @@ const cerrarSesion = () => {
                 </td>
               </tr>
               <tr v-if="productos.length === 0">
-                <td colspan="6" class="px-4 py-6 text-center text-sm text-gray-500">
+                <td colspan="6" class="px-4 py-6 text-center text-sm text-muted-foreground">
                   No hay productos registrados aún.
                 </td>
               </tr>
@@ -518,11 +519,11 @@ const cerrarSesion = () => {
       </div>
 
       <!-- TAB: USUARIOS / CLIENTES -->
-      <div v-if="activeTab === 'usuarios' && !loading" class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b flex items-center justify-between">
+      <div v-if="activeTab === 'usuarios' && !loading" class="bg-card rounded-xl shadow-sm overflow-hidden border border-border">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
-            <h2 class="text-xl font-bold text-gray-800">Gestión de Usuarios</h2>
-            <p class="text-sm text-gray-600">Total: {{ usuariosFiltrados.length }}</p>
+            <h2 class="text-xl font-bold">Gestión de Usuarios</h2>
+            <p class="text-sm text-muted-foreground">Total: {{ usuariosFiltrados.length }}</p>
           </div>
           <button
             v-if="esAdmin"
@@ -535,7 +536,7 @@ const cerrarSesion = () => {
 
         <div class="overflow-x-auto">
           <table class="w-full">
-            <thead class="bg-gray-50">
+            <thead class="bg-secondary/50">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Nombre</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
@@ -544,10 +545,10 @@ const cerrarSesion = () => {
                 <th v-if="esAdmin" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr v-for="u in usuariosFiltrados" :key="u.idUsuario" class="hover:bg-gray-50">
-                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ u.nombreUsuario }} {{ u.apellidoUsuario }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600">{{ u.emailUsuario }}</td>
+            <tbody class="divide-y divide-border">
+              <tr v-for="u in usuariosFiltrados" :key="u.idUsuario" class="hover:bg-secondary/40">
+                <td class="px-4 py-3 text-sm font-medium">{{ u.nombreUsuario }} {{ u.apellidoUsuario }}</td>
+                <td class="px-4 py-3 text-sm text-muted-foreground">{{ u.emailUsuario }}</td>
                 <td class="px-4 py-3 text-sm">
                   <span class="px-2 py-1 text-xs font-medium rounded-full" :class="{
                     'bg-purple-100 text-purple-700': u.nombreRol === 'ADMIN',
@@ -587,7 +588,7 @@ const cerrarSesion = () => {
                 </td>
               </tr>
               <tr v-if="usuariosFiltrados.length === 0">
-                <td colspan="5" class="px-4 py-6 text-center text-sm text-gray-500">
+                <td colspan="5" class="px-4 py-6 text-center text-sm text-muted-foreground">
                   No hay {{ esAdmin ? 'usuarios' : 'clientes' }} registrados aún.
                 </td>
               </tr>
@@ -597,11 +598,11 @@ const cerrarSesion = () => {
       </div>
 
       <!-- TAB: EMPLEADOS (Solo Admin) -->
-      <div v-if="activeTab === 'empleados' && esAdmin && !loading" class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b flex items-center justify-between">
+      <div v-if="activeTab === 'empleados' && esAdmin && !loading" class="bg-card rounded-xl shadow-sm overflow-hidden border border-border">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
-            <h2 class="text-xl font-bold text-gray-800">Gestión de Empleados</h2>
-            <p class="text-sm text-gray-600">
+            <h2 class="text-xl font-bold">Gestión de Empleados</h2>
+            <p class="text-sm text-muted-foreground">
               Total: {{ usuarios.filter(u => {
                 const rol = (u.nombreRol || '').toUpperCase()
                 return rol === 'EMPLEADO' || rol === 'ADMIN'
@@ -619,7 +620,7 @@ const cerrarSesion = () => {
 
         <div class="overflow-x-auto">
           <table class="w-full">
-            <thead class="bg-gray-50">
+            <thead class="bg-secondary/50">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Nombre</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
@@ -629,17 +630,17 @@ const cerrarSesion = () => {
                 <th v-if="esAdmin" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
+            <tbody class="divide-y divide-border">
               <tr
                 v-for="u in usuarios.filter(u => {
                   const rol = (u.nombreRol || '').toUpperCase()
                   return rol === 'EMPLEADO' || rol === 'ADMIN'
                 })"
                 :key="u.idUsuario"
-                class="hover:bg-gray-50"
+                class="hover:bg-secondary/40"
               >
-                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ u.nombreUsuario }} {{ u.apellidoUsuario }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600">{{ u.emailUsuario }}</td>
+                <td class="px-4 py-3 text-sm font-medium">{{ u.nombreUsuario }} {{ u.apellidoUsuario }}</td>
+                <td class="px-4 py-3 text-sm text-muted-foreground">{{ u.emailUsuario }}</td>
                 <td class="px-4 py-3 text-sm">
                   <span class="px-2 py-1 text-xs font-medium rounded-full" :class="{
                     'bg-purple-100 text-purple-700': u.nombreRol === 'ADMIN',
@@ -648,7 +649,7 @@ const cerrarSesion = () => {
                     {{ u.nombreRol }}
                   </span>
                 </td>
-                <td class="px-4 py-3 text-sm text-gray-600">{{ u.telefonoUsuario || 'N/A' }}</td>
+                <td class="px-4 py-3 text-sm text-muted-foreground">{{ u.telefonoUsuario || 'N/A' }}</td>
                 <td class="px-4 py-3 text-sm">
                   <span :class="u.estadoUsuario ? 'text-green-600' : 'text-red-600'">
                     {{ u.estadoUsuario ? '✓ Activo' : '✗ Inactivo' }}
@@ -682,7 +683,7 @@ const cerrarSesion = () => {
                 const rol = (u.nombreRol || '').toUpperCase()
                 return rol === 'EMPLEADO' || rol === 'ADMIN'
               }).length === 0">
-                <td colspan="5" class="px-4 py-6 text-center text-sm text-gray-500">
+                <td colspan="5" class="px-4 py-6 text-center text-sm text-muted-foreground">
                   No hay empleados registrados aún.
                 </td>
               </tr>
@@ -821,5 +822,7 @@ const cerrarSesion = () => {
         </form>
       </div>
     </div>
+
+    <Footer />
   </div>
 </template>

@@ -1,9 +1,18 @@
 <script setup>
-import { defineEmits, ref, onMounted } from 'vue'
+import { defineEmits, ref, onMounted, computed, watch } from 'vue'
 
 const emit = defineEmits(['add-to-cart'])
 
 const products = ref([])
+
+// Roles: mostrar editor solo a ADMIN / ADMINISTRADOR / EMPLEADO
+const isStaff = ref(false)
+const FEATURED_KEY = 'featured_products_selection'
+
+// IDs seleccionados (hasta 8)
+const featuredIds = ref([])
+// Modal editor
+const isEditorOpen = ref(false)
 
 function toCard(p) {
   return {
@@ -18,57 +27,319 @@ function toCard(p) {
   }
 }
 
+function loadRole() {
+  try {
+    const u = JSON.parse(localStorage.getItem('usuario') || 'null')
+    const rol = (u?.nombreRol || '').toUpperCase()
+    isStaff.value = rol === 'ADMIN' || rol === 'ADMINISTRADOR' || rol === 'EMPLEADO'
+  } catch {
+    isStaff.value = false
+  }
+}
+
+function loadFeaturedFromStorage() {
+  try {
+    const raw = localStorage.getItem(FEATURED_KEY)
+    const arr = raw ? JSON.parse(raw) : []
+    if (Array.isArray(arr)) featuredIds.value = arr.slice(0, 8)
+  } catch {
+    featuredIds.value = []
+  }
+}
+
+function saveFeaturedToStorage() {
+  try {
+    localStorage.setItem(FEATURED_KEY, JSON.stringify(featuredIds.value.slice(0, 8)))
+  } catch { }
+}
+
 async function loadProducts() {
   try {
     const res = await fetch('http://localhost:3000/api/productos')
     if (!res.ok) throw new Error('No se pudieron cargar productos')
     const data = await res.json()
-    products.value = (data || []).map(toCard)
+    const cards = (data || []).map(toCard)
+    products.value = cards
+
+    // si no hay selección previa, tomar primeros hasta 4 por defecto
+    if (!featuredIds.value.length) {
+      featuredIds.value = cards.slice(0, 4).map(p => p.id)
+      saveFeaturedToStorage()
+    }
   } catch (e) {
     products.value = []
   }
 }
 
-onMounted(loadProducts)
+onMounted(() => {
+  loadRole()
+  loadFeaturedFromStorage()
+  loadProducts()
+})
+
+watch(featuredIds, saveFeaturedToStorage, { deep: true })
+
+const featuredProducts = computed(() => {
+  if (!products.value.length) return []
+  const map = new Map(products.value.map(p => [p.id, p]))
+  const picked = featuredIds.value
+    .map(id => map.get(id))
+    .filter(Boolean)
+    .slice(0, 8)
+  if (picked.length) return picked
+  // fallback por si algo falla
+  return products.value.slice(0, 4)
+})
+
+// Carousel (para 1-3)
+const currentSlide = ref(0)
+const totalSlides = computed(() => featuredProducts.value.length)
+const showSingle = computed(() => totalSlides.value === 1)
+const showCarousel = computed(() => totalSlides.value >= 2 && totalSlides.value <= 3)
+const showGrid = computed(() => totalSlides.value >= 4 && totalSlides.value <= 8)
+
+function nextSlide() {
+  if (!totalSlides.value) return
+  currentSlide.value = (currentSlide.value + 1) % totalSlides.value
+}
+function prevSlide() {
+  if (!totalSlides.value) return
+  currentSlide.value = (currentSlide.value - 1 + totalSlides.value) % totalSlides.value
+}
+
+// Helpers UI editor
+const maxReached = computed(() => featuredIds.value.length >= 8)
+function toggleFeatured(id) {
+  const idx = featuredIds.value.indexOf(id)
+  if (idx >= 0) {
+    featuredIds.value.splice(idx, 1)
+    if (currentSlide.value >= featuredIds.value.length) currentSlide.value = 0
+  } else {
+    if (featuredIds.value.length < 8) featuredIds.value.push(id)
+  }
+}
+const isChecked = id => featuredIds.value.includes(id)
+
+// Mantener índice válido si cambia el número de slides
+watch(totalSlides, (n) => {
+  if (currentSlide.value >= n) currentSlide.value = 0
+})
 </script>
 
 <template>
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
     <div class="space-y-12">
       <div class="space-y-4">
-        <h2 class="text-3xl md:text-4xl font-bold text-foreground">Productos Destacados</h2>
-        <p class="text-lg text-muted-foreground">Los componentes más veloces y confiables del mercado</p>
+        <div class="flex items-start justify-between gap-4">
+          <div class="space-y-2">
+            <h2 class="text-3xl md:text-4xl font-bold text-foreground">Productos Destacados</h2>
+            <p class="text-lg text-muted-foreground">Los componentes más veloces y confiables del mercado</p>
+          </div>
+          <div v-if="isStaff" class="mt-1">
+            <button
+              class="px-4 py-2 rounded-md text-white text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-red-600 dark:hover:bg-red-700"
+              @click="isEditorOpen = true">
+              Editar destacados
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div v-for="p in products" :key="p.id" class="group overflow-hidden rounded-lg bg-card border border-border hover:border-primary transition-all duration-300">
+      <!-- Modal Editor: visible solo para staff -->
+      <div v-if="isStaff && isEditorOpen" class="fixed inset-0 z-[60]">
+        <div class="absolute inset-0 bg-black/50" @click="isEditorOpen = false"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+          <div class="w-full max-w-2xl bg-card border border-border rounded-lg shadow-lg">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h3 class="font-semibold text-foreground">Editar destacados</h3>
+              <div class="flex items-center gap-3 text-sm text-muted-foreground">
+                <span>Seleccionados: {{ featuredIds.length }}/8</span>
+                <button class="h-8 w-8 grid place-items-center rounded-md hover:bg-secondary/40" @click="isEditorOpen = false">✕</button>
+              </div>
+            </div>
+            <div class="p-4 space-y-4">
+              <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-72 overflow-auto pr-1">
+                <label v-for="p in products" :key="p.id"
+                  :class="['flex items-center gap-3 p-2 rounded-md border cursor-pointer transition-colors', isChecked(p.id) ? 'bg-secondary/30 border-primary' : 'border-border hover:bg-secondary/40']">
+                  <input type="checkbox" class="rounded border-border text-primary focus:ring-primary"
+                    :checked="isChecked(p.id)" :disabled="!isChecked(p.id) && maxReached" @change="toggleFeatured(p.id)" />
+                  <span class="text-sm text-foreground truncate">{{ p.name }}</span>
+                </label>
+              </div>
+              <p class="text-xs text-muted-foreground">Elige hasta 8 productos. Si seleccionas 1 a 3, se mostrará un carrusel;
+                si seleccionas 4 a 8, se mostrarán tarjetas.</p>
+              <div class="flex justify-end gap-2 pt-2">
+                <button class="px-4 py-2 rounded-md border border-border hover:bg-secondary/40" @click="isEditorOpen = false">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista: Único (1) -->
+      <div v-if="showSingle" class="">
+        <div class="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+          <div class="grid md:grid-cols-12 md:gap-6">
+            <div class="relative md:col-span-5">
+              <div class="w-full bg-muted flex items-center justify-center p-3 rounded-lg border border-border"
+                style="aspect-ratio: 16/9;">
+                <img :src="featuredProducts[0].image" :alt="featuredProducts[0].name"
+                  class="max-h-full max-w-full object-contain" loading="lazy" />
+              </div>
+              <div
+                class="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
+                {{ featuredProducts[0].badge }}</div>
+            </div>
+            <div class="md:col-span-7 p-6 md:p-8 space-y-4 flex flex-col justify-center">
+              <div class="space-y-1">
+                <p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{{
+                  featuredProducts[0].category }}</p>
+                <h3 class="text-2xl md:text-3xl font-bold text-foreground leading-tight tracking-tight">{{
+                  featuredProducts[0].name }}</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1">
+                  <svg v-for="star in 5" :key="star" class="h-4 w-4 transition-colors"
+                    :class="star <= Math.floor(featuredProducts[0].rating) ? 'fill-amber-400 text-amber-400' : 'fill-muted text-muted'"
+                    viewBox="0 0 24 24">
+                    <path
+                      d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.785 1.401 8.168L12 18.896l-7.335 3.868 1.401-8.168L.132 9.211l8.2-1.193L12 .587z" />
+                  </svg>
+                  <span class="text-sm font-semibold text-foreground">{{ featuredProducts[0].rating }}</span>
+                </div>
+                <span class="text-xs text-muted-foreground">({{ featuredProducts[0].reviews }})</span>
+              </div>
+              <div
+                class="pt-3 border-t border-border flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <p class="text-2xl md:text-3xl font-bold text-foreground">{{ featuredProducts[0].price }}</p>
+                <button
+                  class="w-full md:w-auto px-6 py-2 rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold"
+                  @click="emit('add-to-cart', featuredProducts[0])">
+                  Agregar al carrito
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista: Carrusel (2-3) -->
+      <div v-if="showCarousel" class="relative">
+        <div class="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+          <div class="overflow-hidden">
+            <div class="flex transition-transform duration-500"
+              :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+              <div v-for="(p, idx) in featuredProducts" :key="p.id" class="w-full flex-shrink-0">
+                <div class="grid md:grid-cols-12 md:gap-6">
+                  <!-- Imagen del producto -->
+                  <div class="relative md:col-span-5">
+                    <div class="w-full bg-muted flex items-center justify-center p-3 rounded-lg border border-border"
+                      style="aspect-ratio: 16/9;">
+                      <img :src="p.image" :alt="p.name" class="max-h-full max-w-full object-contain" loading="lazy" />
+                    </div>
+                    <!-- Badge flotante -->
+                    <div
+                      class="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
+                      {{ p.badge }}
+                    </div>
+                  </div>
+
+                  <!-- Información del producto -->
+                  <div class="md:col-span-7 p-6 md:p-8 space-y-4 flex flex-col justify-center">
+                    <div class="space-y-1">
+                      <p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                        {{ p.category }}
+                      </p>
+                      <h3 class="text-2xl md:text-3xl font-bold text-foreground leading-tight tracking-tight">
+                        {{ p.name }}
+                      </h3>
+                    </div>
+
+                    <!-- Rating -->
+                    <div class="flex items-center gap-2">
+                      <div class="flex items-center gap-1 text-primary">
+                        <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                          <path
+                            d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.785 1.401 8.168L12 18.896l-7.335 3.868 1.401-8.168L.132 9.211l8.2-1.193L12 .587z" />
+                        </svg>
+                        <span class="text-sm font-semibold text-foreground">{{ p.rating }}</span>
+                      </div>
+                      <span class="text-xs text-muted-foreground">({{ p.reviews }})</span>
+                    </div>
+
+                    <!-- Precio y botón -->
+                    <div
+                      class="pt-3 border-t border-border flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                      <p class="text-2xl md:text-3xl font-bold text-foreground">
+                        {{ p.price }}
+                      </p>
+                      <button
+                        class="w-full md:w-auto px-6 rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2"
+                        @click="emit('add-to-cart', p)">
+                        Agregar al carrito
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de navegación -->
+        <button @click="prevSlide"
+          class="absolute left-3 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur text-foreground hover:bg-background rounded-full h-9 w-9 grid place-items-center border border-border shadow-sm"
+          aria-label="Producto anterior">
+          ‹
+        </button>
+
+        <button @click="nextSlide"
+          class="absolute right-3 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur text-foreground hover:bg-background rounded-full h-9 w-9 grid place-items-center border border-border shadow-sm"
+          aria-label="Producto siguiente">
+          ›
+        </button>
+
+        <!-- Indicadores -->
+        <div class="mt-3 flex justify-center gap-2">
+          <button v-for="(p, i) in featuredProducts" :key="p.id" class="h-2 w-2 rounded-full border"
+            :class="i === currentSlide ? 'bg-primary border-primary' : 'bg-muted-foreground/30 border-border'"
+            @click="currentSlide = i" :aria-label="`Ir a producto ${i + 1}`" />
+        </div>
+      </div>
+
+      <!-- Vista: Grid (4-8) -->
+      <div v-if="showGrid" class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div v-for="p in featuredProducts" :key="p.id"
+          class="group overflow-hidden rounded-lg bg-card border border-border hover:border-primary transition-all duration-300">
           <div class="p-0">
-            <!-- Placeholder visual sin imagen -->
             <div class="relative overflow-hidden h-48">
               <img :src="p.image" :alt="p.name" class="w-full h-full object-cover" loading="lazy" />
-              <div class="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">{{ p.badge }}</div>
+              <div
+                class="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
+                {{ p.badge }}</div>
             </div>
             <div class="p-4 space-y-4">
               <div class="space-y-1">
-                <p class="text-xs text-black-foreground uppercase tracking-wider font-semibold">{{ p.category }}</p>
-                <h3 class="font-bold text-foreground leading-tight">{{ p.name }}</h3>
+                <p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{{ p.category }}</p>
+                <h3 class="text-2xl md:text-3xl font-bold text-foreground leading-tight tracking-tight">{{ p.name }}
+                </h3>
               </div>
-
               <div class="flex items-center gap-2">
-                <div class="flex items-center gap-1 text-primary">
-                  <!-- star icon -->
-                  <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.785 1.401 8.168L12 18.896l-7.335 3.868 1.401-8.168L.132 9.211l8.2-1.193L12 .587z"/></svg>
+                <div class="flex items-center gap-1">
+                  <svg v-for="star in 5" :key="star" class="h-4 w-4 transition-colors"
+                    :class="star <= Math.floor(p.rating) ? 'fill-amber-400 text-amber-400' : 'fill-muted text-muted'"
+                    viewBox="0 0 24 24">
+                    <path
+                      d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.785 1.401 8.168L12 18.896l-7.335 3.868 1.401-8.168L.132 9.211l8.2-1.193L12 .587z" />
+                  </svg>
                   <span class="text-sm font-semibold text-foreground">{{ p.rating }}</span>
                 </div>
                 <span class="text-xs text-muted-foreground">({{ p.reviews }})</span>
               </div>
-
               <div class="space-y-3 pt-2 border-t border-border">
-                <p class="text-2xl font-bold text-White">{{ p.price }}</p>
-                <button
-                  class="w-full rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2"
-                  @click="emit('add-to-cart', p)"
-                >
+                <p class="text-2xl md:text-3xl font-bold text-foreground">{{ p.price }}</p>
+                <button class="w-full rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2"
+                  @click="emit('add-to-cart', p)">
                   Agregar al carrito
                 </button>
               </div>
@@ -80,5 +351,4 @@ onMounted(loadProducts)
   </section>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

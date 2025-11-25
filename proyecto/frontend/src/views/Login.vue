@@ -42,7 +42,7 @@ const handleSubmit = async () => {
     setTimeout(() => {
       const rolesAdmin = ['EMPLEADO', 'ADMIN', 'Empleado', 'Administrador', 'Admin']
       if (rolesAdmin.includes(data.usuario.nombreRol)) {
-        router.push('/employee')
+        router.push('/dashboard')
       } else {
         router.push('/')
       }

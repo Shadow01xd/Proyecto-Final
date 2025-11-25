@@ -13,7 +13,8 @@ const routes = [
   { path: '/register', name: 'register', component: Register },
   { path: '/profile', name: 'profile', component: Profile },
   { path: '/my-orders', name: 'my-orders', component: MyOrders },
-  { path: '/employee', name: 'employee', component: EmployeeDashboard },
+  { path: '/dashboard', name: 'dashboard', component: EmployeeDashboard },
+  { path: '/employee', redirect: '/dashboard' },
   { path: '/carrito', name: 'carrito', component: Carrito }
 ]
 

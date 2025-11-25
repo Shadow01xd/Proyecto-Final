@@ -41,8 +41,15 @@ const loadUser = () => {
     } catch (e) {
       console.error('Error al parsear datos del usuario:', e)
       localStorage.removeItem('usuario')
+      usuario.value = null
+      isLoggedIn.value = false
     }
+  } else {
+    usuario.value = null
+    isLoggedIn.value = false
   }
+  // Actualizar flags de rol tras cargar usuario
+  updateRoleFlags()
 }
 
 const logout = () => {
@@ -58,7 +65,10 @@ const logout = () => {
   usuario.value = null
   isLoggedIn.value = false
   isUserMenuOpen.value = false
-  router.push('/')
+  // resetear flags de rol para ocultar "Dashboard" de inmediato
+  isStaff.value = false
+  // recargar completamente la página para limpiar cualquier estado en memoria
+  window.location.href = '/'
 }
 
 onMounted(() => {
@@ -84,6 +94,13 @@ const isUserMenuOpen = ref(false)
 const toggleUserMenu = () => {
   isUserMenuOpen.value = !isUserMenuOpen.value
 }
+
+// Roles con acceso a Dashboard
+const isStaff = ref(false)
+const updateRoleFlags = () => {
+  const rol = (usuario.value?.nombreRol || '').toUpperCase()
+  isStaff.value = rol === 'ADMIN' || rol === 'ADMINISTRADOR' || rol === 'EMPLEADO'
+}
 </script>
 
   <template>
@@ -102,6 +119,7 @@ const toggleUserMenu = () => {
           <a href="#" class="text-base font-medium text-foreground hover:text-primary transition-colors">Periféricos</a>
           <a href="#" class="text-base font-medium text-foreground hover:text-primary transition-colors">Gaming</a>
           <a href="#" class="text-base font-medium text-foreground hover:text-primary transition-colors">Ofertas</a>
+          <RouterLink v-if="isStaff" to="/dashboard" class="text-base font-medium text-foreground hover:text-primary transition-colors">Administrar</RouterLink>
         </nav>
 
         <!-- Actions -->
@@ -219,6 +237,14 @@ const toggleUserMenu = () => {
             @click="isMenuOpen = false"
           >
             Inicio
+          </RouterLink>
+          <RouterLink
+            v-if="isStaff"
+            to="/dashboard"
+            class="block px-4 py-2.5 text-foreground hover:bg-secondary hover:text-primary transition-colors rounded-md"
+            @click="isMenuOpen = false"
+          >
+            Administrar
           </RouterLink>
           <a
             href="#"
