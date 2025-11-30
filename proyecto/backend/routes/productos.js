@@ -200,4 +200,42 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/productos/:id/hard - Eliminar producto (borrado físico definitivo)
+router.delete('/:id/hard', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pool = await getPool();
+
+    // Verificar que el producto existe
+    const checkProduct = await pool.request()
+      .input('idProducto', id)
+      .query('SELECT idProducto FROM Productos WHERE idProducto = @idProducto');
+
+    if (checkProduct.recordset.length === 0) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    // Eliminar referencias en CarritoItems
+    await pool.request()
+      .input('idProducto', id)
+      .query('DELETE FROM CarritoItems WHERE idProducto = @idProducto');
+
+    // Eliminar referencias en DetalleOrden
+    await pool.request()
+      .input('idProducto', id)
+      .query('DELETE FROM DetalleOrden WHERE idProducto = @idProducto');
+
+    // Finalmente eliminar el producto
+    await pool.request()
+      .input('idProducto', id)
+      .query('DELETE FROM Productos WHERE idProducto = @idProducto');
+
+    res.json({ message: 'Producto eliminado definitivamente' });
+  } catch (err) {
+    console.error('Error al eliminar producto definitivamente:', err);
+    res.status(500).json({ error: 'Error al eliminar producto definitivamente' });
+  }
+});
+
 module.exports = router;

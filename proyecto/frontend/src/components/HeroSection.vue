@@ -1,5 +1,6 @@
 <script setup>
 import heroImg from "@/assets/Img/TopGama.png";
+import { RouterLink } from 'vue-router'
 </script>
 
 <template>
@@ -29,16 +30,18 @@ import heroImg from "@/assets/Img/TopGama.png";
             productividad y streaming profesional.
           </p>
           <div class="flex gap-4 flex-wrap pt-2">
-            <a
+            <RouterLink
+              to="/hardware"
               class="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:opacity-90 font-semibold px-6 py-3"
-              href="#"
-              >Explorar Productos</a
             >
-            <a
+              Explorar Productos
+            </RouterLink>
+            <RouterLink
+              to="/builder"
               class="inline-flex items-center justify-center rounded-md border border-border hover:bg-secondary text-foreground font-semibold px-6 py-3"
-              href="#"
-              >Ver Especificaciones</a
             >
+              Ver Especificaciones
+            </RouterLink>
           </div>
         </div>
         <div class="hidden md:block">

@@ -1,4 +1,48 @@
 <script setup>
+import { ref } from 'vue'
+
+const email = ref('')
+const loading = ref(false)
+const message = ref('')
+const messageType = ref('') // 'success' | 'error'
+
+const validateEmail = (value) => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return re.test(String(value).toLowerCase())
+}
+
+const handleSubscribe = () => {
+  message.value = ''
+  messageType.value = ''
+
+  if (!email.value || !validateEmail(email.value)) {
+    message.value = 'Por favor ingresa un correo válido.'
+    messageType.value = 'error'
+    return
+  }
+
+  loading.value = true
+
+  try {
+    const key = 'newsletter_subscribers'
+    const raw = localStorage.getItem(key)
+    const list = raw ? JSON.parse(raw) : []
+
+    if (!list.includes(email.value)) {
+      list.push(email.value)
+      localStorage.setItem(key, JSON.stringify(list))
+    }
+
+    message.value = '¡Gracias por suscribirte! Pronto recibirás nuestras novedades.'
+    messageType.value = 'success'
+    email.value = ''
+  } catch (e) {
+    message.value = 'Ocurrió un error al guardar tu suscripción. Intenta más tarde.'
+    messageType.value = 'error'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
@@ -19,9 +63,24 @@
         <p class="text-muted-foreground text-lg">Recibe actualizaciones de productos nuevos, ofertas exclusivas y consejos de expertos en hardware</p>
 
         <div class="flex gap-2 flex-col sm:flex-row">
-          <input type="email" placeholder="tu@email.com" class="w-full rounded-md bg-background border border-border text-foreground placeholder:text-muted-foreground px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/40" />
-          <button class="rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold px-6 py-2.5">Suscribirse</button>
+          <input
+            v-model="email"
+            type="email"
+            placeholder="tu@email.com"
+            class="w-full rounded-md bg-background border border-border text-foreground placeholder:text-muted-foreground px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+          <button
+            class="rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold px-6 py-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="loading"
+            @click="handleSubscribe"
+          >
+            {{ loading ? 'Enviando...' : 'Suscribirse' }}
+          </button>
         </div>
+
+        <p v-if="message" class="mt-3 text-sm" :class="messageType === 'success' ? 'text-green-500' : 'text-red-500'">
+          {{ message }}
+        </p>
       </div>
     </div>
   </section>

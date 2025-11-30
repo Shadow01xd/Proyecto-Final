@@ -2,18 +2,18 @@
 const sql = require('mssql');
 
 
-//const config = {
-//  user: 'Shadow01xd',
-//  password: 'PraiseTheFool',
-//  server: 'localhost',
-//  database: 'dbTiendaHardwarePC',
-//  options: {
-//    encrypt: false,
-//    trustServerCertificate: true
-//  }
-//};
-
 const config = {
+  user: 'Shadow01xd',
+  password: 'PraiseTheFool',
+  server: 'localhost',
+  database: 'dbTiendaHardwarePC',
+  options: {
+    encrypt: false,
+   trustServerCertificate: true
+  }
+};
+
+/*const config = {
   user: 'kenn',
   password: '123',
   server: 'localhost',
@@ -25,7 +25,7 @@ const config = {
   },
   connectionTimeout: 30000,
   requestTimeout: 30000
-};
+};*/
 
 let pool;
 

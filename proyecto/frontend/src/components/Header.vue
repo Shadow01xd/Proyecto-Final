@@ -115,10 +115,10 @@ const updateRoleFlags = () => {
         <!-- Desktop nav -->
         <nav class="hidden md:flex gap-10 mx-auto">
           <RouterLink to="/" class="text-base font-medium text-foreground hover:text-primary transition-colors">Inicio</RouterLink>
-          <a href="#" class="text-base font-medium text-foreground hover:text-primary transition-colors">Hardware</a>
-          <a href="#" class="text-base font-medium text-foreground hover:text-primary transition-colors">Periféricos</a>
-          <a href="#" class="text-base font-medium text-foreground hover:text-primary transition-colors">Gaming</a>
+          <RouterLink to="/hardware" class="text-base font-medium text-foreground hover:text-primary transition-colors">Catálogo</RouterLink>
+          <RouterLink to="/builder" class="text-base font-medium text-foreground hover:text-primary transition-colors">Arma tu PC</RouterLink>
           <a href="#" class="text-base font-medium text-foreground hover:text-primary transition-colors">Ofertas</a>
+          <RouterLink to="/about" class="text-base font-medium text-foreground hover:text-primary transition-colors">Sobre nosotros</RouterLink>
           <RouterLink v-if="isStaff" to="/dashboard" class="text-base font-medium text-foreground hover:text-primary transition-colors">Administrar</RouterLink>
         </nav>
 
@@ -246,27 +246,20 @@ const updateRoleFlags = () => {
           >
             Administrar
           </RouterLink>
-          <a
-            href="#"
+          <RouterLink
+            to="/hardware"
             class="block px-4 py-2.5 text-foreground hover:bg-secondary hover:text-primary transition-colors rounded-md"
             @click="isMenuOpen = false"
           >
-            Hardware
-          </a>
-          <a
-            href="#"
+            Catálogo
+          </RouterLink>
+          <RouterLink
+            to="/builder"
             class="block px-4 py-2.5 text-foreground hover:bg-secondary hover:text-primary transition-colors rounded-md"
             @click="isMenuOpen = false"
           >
-            Periféricos
-          </a>
-          <a
-            href="#"
-            class="block px-4 py-2.5 text-foreground hover:bg-secondary hover:text-primary transition-colors rounded-md"
-            @click="isMenuOpen = false"
-          >
-            Gaming
-          </a>
+            Arma tu PC
+          </RouterLink>
           <a
             href="#"
             class="block px-4 py-2.5 text-foreground hover:bg-secondary hover:text-primary transition-colors rounded-md"
@@ -274,6 +267,13 @@ const updateRoleFlags = () => {
           >
             Ofertas
           </a>
+          <RouterLink
+            to="/about"
+            class="block px-4 py-2.5 text-foreground hover:bg-secondary hover:text-primary transition-colors rounded-md"
+            @click="isMenuOpen = false"
+          >
+            Sobre nosotros
+          </RouterLink>
 
           <!-- Divider -->
           <div class="h-px bg-border my-2"></div>
