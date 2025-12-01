@@ -57,10 +57,10 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
-    <div class="w-full max-w-md bg-card border border-border rounded-xl shadow-lg p-8 space-y-6">
-      <h1 class="text-2xl font-bold text-center">Iniciar sesión</h1>
-      <p class="text-sm text-muted-foreground text-center">Accede a tu cuenta para continuar</p>
+  <div class="min-h-screen flex items-center justify-center bg-background text-foreground px-4 sm:px-6">
+    <div class="w-full max-w-sm sm:max-w-md bg-card border border-border rounded-xl shadow-lg p-6 sm:p-8 space-y-6">
+      <h1 class="text-xl sm:text-2xl font-bold text-center">Iniciar sesión</h1>
+      <p class="text-xs sm:text-sm text-muted-foreground text-center">Accede a tu cuenta para continuar</p>
 
       <!-- Mensajes de error y éxito -->
       <div v-if="error" class="bg-red-500/10 border border-red-500 text-red-500 px-4 py-2 rounded-md text-sm">
@@ -102,7 +102,7 @@ const handleSubmit = async () => {
         </button>
       </form>
 
-      <p class="text-xs text-center text-muted-foreground">
+      <p class="text-xs sm:text-sm text-center text-muted-foreground">
         ¿No tienes cuenta?
         <RouterLink to="/register" class="text-primary hover:underline">Regístrate</RouterLink>
       </p>

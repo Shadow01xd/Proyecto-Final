@@ -106,11 +106,11 @@ const openDetails = (order) => {
   <div class="bg-background text-foreground min-h-screen flex flex-col">
     <Header />
 
-    <main class="flex-1 py-12 px-4 sm:px-6 lg:px-8">
+    <main class="flex-1 py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-5xl mx-auto">
-        <div class="mb-8">
-          <h1 class="text-3xl font-bold">Mis Pedidos</h1>
-          <p class="text-muted-foreground mt-1">Historial de tus compras</p>
+        <div class="mb-6 sm:mb-8">
+          <h1 class="text-2xl sm:text-3xl font-bold">Mis Pedidos</h1>
+          <p class="text-xs sm:text-sm text-muted-foreground mt-1">Historial de tus compras</p>
         </div>
 
         <!-- Loading -->

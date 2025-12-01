@@ -205,15 +205,15 @@ async function agregarOfertaNueva() {
   <div class="bg-background text-foreground min-h-screen flex flex-col">
     <Header />
     
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       <!-- Hero Section -->
-      <div class="mb-8">
-        <div class="flex items-center justify-between mb-3">
+      <div class="mb-6 sm:mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
           <div>
-            <h1 class="text-4xl font-bold text-foreground">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
               Ofertas Especiales
             </h1>
-            <p class="text-muted-foreground mt-2">Aprovecha los mejores descuentos en productos seleccionados</p>
+            <p class="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">Aprovecha los mejores descuentos en productos seleccionados</p>
           </div>
           <button 
             v-if="isStaff"
@@ -266,7 +266,7 @@ async function agregarOfertaNueva() {
       </div>
 
       <!-- Products Grid -->
-      <div v-if="!loading && productos.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div v-if="!loading && productos.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
         <div v-for="p in productos" :key="p.idProducto" 
           class="group bg-card rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-border">
           

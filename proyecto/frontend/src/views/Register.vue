@@ -70,10 +70,10 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
-    <div class="w-full max-w-md bg-card border border-border rounded-xl shadow-lg p-8 space-y-6">
-      <h1 class="text-2xl font-bold text-center">Crear cuenta</h1>
-      <p class="text-sm text-muted-foreground text-center">Regístrate para empezar a comprar</p>
+  <div class="min-h-screen flex items-center justify-center bg-background text-foreground px-4 sm:px-6">
+    <div class="w-full max-w-sm sm:max-w-md bg-card border border-border rounded-xl shadow-lg p-6 sm:p-8 space-y-6">
+      <h1 class="text-xl sm:text-2xl font-bold text-center">Crear cuenta</h1>
+      <p class="text-xs sm:text-sm text-muted-foreground text-center">Regístrate para empezar a comprar</p>
 
       <!-- Mensajes de error y éxito -->
       <div v-if="error" class="bg-red-500/10 border border-red-500 text-red-500 px-4 py-2 rounded-md text-sm">
@@ -84,7 +84,7 @@ const handleSubmit = async () => {
       </div>
 
       <form class="space-y-4" @submit.prevent="handleSubmit">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="space-y-1">
             <label class="block text-sm font-medium">Nombres *</label>
             <input
@@ -174,7 +174,7 @@ const handleSubmit = async () => {
         </button>
       </form>
 
-      <p class="text-xs text-center text-muted-foreground">
+      <p class="text-xs sm:text-sm text-center text-muted-foreground">
         ¿Ya tienes cuenta?
         <RouterLink to="/login" class="text-primary hover:underline">Inicia sesión</RouterLink>
       </p>

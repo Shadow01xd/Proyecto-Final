@@ -130,8 +130,8 @@ function proceedToPayment() {
 <template>
   <div class="bg-background text-foreground min-h-screen flex flex-col">
     <Header :cart-count="cartCount" />
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-      <h1 class="text-2xl font-bold mb-6">Carrito</h1>
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+      <h1 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Carrito</h1>
 
       <div v-if="cartItems.length === 0" class="text-muted-foreground">
         Tu carrito está vacío.
@@ -179,7 +179,7 @@ function proceedToPayment() {
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t pt-4">
           <button class="rounded border px-3 py-2 w-full sm:w-auto" @click="clearCart">Limpiar carrito</button>
-          <div class="text-xl font-semibold text-right sm:text-left">
+          <div class="text-lg sm:text-xl font-semibold text-right sm:text-left">
             Total: ${{ Number(totalAmount).toFixed(2) }}
           </div>
         </div>

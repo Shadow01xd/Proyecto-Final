@@ -319,15 +319,15 @@ onMounted(async () => {
   <div class="bg-background text-foreground min-h-screen flex flex-col">
     <Header :cart-count="cartCount" />
 
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-      <div class="flex flex-col gap-4 mb-8 md:flex-row md:items-end md:justify-between">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+      <div class="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8 md:flex-row md:items-end md:justify-between">
         <div class="space-y-1">
           <p class="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase text-primary">
             <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px]">◎</span>
             Catálogo
           </p>
-          <h1 class="text-3xl font-bold">Encuentra el hardware ideal para tu PC</h1>
-          <p class="text-sm text-muted-foreground">Filtra por categoría, precio o nombre y arma tu próxima build.</p>
+          <h1 class="text-2xl sm:text-3xl font-bold">Encuentra el hardware ideal para tu PC</h1>
+          <p class="text-xs sm:text-sm text-muted-foreground">Filtra por categoría, precio o nombre y arma tu próxima build.</p>
           <p class="text-xs text-muted-foreground mt-1">{{ totalProductos }} producto(s) encontrado(s)</p>
         </div>
 
@@ -425,7 +425,7 @@ onMounted(async () => {
           <p class="mt-1 text-xs">Prueba limpiando filtros o eligiendo otra categoría.</p>
         </div>
 
-        <div v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div v-else class="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <div
             v-for="p in filteredProductos"
             :key="p.idProducto"
@@ -679,7 +679,7 @@ onMounted(async () => {
     <transition name="fade">
       <div
         v-if="showCartAlert && lastAddedProduct"
-        class="fixed bottom-4 right-4 rounded bg-primary px-4 py-2 text-sm text-primary-foreground shadow-lg"
+        class="fixed inset-x-4 bottom-4 sm:inset-x-auto sm:right-6 sm:bottom-6 rounded bg-primary px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm text-primary-foreground shadow-lg max-w-full sm:max-w-sm md:max-w-md mx-auto sm:mx-0"
       >
         {{ lastAddedProduct.name }} agregado al carrito
       </div>

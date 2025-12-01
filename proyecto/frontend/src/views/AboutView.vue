@@ -48,7 +48,7 @@ const faqs = [
   <div class="bg-background text-foreground min-h-screen flex flex-col">
     <Header />
 
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 space-y-16 relative">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 lg:py-10 space-y-12 lg:space-y-16 relative">
       <!-- Hero / Introducción -->
       <section class="grid gap-10 md:grid-cols-2 md:items-center">
         <div class="space-y-5">
@@ -56,7 +56,7 @@ const faqs = [
             <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px]">◎</span>
             Sobre nosotros
           </p>
-          <h1 class="text-3xl md:text-4xl font-bold leading-tight">
+          <h1 class="text-2xl md:text-4xl font-bold leading-tight">
             Construimos experiencias,
             <span class="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">no solo PCs.</span>
           </h1>
@@ -87,7 +87,7 @@ const faqs = [
       <!-- Historia / Qué hacemos -->
       <section class="grid gap-10 md:grid-cols-[3fr,2fr] md:items-start border-t border-border/60 pt-10">
         <div class="space-y-4">
-          <h2 class="text-2xl font-semibold">Nuestra historia</h2>
+          <h2 class="text-xl sm:text-2xl font-semibold">Nuestra historia</h2>
           <p class="text-sm md:text-base text-muted-foreground">
             Nacimos como un pequeño proyecto entre amigos entusiastas del hardware que armaban PCs para conocidos.
             Con el tiempo fuimos creciendo, sumando experiencia y proveedores, hasta convertirnos en una tienda
@@ -122,7 +122,7 @@ const faqs = [
 
       <!-- Valores -->
       <section class="space-y-6 border-t border-border/60 pt-10">
-        <h2 class="text-2xl font-semibold">Nuestros valores</h2>
+        <h2 class="text-xl sm:text-2xl font-semibold">Nuestros valores</h2>
         <div class="grid gap-5 md:grid-cols-3">
           <article class="rounded-xl border border-border bg-card/90 backdrop-blur p-4 space-y-2 shadow-sm">
             <h3 class="text-sm font-semibold">Transparencia</h3>
@@ -148,7 +148,7 @@ const faqs = [
       <!-- Equipo -->
       <section class="space-y-6 border-t border-border/60 pt-10">
         <div class="flex items-center justify-between gap-2">
-          <h2 class="text-2xl font-semibold">Conoce al equipo</h2>
+          <h2 class="text-xl sm:text-2xl font-semibold">Conoce al equipo</h2>
           <p class="text-xs text-muted-foreground hidden sm:block">
             Personas reales detrás de cada recomendación y cada ensamble.
           </p>
@@ -175,7 +175,7 @@ const faqs = [
 
       <!-- Servicios / Qué ofrecemos -->
       <section class="space-y-6 border-t border-border/60 pt-10">
-        <h2 class="text-2xl font-semibold">¿Qué podemos hacer por ti?</h2>
+        <h2 class="text-xl sm:text-2xl font-semibold">¿Qué podemos hacer por ti?</h2>
         <div class="grid gap-5 md:grid-cols-3">
           <article class="rounded-xl border border-border bg-card/90 backdrop-blur p-4 space-y-2 shadow-sm">
             <h3 class="text-sm font-semibold">Asesoría para tu build</h3>
@@ -200,7 +200,7 @@ const faqs = [
 
       <!-- FAQ corto -->
       <section class="space-y-6 border-t border-border/60 pt-10">
-        <h2 class="text-2xl font-semibold">Preguntas frecuentes</h2>
+        <h2 class="text-xl sm:text-2xl font-semibold">Preguntas frecuentes</h2>
         <div class="space-y-3">
           <details
             v-for="item in faqs"

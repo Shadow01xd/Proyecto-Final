@@ -377,14 +377,14 @@ function toggleSaved(id, m) {
 <template>
   <div class="bg-background text-foreground min-h-screen flex flex-col">
     <Header />
-    <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold tracking-tight">Finalizar compra</h1>
-        <p class="text-sm text-muted-foreground mt-1">Revisa tu pedido, confirma tu dirección y paga con seguridad.</p>
+    <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+      <div class="mb-4 sm:mb-6">
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Finalizar compra</h1>
+        <p class="text-xs sm:text-sm text-muted-foreground mt-1">Revisa tu pedido, confirma tu dirección y paga con seguridad.</p>
       </div>
       
       <!-- Layout: Resumen + Pago -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-10 items-start">
         <!-- Resumen (derecha) -->
         <section class="lg:col-span-6 order-3 lg:order-2 lg:sticky lg:top-6">
           <div class="rounded-2xl border border-border bg-card/95 p-5 shadow-sm">

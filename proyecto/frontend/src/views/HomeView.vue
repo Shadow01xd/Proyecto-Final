@@ -97,7 +97,7 @@ onMounted(async () => {
     <transition name="fade">
       <div
         v-if="showCartAlert && lastAddedProduct"
-        class="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg text-sm"
+        class="fixed inset-x-4 bottom-4 sm:inset-x-auto sm:right-6 sm:bottom-6 bg-primary text-primary-foreground px-3 py-2 sm:px-4 sm:py-2 rounded shadow-lg text-xs sm:text-sm max-w-full sm:max-w-sm md:max-w-md mx-auto sm:mx-0"
       >
         {{ lastAddedProduct.name }} agregado al carrito
       </div>

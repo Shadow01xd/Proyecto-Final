@@ -138,7 +138,7 @@ onMounted(async () => {
   <div class="bg-background text-foreground min-h-screen flex flex-col">
     <Header :cart-count="cartCount" />
     
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       <!-- Loading State -->
       <div v-if="loading" class="py-24 text-center">
         <div class="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
@@ -161,7 +161,7 @@ onMounted(async () => {
       </div>
 
       <!-- Product Detail -->
-      <div v-else class="grid gap-8 lg:grid-cols-2">
+      <div v-else class="grid gap-8 lg:grid-cols-2 items-start">
         <!-- Image Section -->
         <div class="space-y-4">
           <div class="relative group">
@@ -286,7 +286,7 @@ onMounted(async () => {
       </div>
       
       <!-- Sección de productos destacados para rellenar la parte inferior -->
-      <section class="mt-12">
+      <section class="mt-10 sm:mt-12">
         <FeaturedProducts />
       </section>
     </main>
@@ -295,7 +295,7 @@ onMounted(async () => {
     <transition name="fade">
       <div
         v-if="showCartAlert && lastAddedProduct"
-        class="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg text-sm"
+        class="fixed inset-x-4 bottom-4 sm:inset-x-auto sm:right-6 sm:bottom-6 bg-primary text-primary-foreground px-3 py-2 sm:px-4 sm:py-2 rounded shadow-lg text-xs sm:text-sm max-w-full sm:max-w-sm md:max-w-md mx-auto sm:mx-0"
       >
         {{ lastAddedProduct.name }} agregado al carrito
       </div>

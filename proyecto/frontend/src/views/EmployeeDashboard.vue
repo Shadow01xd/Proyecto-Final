@@ -173,6 +173,18 @@ const categoryForm = ref({
   descripcionCategoria: ''
 })
 
+// === PROVEEDORES ===
+const showProviderModal = ref(false)
+const editingProvider = ref(null)
+const providerForm = ref({
+  nombreEmpresa: '',
+  nombreContacto: '',
+  telefonoProveedor: '',
+  emailProveedor: '',
+  direccionProveedor: '',
+  sitioWebProveedor: ''
+})
+
 const abrirCategoryModal = (cat = null) => {
   editingCategory.value = cat
   if (cat) {
@@ -272,6 +284,99 @@ const eliminarCategoria = async (id) => {
     setTimeout(() => (success.value = ''), 1500)
   } catch (e) {
     error.value = e.message
+  }
+}
+
+const abrirProviderModal = (prov = null) => {
+  editingProvider.value = prov
+  if (prov) {
+    providerForm.value = {
+      nombreEmpresa: prov.nombreEmpresa || '',
+      nombreContacto: prov.nombreContacto || '',
+      telefonoProveedor: prov.telefonoProveedor || '',
+      emailProveedor: prov.emailProveedor || '',
+      direccionProveedor: prov.direccionProveedor || '',
+      sitioWebProveedor: prov.sitioWebProveedor || ''
+    }
+  } else {
+    resetProviderForm()
+  }
+  showProviderModal.value = true
+  error.value = ''
+  success.value = ''
+}
+
+const resetProviderForm = () => {
+  providerForm.value = {
+    nombreEmpresa: '',
+    nombreContacto: '',
+    telefonoProveedor: '',
+    emailProveedor: '',
+    direccionProveedor: '',
+    sitioWebProveedor: ''
+  }
+}
+
+const guardarProveedor = async () => {
+  error.value = ''
+  success.value = ''
+  loading.value = true
+  try {
+    const method = editingProvider.value ? 'PUT' : 'POST'
+    const url = editingProvider.value
+      ? `http://localhost:3000/api/proveedores/${editingProvider.value.idProveedor}`
+      : 'http://localhost:3000/api/proveedores'
+
+    const body = {
+      nombreEmpresa: providerForm.value.nombreEmpresa,
+      ...(providerForm.value.nombreContacto ? { nombreContacto: providerForm.value.nombreContacto } : {}),
+      ...(providerForm.value.telefonoProveedor ? { telefonoProveedor: providerForm.value.telefonoProveedor } : {}),
+      ...(providerForm.value.emailProveedor ? { emailProveedor: providerForm.value.emailProveedor } : {}),
+      ...(providerForm.value.direccionProveedor ? { direccionProveedor: providerForm.value.direccionProveedor } : {}),
+      ...(providerForm.value.sitioWebProveedor ? { sitioWebProveedor: providerForm.value.sitioWebProveedor } : {})
+    }
+
+    const resp = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+
+    const data = await resp.json().catch(() => ({}))
+
+    if (!resp.ok) {
+      throw new Error(data.error || data.message || 'Error al guardar proveedor')
+    }
+
+    success.value = editingProvider.value ? 'Proveedor actualizado' : 'Proveedor creado'
+    await cargarProveedores()
+    setTimeout(() => {
+      showProviderModal.value = false
+    }, 800)
+  } catch (e) {
+    error.value = e.message || 'Error al guardar proveedor'
+  } finally {
+    loading.value = false
+  }
+}
+
+const eliminarProveedor = async (id) => {
+  if (!confirm('¿Eliminar este proveedor? Esta acción no se puede deshacer.')) return
+  try {
+    const resp = await fetch(`http://localhost:3000/api/proveedores/${id}`, { method: 'DELETE' })
+    const ct = resp.headers.get('content-type') || ''
+    if (ct.includes('application/json')) {
+      const data = await resp.json().catch(() => ({}))
+      if (!resp.ok) throw new Error(data.error || data.message || 'No se pudo eliminar el proveedor')
+    } else if (!resp.ok) {
+      const text = await resp.text()
+      throw new Error(text || `Error ${resp.status} ${resp.statusText}`)
+    }
+    success.value = 'Proveedor eliminado'
+    await cargarProveedores()
+    setTimeout(() => (success.value = ''), 1500)
+  } catch (e) {
+    error.value = e.message || 'Error al eliminar proveedor'
   }
 }
 
@@ -534,17 +639,17 @@ const cerrarSesion = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-background text-foreground">
+  <div class="min-h-screen bg-background text-foreground flex flex-col">
     <Header />
 
     <!-- Tabs/Header dentro del contenido principal -->
-    <div class="container mx-auto px-6 py-6">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-foreground">
+          <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
             {{ esAdmin ? '🔧 Panel de Administración' : '👔 Panel de Empleado' }}
           </h1>
-          <p class="text-sm text-muted-foreground" v-if="usuario">
+          <p class="text-xs sm:text-sm text-muted-foreground" v-if="usuario">
             {{ usuario.nombreUsuario }} {{ usuario.apellidoUsuario }} • {{ usuario.nombreRol }}
           </p>
         </div>
@@ -557,7 +662,7 @@ const cerrarSesion = () => {
         </button>
       </div>
 
-      <div class="flex gap-4 mt-6 border-b border-border">
+      <div class="flex gap-3 sm:gap-4 mt-4 sm:mt-6 border-b border-border overflow-x-auto whitespace-nowrap pb-1">
         <button
           @click="activeTab = 'productos'"
           :class="[
@@ -579,6 +684,18 @@ const cerrarSesion = () => {
           ]"
         >
           📚 Categorías
+        </button>
+        <button
+          v-if="esAdmin"
+          @click="activeTab = 'proveedores'"
+          :class="[
+            'px-4 py-2 font-medium transition -mb-px',
+            activeTab === 'proveedores'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
+        >
+          🏭 Proveedores
         </button>
         <button
           v-if="esAdmin"
@@ -608,7 +725,7 @@ const cerrarSesion = () => {
     </div>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-6 py-8">
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 flex-1 w-full">
       <!-- Loading -->
       <div v-if="loading" class="text-center py-12">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -636,7 +753,7 @@ const cerrarSesion = () => {
                 v-model="searchProducto"
                 type="text"
                 placeholder="Buscar por nombre o SKU..."
-                class="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             
@@ -646,7 +763,7 @@ const cerrarSesion = () => {
               <select
                 id="filtroCategoria"
                 v-model="filtroCategoriaProducto"
-                class="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                class="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Todas las categorías</option>
                 <option v-for="c in categorias" :key="c.idCategoria" :value="c.idCategoria">
@@ -658,7 +775,7 @@ const cerrarSesion = () => {
             <div class="flex items-end">
               <button
                 @click="searchProducto = ''; filtroCategoriaProducto = ''"
-                class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+                class="px-4 py-2 text-sm rounded-lg transition text-muted-foreground hover:text-foreground hover:bg-secondary/60"
                 :disabled="!searchProducto && !filtroCategoriaProducto"
                 :class="{ 'opacity-50 cursor-not-allowed': !searchProducto && !filtroCategoriaProducto }"
               >
@@ -738,6 +855,72 @@ const cerrarSesion = () => {
               <tr v-if="productos.length === 0">
                 <td colspan="6" class="px-4 py-6 text-center text-sm text-muted-foreground">
                   No hay productos registrados aún.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB: PROVEEDORES (Solo Admin) -->
+      <div v-if="activeTab === 'proveedores' && esAdmin && !loading" class="bg-card rounded-xl shadow-sm overflow-hidden border border-border">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold">Gestión de Proveedores</h2>
+            <p class="text-sm text-muted-foreground">Total: {{ proveedores.length }}</p>
+          </div>
+          <button
+            @click="abrirProviderModal()"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+          >
+            + Nuevo Proveedor
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-secondary/50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Empresa</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Contacto</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Teléfono</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Sitio Web</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              <tr v-for="p in proveedores" :key="p.idProveedor" class="hover:bg-secondary/40">
+                <td class="px-4 py-3 text-sm">{{ p.idProveedor }}</td>
+                <td class="px-4 py-3 text-sm font-medium">{{ p.nombreEmpresa }}</td>
+                <td class="px-4 py-3 text-sm text-muted-foreground">{{ p.nombreContacto || 'N/A' }}</td>
+                <td class="px-4 py-3 text-sm text-muted-foreground">{{ p.telefonoProveedor || 'N/A' }}</td>
+                <td class="px-4 py-3 text-sm text-muted-foreground">{{ p.emailProveedor || 'N/A' }}</td>
+                <td class="px-4 py-3 text-sm text-blue-600">
+                  <a v-if="p.sitioWebProveedor" :href="p.sitioWebProveedor" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                    {{ p.sitioWebProveedor }}
+                  </a>
+                  <span v-else class="text-muted-foreground">N/A</span>
+                </td>
+                <td class="px-4 py-3 text-sm">
+                  <div class="flex items-center gap-2">
+                    <button
+                      @click="abrirProviderModal(p)"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                      title="Editar proveedor"
+                    >✏️</button>
+                    <button
+                      @click="eliminarProveedor(p.idProveedor)"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-800 transition-colors"
+                      title="Eliminar proveedor"
+                    >🗑️</button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="proveedores.length === 0">
+                <td colspan="7" class="px-4 py-6 text-center text-sm text-muted-foreground">
+                  No hay proveedores registrados aún.
                 </td>
               </tr>
             </tbody>
@@ -1118,6 +1301,74 @@ const cerrarSesion = () => {
             >
               Cancelar
             </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: PROVEEDOR -->
+    <div v-if="showProviderModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" @click.self="showProviderModal = false">
+      <div class="bg-card text-foreground rounded-xl shadow-2xl w-full max-w-md border border-border">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between">
+          <h2 class="text-lg font-bold">{{ editingProvider ? '✏️ Editar Proveedor' : '➕ Nuevo Proveedor' }}</h2>
+          <button @click="showProviderModal = false" class="text-muted-foreground hover:text-foreground text-2xl" aria-label="Cerrar">&times;</button>
+        </div>
+        <form @submit.prevent="guardarProveedor" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Nombre de la empresa *</label>
+            <input
+              v-model="providerForm.nombreEmpresa"
+              required
+              class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition"
+              placeholder="Ej: MSI"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Nombre de contacto (opcional)</label>
+            <input
+              v-model="providerForm.nombreContacto"
+              class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition"
+              placeholder="Persona de contacto"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Teléfono (opcional)</label>
+            <input
+              v-model="providerForm.telefonoProveedor"
+              class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition"
+              placeholder="Teléfono del proveedor"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Email (opcional)</label>
+            <input
+              v-model="providerForm.emailProveedor"
+              type="email"
+              class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition"
+              placeholder="correo@proveedor.com"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Dirección (opcional)</label>
+            <textarea
+              v-model="providerForm.direccionProveedor"
+              rows="2"
+              class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition resize-none"
+              placeholder="Dirección del proveedor"
+            ></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Sitio web (opcional)</label>
+            <input
+              v-model="providerForm.sitioWebProveedor"
+              type="url"
+              class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition"
+              placeholder="https://www.ejemplo.com"
+            />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" @click="showProviderModal = false" class="px-4 py-2 border border-border rounded-lg hover:bg-secondary">Cancelar</button>
+            <button type="submit" :disabled="loading" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60">{{ loading ? 'Guardando...' : 'Guardar' }}</button>
           </div>
         </form>
       </div>

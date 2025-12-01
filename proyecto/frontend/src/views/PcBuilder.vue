@@ -263,14 +263,14 @@ onMounted(async () => {
   <div class="bg-background text-foreground min-h-screen flex flex-col">
     <Header :cart-count="cartCount" />
 
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10 flex flex-col gap-6 md:gap-8">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 md:py-10 flex flex-col gap-6 md:gap-8">
       <section class="space-y-3">
         <p class="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase text-primary">
           <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px]">★</span>
           Arma tu PC
         </p>
         <h1 class="text-2xl md:text-3xl font-bold">Diseña tu propio equipo paso a paso</h1>
-        <p class="text-sm md:text-base text-muted-foreground max-w-2xl">
+        <p class="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl">
           Elige un componente por categoría y mira el precio total en tiempo real. Al finalizar, podrás enviar toda tu
           selección al carrito para revisarla antes de comprar.
         </p>
