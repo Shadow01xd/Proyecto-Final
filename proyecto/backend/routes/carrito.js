@@ -39,8 +39,9 @@ router.get('/:idUsuario', async (req, res) => {
         SELECT ci.idCarritoItem,
                ci.idProducto,
                ci.cantidad,
-               ci.precioUnitario,
-               (ci.cantidad * ci.precioUnitario) AS subtotal,
+               ci.precioUnitario AS precioUnitarioSnapshot,
+               CASE WHEN p.esOferta = 1 AND p.precioOferta IS NOT NULL THEN p.precioOferta ELSE p.precioProducto END AS precioUnitarioEfectivo,
+               (ci.cantidad * (CASE WHEN p.esOferta = 1 AND p.precioOferta IS NOT NULL THEN p.precioOferta ELSE p.precioProducto END)) AS subtotal,
                p.nombreProducto,
                p.skuProducto,
                p.stockProducto,
@@ -51,7 +52,7 @@ router.get('/:idUsuario', async (req, res) => {
         ORDER BY ci.idCarritoItem DESC
       `);
 
-    const total = items.recordset.reduce((acc, it) => acc + Number(it.subtotal), 0);
+    const total = items.recordset.reduce((acc, it) => acc + Number(it.subtotal || 0), 0);
 
     res.json({ idCarrito, items: items.recordset, total });
   } catch (err) {
@@ -72,16 +73,20 @@ router.post('/item', async (req, res) => {
     const pool = await getPool();
     const idCarrito = await ensureCarrito(pool, idUsuario);
 
-    // Obtener precio actual y validar existencia/stock
+    // Obtener precio actual (respetando oferta) y validar existencia/stock
     const prod = await pool.request()
       .input('idProducto', idProducto)
-      .query('SELECT precioProducto, stockProducto FROM Productos WHERE idProducto = @idProducto AND esActivo = 1');
+      .query('SELECT precioProducto, precioOferta, esOferta, stockProducto FROM Productos WHERE idProducto = @idProducto AND esActivo = 1');
 
     if (prod.recordset.length === 0) {
       return res.status(404).json({ error: 'Producto no encontrado o inactivo' });
     }
 
-    const precio = prod.recordset[0].precioProducto;
+    const row = prod.recordset[0];
+    const ofertaActiva = row.esOferta === 1 || row.esOferta === true;
+    const precio = row.precioOferta != null && ofertaActiva
+      ? Number(row.precioOferta)
+      : Number(row.precioProducto);
 
     // Verificar si ya existe el item
     const existing = await pool.request()
@@ -136,11 +141,23 @@ router.put('/item', async (req, res) => {
       return res.json({ message: 'Item eliminado del carrito' });
     }
 
+    // Obtener precio actual (respetando oferta) para resincronizar el item
+    const prod = await pool.request()
+      .input('idProducto', idProducto)
+      .query('SELECT precioProducto, precioOferta, esOferta FROM Productos WHERE idProducto = @idProducto AND esActivo = 1');
+
+    const prow = prod.recordset[0] || {};
+    const ofertaActiva2 = prow?.esOferta === 1 || prow?.esOferta === true;
+    const precioSnap = (prow && prow.precioOferta != null && ofertaActiva2)
+      ? Number(prow.precioOferta)
+      : Number(prow?.precioProducto || 0);
+
     const result = await pool.request()
       .input('idCarrito', idCarrito)
       .input('idProducto', idProducto)
       .input('cantidad', cantidad)
-      .query('UPDATE CarritoItems SET cantidad = @cantidad, fechaActualizacion = GETDATE() WHERE idCarrito = @idCarrito AND idProducto = @idProducto');
+      .input('precioUnitario', precioSnap)
+      .query('UPDATE CarritoItems SET cantidad = @cantidad, precioUnitario = @precioUnitario, fechaActualizacion = GETDATE() WHERE idCarrito = @idCarrito AND idProducto = @idProducto');
 
     if (result.rowsAffected[0] === 0) {
       return res.status(404).json({ error: 'Item no encontrado en el carrito' });

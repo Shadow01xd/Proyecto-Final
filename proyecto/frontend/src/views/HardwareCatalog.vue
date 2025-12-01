@@ -153,7 +153,7 @@ const handleAddToCart = (product) => {
       const card = {
         id: product.idProducto,
         name: product.nombreProducto,
-        price: `$${Number(product.precioProducto || 0).toFixed(2)}`,
+        price: `$${Number((product.precioOferta != null ? product.precioOferta : product.precioProducto) || 0).toFixed(2)}`,
         image: product.imgProducto || 'https://via.placeholder.com/400x300?text=Producto'
       }
       items.push(card)
@@ -431,7 +431,7 @@ onMounted(async () => {
             :key="p.idProducto"
             class="group flex flex-col overflow-hidden rounded-lg border border-border bg-card/95 backdrop-blur shadow-sm transition hover:border-primary hover:-translate-y-0.5 hover:shadow-lg"
           >
-            <div class="relative h-48 overflow-hidden bg-muted">
+            <router-link :to="{ name: 'producto', params: { id: p.idProducto } }" class="relative h-48 overflow-hidden bg-muted block">
               <img
                 :src="p.imgProducto || 'https://via.placeholder.com/400x300?text=Producto'"
                 :alt="p.nombreProducto"
@@ -443,23 +443,41 @@ onMounted(async () => {
               >
                 {{ p.nombreCategoria }}
               </span>
-            </div>
+              <span
+                v-if="p.porcentajeDescuento"
+                class="absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-bold shadow bg-blue-600 text-white dark:bg-red-600 dark:text-white"
+              >
+                -{{ p.porcentajeDescuento }}%
+              </span>
+              <div v-if="p.nombreOferta" class="absolute left-3 right-3 bottom-3">
+                <div class="backdrop-blur-sm px-3 py-1.5 rounded-md text-xs font-semibold text-center shadow bg-blue-600 text-white dark:bg-red-600 dark:text-white">
+                  {{ p.nombreOferta }}
+                </div>
+              </div>
+            </router-link>
 
             <div class="flex flex-1 flex-col p-4 gap-3">
               <div class="space-y-1">
                 <p class="text-[11px] font-mono uppercase tracking-wide text-muted-foreground flex items-center gap-1">
                   SKU: {{ p.skuProducto }}
                 </p>
-                <h2 class="line-clamp-2 text-sm font-semibold leading-snug">{{ p.nombreProducto }}</h2>
+                <router-link :to="{ name: 'producto', params: { id: p.idProducto } }" class="line-clamp-2 text-sm font-semibold leading-snug hover:underline">
+                  {{ p.nombreProducto }}
+                </router-link>
                 <p class="line-clamp-2 text-xs text-muted-foreground">
                   {{ p.descripcionProducto || 'Componente de hardware para PC.' }}
                 </p>
               </div>
 
               <div class="mt-auto flex items-center justify-between">
-                <div class="space-y-0.5">
-                  <p class="text-lg font-bold text-foreground">
-                    ${{ Number(p.precioProducto || 0).toFixed(2) }}
+                <div class="space-y-0.5 min-w-0 flex-1">
+                  <p class="text-lg font-bold text-foreground flex items-baseline gap-2 whitespace-nowrap">
+                    <span :class="p.precioOferta ? 'text-blue-600 dark:text-red-600' : 'text-foreground'">
+                      ${{ Number((p.precioOferta ?? p.precioProducto) || 0).toFixed(2) }}
+                    </span>
+                    <span v-if="p.precioOferta" class="text-xs line-through text-muted-foreground">
+                      ${{ Number(p.precioProducto || 0).toFixed(2) }}
+                    </span>
                   </p>
                   <span
                     class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
@@ -470,7 +488,7 @@ onMounted(async () => {
                   </span>
                 </div>
 
-                <div class="flex flex-col items-end gap-1">
+                <div class="flex flex-col items-end gap-1 flex-shrink-0">
                   <button
                     class="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition transform hover:-translate-y-0.5 hover:shadow-md hover:bg-primary/90"
                     @click="handleAddToCart(p)"

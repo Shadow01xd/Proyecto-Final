@@ -122,7 +122,7 @@ const productosPorCategoria = computed(() => {
 
 const totalSeleccionado = computed(() => {
   return Object.values(selectedComponents.value).reduce((sum, p) => {
-    return sum + Number(p.precioProducto || 0)
+    return sum + Number((p.precioOferta ?? p.precioProducto) || 0)
   }, 0)
 })
 
@@ -283,15 +283,16 @@ onMounted(async () => {
       <section v-else class="flex flex-col lg:flex-row gap-6 md:gap-8">
         <!-- Columna izquierda: categorías y productos -->
         <div class="flex-1 space-y-4">
-          <div class="flex gap-2 overflow-x-auto pb-1">
+          <div class="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory touch-pan-x">
             <button
               v-for="cat in categorias"
               :key="cat.idCategoria"
-              class="whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 shadow-sm"
+              class="whitespace-nowrap rounded-full border px-3.5 py-2 text-sm md:text-xs font-medium transition-colors flex items-center gap-1 shadow-sm flex-shrink-0 snap-start"
               :class="Number(activeCategoryId) === Number(cat.idCategoria)
                 ? 'bg-primary text-primary-foreground border-primary shadow-md'
                 : 'bg-background text-foreground border-border hover:bg-secondary/70'"
               @click="activeCategoryId = cat.idCategoria"
+              :aria-pressed="Number(activeCategoryId) === Number(cat.idCategoria)"
             >
               {{ cat.nombreCategoria }}
             </button>
@@ -321,20 +322,31 @@ onMounted(async () => {
                 draggable="true"
                 @dragstart="handleDragStart(p, 'lista')"
               >
-                <div class="relative h-36 overflow-hidden bg-muted">
+                <router-link :to="{ name: 'producto', params: { id: p.idProducto } }" class="relative h-36 overflow-hidden bg-muted block">
                   <img
                     :src="p.imgProducto || 'https://via.placeholder.com/400x300?text=Producto'"
                     :alt="p.nombreProducto"
                     class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   />
-                </div>
+                  <span
+                    v-if="p.porcentajeDescuento"
+                    class="absolute right-2 top-2 rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow bg-blue-600 text-white dark:bg-red-600 dark:text-white"
+                  >
+                    -{{ p.porcentajeDescuento }}%
+                  </span>
+                  <div v-if="p.nombreOferta" class="absolute left-2 right-2 bottom-2">
+                    <div class="backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-semibold text-center shadow bg-blue-600 text-white dark:bg-red-600 dark:text-white">
+                      {{ p.nombreOferta }}
+                    </div>
+                  </div>
+                </router-link>
 
                 <div class="flex flex-1 flex-col p-3 gap-2">
                   <div class="space-y-1">
                     <p class="text-[11px] font-mono uppercase tracking-wide text-muted-foreground flex items-center gap-1">
                       SKU: {{ p.skuProducto }}
                     </p>
-                    <h2 class="line-clamp-2 text-sm font-semibold leading-snug">{{ p.nombreProducto }}</h2>
+                    <router-link :to="{ name: 'producto', params: { id: p.idProducto } }" class="line-clamp-2 text-sm font-semibold leading-snug hover:underline">{{ p.nombreProducto }}</router-link>
                     <p class="line-clamp-2 text-[11px] text-muted-foreground">
                       {{ p.descripcionProducto || 'Componente para tu próxima build.' }}
                     </p>
@@ -342,8 +354,9 @@ onMounted(async () => {
 
                   <div class="mt-auto flex items-center justify-between gap-2">
                     <div>
-                      <p class="text-sm font-bold text-foreground">
-                        ${{ Number(p.precioProducto || 0).toFixed(2) }}
+                      <p class="text-sm font-bold text-foreground flex items-baseline gap-1.5">
+                        <span :class="p.precioOferta ? 'text-blue-600 dark:text-red-600' : 'text-foreground'">${{ Number((p.precioOferta ?? p.precioProducto) || 0).toFixed(2) }}</span>
+                        <span v-if="p.precioOferta" class="text-[11px] line-through text-muted-foreground">${{ Number(p.precioProducto || 0).toFixed(2) }}</span>
                       </p>
                     </div>
 
@@ -400,8 +413,9 @@ onMounted(async () => {
                   <p class="text-xs font-semibold line-clamp-2">{{ item.producto.nombreProducto }}</p>
                 </div>
                 <div class="flex flex-col items-end gap-1">
-                  <p class="text-xs font-semibold">
-                    ${{ Number(item.producto.precioProducto || 0).toFixed(2) }}
+                  <p class="text-xs font-semibold flex items-baseline gap-1.5">
+                    <span :class="item.producto.precioOferta ? 'text-blue-600 dark:text-red-600' : 'text-foreground'">${{ Number((item.producto.precioOferta ?? item.producto.precioProducto) || 0).toFixed(2) }}</span>
+                    <span v-if="item.producto.precioOferta" class="text-[10px] line-through text-muted-foreground">${{ Number(item.producto.precioProducto || 0).toFixed(2) }}</span>
                   </p>
                   <button
                     class="text-[10px] text-red-500 hover:text-red-400"

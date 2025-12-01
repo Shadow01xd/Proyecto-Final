@@ -1,4 +1,10 @@
 <script setup>
+import { ref } from 'vue'
+import ContactModal from '@/components/ContactModal.vue'
+import SupportModal from '@/components/SupportModal.vue'
+
+const showContact = ref(false)
+const showSupport = ref(false)
 </script>
 
 <template>
@@ -13,20 +19,18 @@
         <div class="space-y-3">
           <h4 class="font-semibold text-foreground">Productos</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Hardware</a></li>
-            <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Periféricos</a></li>
-            <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Gaming</a></li>
-            <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Ofertas</a></li>
+            <li><RouterLink to="/hardware" class="text-muted-foreground hover:text-primary transition-colors">Catálogo</RouterLink></li>
+            <li><RouterLink to="/builder" class="text-muted-foreground hover:text-primary transition-colors">Arma tu PC</RouterLink></li>
+            <li><RouterLink to="/ofertas" class="text-muted-foreground hover:text-primary transition-colors">Ofertas</RouterLink></li>
           </ul>
         </div>
 
         <div class="space-y-3">
           <h4 class="font-semibold text-foreground">Compañía</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Sobre Nosotros</a></li>
-            <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Blog</a></li>
-            <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Contacto</a></li>
-            <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Soporte</a></li>
+            <li><RouterLink to="/about" class="text-muted-foreground hover:text-primary transition-colors">Sobre nosotros</RouterLink></li>
+            <li><button type="button" class="text-left text-muted-foreground hover:text-primary transition-colors" @click="showContact = true">Contacto</button></li>
+            <li><button type="button" class="text-left text-muted-foreground hover:text-primary transition-colors" @click="showSupport = true">Soporte</button></li>
           </ul>
         </div>
 
@@ -50,6 +54,10 @@
       </div>
     </div>
   </footer>
+  
+  <!-- Modales -->
+  <ContactModal :open="showContact" @close="showContact = false" />
+  <SupportModal :open="showSupport" @close="showSupport = false" />
 </template>
 
 <style scoped>

@@ -1,7 +1,7 @@
 // db.js
 const sql = require('mssql');
 
-
+/*
 const config = {
   user: 'Shadow01xd',
   password: 'PraiseTheFool',
@@ -9,11 +9,11 @@ const config = {
   database: 'dbTiendaHardwarePC',
   options: {
     encrypt: false,
-   trustServerCertificate: true
+    trustServerCertificate: true
   }
-};
+};*/
 
-/*const config = {
+const config = {
   user: 'kenn',
   password: '123',
   server: 'localhost',
@@ -25,7 +25,7 @@ const config = {
   },
   connectionTimeout: 30000,
   requestTimeout: 30000
-};*/
+};
 
 let pool;
 

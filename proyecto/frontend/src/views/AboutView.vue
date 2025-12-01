@@ -2,25 +2,26 @@
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import { RouterLink } from 'vue-router'
-
+import imgKG from '@/assets/Img/img_KG.jpeg'
+import imgMG from '@/assets/Img/imgMG.jpg'
 const team = [
   {
     name: 'Miguel Ángel Hernández',
     role: 'Fundador & CEO',
     bio: 'Apasionado por el hardware de alto rendimiento y la experiencia de usuario.',
-    photo: 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg'
+    photo: imgMG
   },
   {
-    name: 'Andrea Zelaya',
+    name: 'Fabian Herrera',
     role: 'Atención al Cliente',
     bio: 'Garantiza que cada cliente reciba soporte cercano, claro y honesto.',
-    photo: 'https://images.pexels.com/photos/1181519/pexels-photo-1181519.jpeg'
+    photo: 'https://static.toiimg.com/thumb/msid-125216702,imgsize-864802,width-400,resizemode-4/michael-willis-heard-cause-of-death-how-did-the-tiktok-star-yes-king-die.jpg'
   },
   {
-    name: 'Jorge Mendoza',
+    name: 'Kenneth Granados',
     role: 'Especialista en Ensamblaje',
     bio: 'Diseña y ensambla equipos optimizados para gaming y productividad.',
-    photo: 'https://images.pexels.com/photos/1181533/pexels-photo-1181533.jpeg'
+    photo: imgKG
   }
 ]
 
@@ -67,7 +68,7 @@ const faqs = [
         </div>
         <div class="relative h-60 md:h-72 rounded-2xl overflow-hidden border border-border bg-gradient-to-br from-primary/10 via-background to-background">
           <img
-            src="https://images.pexels.com/photos/5720565/pexels-photo-5720565.jpeg"
+            src="https://www.cnet.com/a/img/resize/bcbacc4ad119e6f901ff4b7865f1b164f317be5b/hub/2019/11/23/4e21a4ae-cab6-4ea5-ace9-c3d8603ff017/all-parts.jpg?auto=webp&width=1200"
             alt="Tienda de hardware"
             class="w-full h-full object-cover opacity-80"
           />
@@ -156,17 +157,15 @@ const faqs = [
           <article
             v-for="member in team"
             :key="member.name"
-            class="rounded-xl border border-border bg-card/95 backdrop-blur overflow-hidden flex flex-col shadow-sm hover:shadow-lg transition hover:-translate-y-0.5"
+            class="rounded-xl border border-border bg-card/95 backdrop-blur overflow-hidden flex flex-col items-center text-center shadow-sm hover:shadow-lg transition hover:-translate-y-0.5"
           >
-            <div class="h-40 bg-muted overflow-hidden">
-              <img :src="member.photo" :alt="member.name" class="w-full h-full object-cover" />
-            </div>
-            <div class="p-4 space-y-1 flex-1 flex flex-col">
-              <div>
+            <div class="p-6 flex flex-col items-center gap-3 w-full">
+              <img :src="member.photo" :alt="member.name" class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border border-border shadow-sm" />
+              <div class="space-y-0.5">
                 <h3 class="text-sm font-semibold">{{ member.name }}</h3>
                 <p class="text-xs text-primary font-medium">{{ member.role }}</p>
               </div>
-              <p class="mt-2 text-xs text-muted-foreground flex-1">
+              <p class="text-xs text-muted-foreground">
                 {{ member.bio }}
               </p>
             </div>

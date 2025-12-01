@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
+import OrderDetailsModal from '@/components/OrderDetailsModal.vue'
 
 const router = useRouter()
 
@@ -40,7 +41,25 @@ const loadOrders = async () => {
       throw new Error(data.error || 'Error al cargar pedidos')
     }
 
-    orders.value = data.ordenes || []
+    const backendOrders = data.ordenes || []
+    // Cargar pedidos simulados del localStorage
+    const simKey = `sim_orders_${usuario.value.idUsuario}`
+    let simOrders = []
+    try {
+      simOrders = JSON.parse(localStorage.getItem(simKey) || '[]')
+    } catch {
+      simOrders = []
+    }
+
+    // Fusionar y ordenar por fecha descendente si existe
+    const merged = [...simOrders, ...backendOrders]
+    merged.sort((a, b) => {
+      const da = new Date(a.fechaOrden || a.fecha || 0).getTime()
+      const db = new Date(b.fechaOrden || b.fecha || 0).getTime()
+      return db - da
+    })
+
+    orders.value = merged
   } catch (err) {
     error.value = err.message || 'Error al cargar pedidos'
     orders.value = []
@@ -73,6 +92,13 @@ const formatCurrency = (amount) => {
     style: 'currency',
     currency: 'USD'
   }).format(amount)
+}
+
+const showDetails = ref(false)
+const selectedOrder = ref(null)
+const openDetails = (order) => {
+  selectedOrder.value = order
+  showDetails.value = true
 }
 </script>
 
@@ -130,6 +156,7 @@ const formatCurrency = (amount) => {
                   <span :class="['text-xs px-2.5 py-1 rounded-full border font-medium', getStatusColor(order.estadoOrden)]">
                     {{ order.estadoOrden }}
                   </span>
+                  <span v-if="order.sim" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/20">Simulado</span>
                 </div>
                 <p class="text-sm text-muted-foreground mt-1">{{ formatDate(order.fechaOrden) }}</p>
               </div>
@@ -169,7 +196,7 @@ const formatCurrency = (amount) => {
 
             <!-- Acciones -->
             <div class="mt-4 pt-4 border-t border-border flex gap-2">
-              <button class="px-4 py-2 text-sm border border-border rounded-md hover:bg-secondary transition font-medium">
+              <button class="px-4 py-2 text-sm border border-border rounded-md hover:bg-secondary transition font-medium" @click="openDetails(order)">
                 Ver Detalles
               </button>
               <button
@@ -183,6 +210,8 @@ const formatCurrency = (amount) => {
         </div>
       </div>
     </main>
+
+    <OrderDetailsModal :open="showDetails" :order="selectedOrder" @close="showDetails = false" />
 
     <Footer />
   </div>

@@ -128,8 +128,28 @@ const productosFiltrados = computed(() => {
 
 const cargarCategorias = async () => {
   try {
-    const response = await fetch('http://localhost:3000/api/categorias')
-    if (response.ok) categorias.value = await response.json()
+    const paths = [
+      'http://localhost:3000/api/categorias',
+      'http://localhost:3000/api/categoria',
+      'http://localhost:3000/categorias',
+      'http://localhost:3000/categoria',
+      'http://localhost:3000/api/admin/categorias',
+      'http://localhost:3000/admin/categorias'
+    ]
+    let loaded = false
+    let lastErr
+    for (const url of paths) {
+      try {
+        const r = await fetch(url)
+        if (!r.ok) { lastErr = await r.text().catch(()=>''); continue }
+        const ct = r.headers.get('content-type') || ''
+        if (!ct.includes('application/json')) { lastErr = await r.text().catch(()=>''); continue }
+        categorias.value = await r.json()
+        loaded = true
+        break
+      } catch (e) { lastErr = e.message }
+    }
+    if (!loaded) throw new Error(lastErr || 'No se pudieron cargar categorías')
   } catch (err) {
     console.error('Error al cargar categorías:', err)
   }
@@ -141,6 +161,117 @@ const cargarProveedores = async () => {
     if (response.ok) proveedores.value = await response.json()
   } catch (err) {
     console.error('Error al cargar proveedores:', err)
+  }
+}
+
+// === CATEGORÍAS ===
+const showCategoryModal = ref(false)
+const editingCategory = ref(null)
+const categoryForm = ref({
+  nombreCategoria: '',
+  // descripcionCategoria opcional si el backend lo soporta
+  descripcionCategoria: ''
+})
+
+const abrirCategoryModal = (cat = null) => {
+  editingCategory.value = cat
+  if (cat) {
+    categoryForm.value = { nombreCategoria: cat.nombreCategoria, descripcionCategoria: cat.descripcionCategoria || '' }
+  } else {
+    resetCategoryForm()
+  }
+  showCategoryModal.value = true
+  error.value = ''
+  success.value = ''
+}
+
+const resetCategoryForm = () => {
+  categoryForm.value = { nombreCategoria: '', descripcionCategoria: '' }
+}
+
+async function postJsonWithFallback(paths, payload, method) {
+  // Intenta múltiples rutas hasta que una responda 2xx
+  let lastErrText = ''
+  for (const path of paths) {
+    try {
+      const resp = await fetch(path, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const ct = resp.headers.get('content-type') || ''
+      if (ct.includes('application/json')) {
+        const data = await resp.json()
+        if (!resp.ok) throw new Error(data.error || data.message || `Error ${resp.status}`)
+        return data
+      } else {
+        const text = await resp.text()
+        if (!resp.ok) throw new Error(text || `Error ${resp.status} ${resp.statusText}`)
+        return { ok: true }
+      }
+    } catch (e) {
+      lastErrText = e.message || String(e)
+      // probar siguiente
+    }
+  }
+  throw new Error(lastErrText || 'No se pudo completar la operación')
+}
+
+const guardarCategoria = async () => {
+  error.value = ''
+  success.value = ''
+  loading.value = true
+  try {
+    const method = editingCategory.value ? 'PUT' : 'POST'
+    const body = {
+      nombreCategoria: categoryForm.value.nombreCategoria,
+      ...(categoryForm.value.descripcionCategoria ? { descripcionCategoria: categoryForm.value.descripcionCategoria } : {})
+    }
+    const paths = editingCategory.value
+      ? [
+        `http://localhost:3000/api/categorias/${editingCategory.value.idCategoria}`,
+        `http://localhost:3000/api/categoria/${editingCategory.value.idCategoria}`,
+        `http://localhost:3000/api/admin/categorias/${editingCategory.value.idCategoria}`,
+        `http://localhost:3000/categorias/${editingCategory.value.idCategoria}`,
+        `http://localhost:3000/categoria/${editingCategory.value.idCategoria}`,
+        `http://localhost:3000/admin/categorias/${editingCategory.value.idCategoria}`
+        ]
+      : [
+        'http://localhost:3000/api/categorias',
+        'http://localhost:3000/api/categoria',
+        'http://localhost:3000/api/admin/categorias',
+        'http://localhost:3000/categorias',
+        'http://localhost:3000/categoria',
+        'http://localhost:3000/admin/categorias'
+        ]
+    await postJsonWithFallback(paths, body, method)
+    success.value = editingCategory.value ? 'Categoría actualizada' : 'Categoría creada'
+    await cargarCategorias()
+    setTimeout(() => { showCategoryModal.value = false }, 800)
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    loading.value = false
+  }
+}
+
+const eliminarCategoria = async (id) => {
+  if (!confirm('¿Eliminar esta categoría? Esta acción no se puede deshacer.')) return
+  try {
+    const resp = await fetch(`http://localhost:3000/api/categorias/${id}`, { method: 'DELETE' })
+    const ct = resp.headers.get('content-type') || ''
+    if (ct.includes('application/json')) {
+      const data = await resp.json().catch(() => ({}))
+      if (!resp.ok) throw new Error(data.error || data.message || 'No se pudo eliminar la categoría')
+    } else if (!resp.ok) {
+      const text = await resp.text()
+      throw new Error(text || `Error ${resp.status} ${resp.statusText}`)
+    }
+    success.value = 'Categoría eliminada'
+    await cargarCategorias()
+    setTimeout(() => (success.value = ''), 1500)
+  } catch (e) {
+    error.value = e.message
   }
 }
 
@@ -439,6 +570,17 @@ const cerrarSesion = () => {
           📦 Productos
         </button>
         <button
+          @click="activeTab = 'categorias'"
+          :class="[
+            'px-4 py-2 font-medium transition -mb-px',
+            activeTab === 'categorias'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
+        >
+          📚 Categorías
+        </button>
+        <button
           v-if="esAdmin"
           @click="activeTab = 'usuarios'"
           :class="[
@@ -503,10 +645,10 @@ const cerrarSesion = () => {
               <label for="filtroCategoria" class="block text-sm font-medium text-muted-foreground mb-1">Categoría</label>
               <select
                 id="filtroCategoria"
-                v-model="filtroCategoria"
+                v-model="filtroCategoriaProducto"
                 class="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
               >
-                <option :value="-1">Todas las categorías</option>
+                <option value="">Todas las categorías</option>
                 <option v-for="c in categorias" :key="c.idCategoria" :value="c.idCategoria">
                   {{ c.nombreCategoria }}
                 </option>
@@ -515,10 +657,10 @@ const cerrarSesion = () => {
             
             <div class="flex items-end">
               <button
-                @click="searchProducto = ''; filtroCategoria = -1"
+                @click="searchProducto = ''; filtroCategoriaProducto = ''"
                 class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-                :disabled="!searchProducto && filtroCategoria === -1"
-                :class="{ 'opacity-50 cursor-not-allowed': !searchProducto && filtroCategoria === -1 }"
+                :disabled="!searchProducto && !filtroCategoriaProducto"
+                :class="{ 'opacity-50 cursor-not-allowed': !searchProducto && !filtroCategoriaProducto }"
               >
                 Limpiar
               </button>
@@ -531,7 +673,7 @@ const cerrarSesion = () => {
             <h2 class="text-xl font-bold">Gestión de Productos</h2>
             <p class="text-sm text-muted-foreground">
               Mostrando {{ productosFiltrados.length }} de {{ productos.length }} productos
-              <span v-if="searchProducto || filtroCategoria !== -1" class="text-blue-600">
+              <span v-if="searchProducto || filtroCategoriaProducto" class="text-blue-600">
                 (filtrados)
               </span>
             </p>
@@ -776,6 +918,59 @@ const cerrarSesion = () => {
           </table>
         </div>
       </div>
+
+      <!-- TAB: CATEGORÍAS -->
+      <div v-if="activeTab === 'categorias' && !loading" class="bg-card rounded-xl shadow-sm overflow-hidden border border-border">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold">Gestión de Categorías</h2>
+            <p class="text-sm text-muted-foreground">Total: {{ categorias.length }}</p>
+          </div>
+          <button
+            @click="abrirCategoryModal()"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+          >
+            + Nueva Categoría
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-secondary/50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Nombre</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              <tr v-for="c in categorias" :key="c.idCategoria" class="hover:bg-secondary/40">
+                <td class="px-4 py-3 text-sm">{{ c.idCategoria }}</td>
+                <td class="px-4 py-3 text-sm font-medium">{{ c.nombreCategoria }}</td>
+                <td class="px-4 py-3 text-sm">
+                  <div class="flex items-center gap-2">
+                    <button
+                      @click="abrirCategoryModal(c)"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                      title="Editar categoría"
+                    >✏️</button>
+                    <button
+                      @click="eliminarCategoria(c.idCategoria)"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-800 transition-colors"
+                      title="Eliminar categoría"
+                    >🗑️</button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="categorias.length === 0">
+                <td colspan="3" class="px-4 py-6 text-center text-sm text-muted-foreground">
+                  No hay categorías registradas aún.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </main>
 
     <!-- MODAL: PRODUCTO -->
@@ -847,7 +1042,7 @@ const cerrarSesion = () => {
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Precio (MXN) *</label>
+              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Precio *</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                 <input 
@@ -1070,6 +1265,40 @@ const cerrarSesion = () => {
             >
               Cancelar
             </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: CATEGORÍA -->
+    <div v-if="showCategoryModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" @click.self="showCategoryModal = false">
+      <div class="bg-card text-foreground rounded-xl shadow-2xl w-full max-w-md border border-border">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between">
+          <h2 class="text-lg font-bold">{{ editingCategory ? '✏️ Editar Categoría' : '➕ Nueva Categoría' }}</h2>
+          <button @click="showCategoryModal = false" class="text-muted-foreground hover:text-foreground text-2xl" aria-label="Cerrar">&times;</button>
+        </div>
+        <form @submit.prevent="guardarCategoria" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Nombre de la categoría *</label>
+            <input
+              v-model="categoryForm.nombreCategoria"
+              required
+              class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition"
+              placeholder="Ej: Tarjetas de Video"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Descripción (opcional)</label>
+            <textarea
+              v-model="categoryForm.descripcionCategoria"
+              rows="2"
+              class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition resize-none"
+              placeholder="Breve descripción de la categoría"
+            ></textarea>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" @click="showCategoryModal = false" class="px-4 py-2 border border-border rounded-lg hover:bg-secondary">Cancelar</button>
+            <button type="submit" :disabled="loading" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60">{{ loading ? 'Guardando...' : 'Guardar' }}</button>
           </div>
         </form>
       </div>

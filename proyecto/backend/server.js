@@ -10,6 +10,9 @@ const categoriasRoutes = require('./routes/categorias');
 const proveedoresRoutes = require('./routes/proveedores');
 const usuariosRoutes = require('./routes/usuarios');
 const carritoRoutes = require('./routes/carrito');
+const paymentsRoutes = require('./routes/payments');
+
+require('dotenv').config();
 
 const app = express();
 
@@ -25,6 +28,7 @@ app.use('/api/categorias', categoriasRoutes);
 app.use('/api/proveedores', proveedoresRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/carrito', carritoRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 const PORT = 3000;
 

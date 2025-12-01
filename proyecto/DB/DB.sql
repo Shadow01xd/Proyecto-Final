@@ -188,7 +188,7 @@ CREATE TABLE MetodosPagoUsuario (
 GO
 
 /* =======================================================
-   INSERTS
+    INSERTS
    ======================================================= */
 
 -- ROLES (solo admin, empleado, cliente; repetidos para llegar a 5)
@@ -368,6 +368,29 @@ WHERE skuProducto = 'SSD-SEA-FC530-1TB';
 UPDATE Productos SET imgProducto =
     'https://www.gigahertz.com.ph/cdn/shop/files/asus-rog-gladius-ii-rgb-aura-gaming-mouse-asus-gigahertz-126585_1024x.webp?v=1721109724'
 WHERE skuProducto = 'MOU-ASUS-GLADIUS3';
+
+
+ALTER TABLE Productos
+ADD 
+    esOferta BIT NOT NULL DEFAULT 0,
+    nombreOferta VARCHAR(120) NULL,
+    porcentajeDescuento TINYINT NULL,
+    precioOferta DECIMAL(10,2) NULL;
+GO
+
+ALTER TABLE Productos
+ADD CONSTRAINT CHK_Productos_Descuento
+    CHECK (
+        porcentajeDescuento IS NULL 
+        OR (porcentajeDescuento > 0 AND porcentajeDescuento < 100)
+    );
+GO
+
+ALTER TABLE Productos
+ADD CONSTRAINT CHK_Productos_PrecioOferta
+    CHECK (precioOferta IS NULL OR precioOferta >= 0);
+GO
+
 
 Select * from Usuarios
 

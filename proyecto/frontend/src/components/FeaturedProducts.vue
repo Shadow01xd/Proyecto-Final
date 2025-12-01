@@ -19,7 +19,11 @@ function toCard(p) {
     id: p.idProducto,
     name: p.nombreProducto,
     category: p.nombreCategoria,
-    price: `$${Number(p.precioProducto || 0).toFixed(2)}`,
+    originalPrice: Number(p.precioProducto || 0),
+    offerPrice: p.precioOferta != null ? Number(p.precioOferta) : null,
+    discountPct: p.porcentajeDescuento || null,
+    offerName: p.nombreOferta || '',
+    price: `$${Number((p.precioOferta != null ? p.precioOferta : p.precioProducto) || 0).toFixed(2)}`,
     rating: 4.8,
     reviews: 100,
     badge: 'Destacado',
@@ -181,21 +185,31 @@ watch(totalSlides, (n) => {
         <div class="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
           <div class="grid md:grid-cols-12 md:gap-6">
             <div class="relative md:col-span-5">
-              <div class="w-full bg-muted flex items-center justify-center p-3 rounded-lg border border-border"
+              <router-link :to="{ name: 'producto', params: { id: featuredProducts[0].id } }" class="w-full bg-muted flex items-center justify-center p-3 rounded-lg border border-border"
                 style="aspect-ratio: 16/9;">
                 <img :src="featuredProducts[0].image" :alt="featuredProducts[0].name"
                   class="max-h-full max-w-full object-contain" loading="lazy" />
-              </div>
+              </router-link>
               <div
-                class="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
-                {{ featuredProducts[0].badge }}</div>
+                v-if="featuredProducts[0].discountPct"
+                class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold shadow bg-blue-600 text-white dark:bg-red-600 dark:text-white">
+                -{{ featuredProducts[0].discountPct }}%
+              </div>
+              <div v-if="featuredProducts[0].offerName" class="absolute bottom-3 left-3 right-3">
+                <div class="backdrop-blur-sm px-3 py-1.5 rounded-lg text-sm font-semibold text-center shadow bg-blue-600 text-white dark:bg-red-600 dark:text-white">
+                  {{ featuredProducts[0].offerName }}
+                </div>
+              </div>
             </div>
             <div class="md:col-span-7 p-6 md:p-8 space-y-4 flex flex-col justify-center">
               <div class="space-y-1">
                 <p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{{
                   featuredProducts[0].category }}</p>
-                <h3 class="text-2xl md:text-3xl font-bold text-foreground leading-tight tracking-tight">{{
-                  featuredProducts[0].name }}</h3>
+                <h3 class="text-2xl md:text-3xl font-bold text-foreground leading-tight tracking-tight">
+                  <router-link :to="{ name: 'producto', params: { id: featuredProducts[0].id } }" class="hover:underline">
+                    {{ featuredProducts[0].name }}
+                  </router-link>
+                </h3>
               </div>
               <div class="flex items-center gap-2">
                 <div class="flex items-center gap-1">
@@ -211,7 +225,10 @@ watch(totalSlides, (n) => {
               </div>
               <div
                 class="pt-3 border-t border-border flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <p class="text-2xl md:text-3xl font-bold text-foreground">{{ featuredProducts[0].price }}</p>
+                <p class="text-2xl md:text-3xl font-bold text-foreground flex items-baseline gap-3">
+                  <span :class="featuredProducts[0].offerPrice ? 'text-blue-600 dark:text-red-600' : 'text-foreground'">${{ Number((featuredProducts[0].offerPrice ?? featuredProducts[0].originalPrice) || 0).toFixed(2) }}</span>
+                  <span v-if="featuredProducts[0].offerPrice" class="text-lg line-through text-muted-foreground">${{ Number(featuredProducts[0].originalPrice || 0).toFixed(2) }}</span>
+                </p>
                 <button
                   class="w-full md:w-auto px-6 py-2 rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold"
                   @click="emit('add-to-cart', featuredProducts[0])">
@@ -233,14 +250,20 @@ watch(totalSlides, (n) => {
                 <div class="grid md:grid-cols-12 md:gap-6">
                   <!-- Imagen del producto -->
                   <div class="relative md:col-span-5">
-                    <div class="w-full bg-muted flex items-center justify-center p-3 rounded-lg border border-border"
+                    <router-link :to="{ name: 'producto', params: { id: p.id } }" class="w-full bg-muted flex items-center justify-center p-3 rounded-lg border border-border"
                       style="aspect-ratio: 16/9;">
                       <img :src="p.image" :alt="p.name" class="max-h-full max-w-full object-contain" loading="lazy" />
-                    </div>
-                    <!-- Badge flotante -->
+                    </router-link>
+                    <!-- Badges oferta -->
                     <div
-                      class="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
-                      {{ p.badge }}
+                      v-if="p.discountPct"
+                      class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold shadow bg-blue-600 text-white dark:bg-red-600 dark:text-white">
+                      -{{ p.discountPct }}%
+                    </div>
+                    <div v-if="p.offerName" class="absolute bottom-3 left-3 right-3">
+                      <div class="backdrop-blur-sm px-3 py-1.5 rounded-lg text-sm font-semibold text-center shadow bg-blue-600 text-white dark:bg-red-600 dark:text-white">
+                        {{ p.offerName }}
+                      </div>
                     </div>
                   </div>
 
@@ -251,7 +274,9 @@ watch(totalSlides, (n) => {
                         {{ p.category }}
                       </p>
                       <h3 class="text-2xl md:text-3xl font-bold text-foreground leading-tight tracking-tight">
-                        {{ p.name }}
+                        <router-link :to="{ name: 'producto', params: { id: p.id } }" class="hover:underline">
+                          {{ p.name }}
+                        </router-link>
                       </h3>
                     </div>
 
@@ -270,8 +295,9 @@ watch(totalSlides, (n) => {
                     <!-- Precio y botón -->
                     <div
                       class="pt-3 border-t border-border flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                      <p class="text-2xl md:text-3xl font-bold text-foreground">
-                        {{ p.price }}
+                      <p class="text-2xl md:text-3xl font-bold text-foreground flex items-baseline gap-3">
+                        <span :class="p.offerPrice ? 'text-blue-600 dark:text-red-600' : 'text-foreground'">${{ Number((p.offerPrice ?? p.originalPrice) || 0).toFixed(2) }}</span>
+                        <span v-if="p.offerPrice" class="text-lg line-through text-muted-foreground">${{ Number(p.originalPrice || 0).toFixed(2) }}</span>
                       </p>
                       <button
                         class="w-full md:w-auto px-6 rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2"
@@ -308,41 +334,51 @@ watch(totalSlides, (n) => {
       </div>
 
       <!-- Vista: Grid (4-8) -->
-      <div v-if="showGrid" class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div v-for="p in featuredProducts" :key="p.id"
-          class="group overflow-hidden rounded-lg bg-card border border-border hover:border-primary transition-all duration-300">
-          <div class="p-0">
-            <div class="relative overflow-hidden h-48">
-              <img :src="p.image" :alt="p.name" class="w-full h-full object-cover" loading="lazy" />
-              <div
-                class="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
-                {{ p.badge }}</div>
+      <div v-if="showGrid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div
+          v-for="p in featuredProducts"
+          :key="p.id"
+          class="group flex flex-col overflow-hidden rounded-lg border border-border bg-card/95 backdrop-blur shadow-sm transition hover:border-primary hover:-translate-y-0.5 hover:shadow-lg"
+        >
+          <router-link :to="{ name: 'producto', params: { id: p.id } }" class="relative h-48 overflow-hidden bg-muted block">
+            <img :src="p.image" :alt="p.name" class="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+            <span
+              v-if="p.category"
+              class="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"
+            >
+              {{ p.category }}
+            </span>
+            <span
+              v-if="p.discountPct"
+              class="absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-bold shadow bg-blue-600 text-white dark:bg-red-600 dark:text-white"
+            >
+              -{{ p.discountPct }}%
+            </span>
+            <div v-if="p.offerName" class="absolute left-3 right-3 bottom-3">
+              <div class="backdrop-blur-sm px-3 py-1.5 rounded-md text-xs font-semibold text-center shadow bg-blue-600 text-white dark:bg-red-600 dark:text-white">
+                {{ p.offerName }}
+              </div>
             </div>
-            <div class="p-4 space-y-4">
-              <div class="space-y-1">
-                <p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{{ p.category }}</p>
-                <h3 class="text-2xl md:text-3xl font-bold text-foreground leading-tight tracking-tight">{{ p.name }}
-                </h3>
+          </router-link>
+
+          <div class="flex flex-1 flex-col p-4 gap-3">
+            <div class="space-y-1">
+              <router-link :to="{ name: 'producto', params: { id: p.id } }" class="line-clamp-2 text-sm font-semibold leading-snug hover:underline">{{ p.name }}</router-link>
+            </div>
+
+            <div class="mt-auto flex items-center justify-between">
+              <div class="space-y-0.5">
+                <p class="text-lg font-bold text-foreground flex items-baseline gap-2">
+                  <span :class="p.offerPrice ? 'text-blue-600 dark:text-red-600' : 'text-foreground'">${{ Number((p.offerPrice ?? p.originalPrice) || 0).toFixed(2) }}</span>
+                  <span v-if="p.offerPrice" class="text-xs line-through text-muted-foreground">${{ Number(p.originalPrice || 0).toFixed(2) }}</span>
+                </p>
               </div>
-              <div class="flex items-center gap-2">
-                <div class="flex items-center gap-1">
-                  <svg v-for="star in 5" :key="star" class="h-4 w-4 transition-colors"
-                    :class="star <= Math.floor(p.rating) ? 'fill-amber-400 text-amber-400' : 'fill-muted text-muted'"
-                    viewBox="0 0 24 24">
-                    <path
-                      d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.785 1.401 8.168L12 18.896l-7.335 3.868 1.401-8.168L.132 9.211l8.2-1.193L12 .587z" />
-                  </svg>
-                  <span class="text-sm font-semibold text-foreground">{{ p.rating }}</span>
-                </div>
-                <span class="text-xs text-muted-foreground">({{ p.reviews }})</span>
-              </div>
-              <div class="space-y-3 pt-2 border-t border-border">
-                <p class="text-2xl md:text-3xl font-bold text-foreground">{{ p.price }}</p>
-                <button class="w-full rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2"
-                  @click="emit('add-to-cart', p)">
-                  Agregar al carrito
-                </button>
-              </div>
+              <button
+                class="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition transform hover:-translate-y-0.5 hover:shadow-md hover:bg-primary/90"
+                @click="emit('add-to-cart', p)"
+              >
+                Agregar al carrito
+              </button>
             </div>
           </div>
         </div>

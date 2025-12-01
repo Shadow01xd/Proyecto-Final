@@ -101,6 +101,62 @@ const updateRoleFlags = () => {
   const rol = (usuario.value?.nombreRol || '').toUpperCase()
   isStaff.value = rol === 'ADMIN' || rol === 'ADMINISTRADOR' || rol === 'EMPLEADO'
 }
+
+// ======================
+// Búsqueda (modal lupa)
+// ======================
+const showSearch = ref(false)
+const searchQuery = ref('')
+const searchResults = ref([])
+const searching = ref(false)
+let productsCache = []
+
+const openSearchModal = async () => {
+  showSearch.value = true
+  if (!productsCache.length) {
+    try {
+      searching.value = true
+      const res = await fetch('http://localhost:3000/api/productos')
+      productsCache = res.ok ? await res.json() : []
+    } catch {
+      productsCache = []
+    } finally {
+      searching.value = false
+    }
+  }
+  // pequeña espera para que el input exista y poder enfocarlo
+  requestAnimationFrame(() => {
+    const el = document.getElementById('global-search-input')
+    el && el.focus()
+  })
+}
+
+const closeSearchModal = () => {
+  showSearch.value = false
+  searchQuery.value = ''
+  searchResults.value = []
+}
+
+let debounceId
+const onSearchInput = () => {
+  clearTimeout(debounceId)
+  const q = searchQuery.value.trim().toLowerCase()
+  debounceId = setTimeout(() => {
+    if (!q) {
+      searchResults.value = []
+      return
+    }
+    const norm = (s) => String(s || '').toLowerCase()
+    searchResults.value = productsCache
+      .filter(p => norm(p.nombreProducto).includes(q) || norm(p.descripcionProducto).includes(q) || norm(p.skuProducto).includes(q))
+      .slice(0, 20)
+  }, 180)
+}
+
+const goToProduct = (p) => {
+  closeSearchModal()
+  router.push({ name: 'producto', params: { id: p.idProducto } })
+}
 </script>
 
   <template>
@@ -117,7 +173,7 @@ const updateRoleFlags = () => {
           <RouterLink to="/" class="text-base font-medium text-foreground hover:text-primary transition-colors">Inicio</RouterLink>
           <RouterLink to="/hardware" class="text-base font-medium text-foreground hover:text-primary transition-colors">Catálogo</RouterLink>
           <RouterLink to="/builder" class="text-base font-medium text-foreground hover:text-primary transition-colors">Arma tu PC</RouterLink>
-          <a href="#" class="text-base font-medium text-foreground hover:text-primary transition-colors">Ofertas</a>
+          <RouterLink to="/ofertas" class="text-base font-medium text-foreground hover:text-primary transition-colors">Ofertas</RouterLink>
           <RouterLink to="/about" class="text-base font-medium text-foreground hover:text-primary transition-colors">Sobre nosotros</RouterLink>
           <RouterLink v-if="isStaff" to="/dashboard" class="text-base font-medium text-foreground hover:text-primary transition-colors">Administrar</RouterLink>
         </nav>
@@ -125,7 +181,7 @@ const updateRoleFlags = () => {
         <!-- Actions -->
         <div class="flex items-center gap-2 ml-auto">
           <!-- Search (hidden on mobile) -->
-          <button class="hidden md:block p-2.5 hover:bg-secondary rounded-lg transition-colors text-foreground" aria-label="Buscar">
+          <button class="hidden md:block p-2.5 hover:bg-secondary rounded-lg transition-colors text-foreground" aria-label="Buscar" @click="openSearchModal">
             <!-- Search icon -->
             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           </button>
@@ -219,6 +275,11 @@ const updateRoleFlags = () => {
             <svg v-else class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
           </button>
 
+          <!-- Mobile search (visible only on mobile) -->
+          <button class="md:hidden p-2.5 hover:bg-secondary rounded-lg transition-colors text-foreground" aria-label="Buscar" @click="openSearchModal">
+            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+
           <!-- Mobile menu toggle -->
           <button class="md:hidden p-2.5 hover:bg-secondary rounded-lg transition-colors text-foreground" @click="toggleMenu" aria-label="Abrir menú">
             <svg v-if="!isMenuOpen" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -260,13 +321,13 @@ const updateRoleFlags = () => {
           >
             Arma tu PC
           </RouterLink>
-          <a
-            href="#"
+          <RouterLink
+            to="/ofertas"
             class="block px-4 py-2.5 text-foreground hover:bg-secondary hover:text-primary transition-colors rounded-md"
             @click="isMenuOpen = false"
           >
             Ofertas
-          </a>
+          </RouterLink>
           <RouterLink
             to="/about"
             class="block px-4 py-2.5 text-foreground hover:bg-secondary hover:text-primary transition-colors rounded-md"
@@ -349,6 +410,50 @@ const updateRoleFlags = () => {
       </transition>
     </div>
   </header>
+  
+  <!-- Modal de búsqueda -->
+  <teleport to="body">
+    <div v-if="showSearch" class="fixed inset-0 z-[100]">
+      <div class="absolute inset-0 bg-black/50" @click="closeSearchModal"></div>
+      <div class="absolute inset-0 flex items-start justify-center mt-24 px-4">
+        <div class="w-full max-w-2xl rounded-2xl border border-border bg-card shadow-xl overflow-hidden">
+          <div class="p-4 border-b border-border flex items-center gap-3">
+            <svg class="h-5 w-5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input
+              id="global-search-input"
+              v-model="searchQuery"
+              @input="onSearchInput"
+              @keydown.esc.prevent="closeSearchModal"
+              type="text"
+              placeholder="Buscar productos por nombre, SKU o descripción..."
+              class="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
+            />
+            <button class="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground" @click="closeSearchModal" aria-label="Cerrar búsqueda" title="Cerrar">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+          <div class="max-h-[60vh] overflow-y-auto">
+            <div v-if="searching" class="p-6 text-sm text-muted-foreground">Cargando catálogo...</div>
+            <div v-else-if="!searchQuery" class="p-6 text-sm text-muted-foreground">Empieza a escribir para buscar.</div>
+            <div v-else-if="searchResults.length === 0" class="p-6 text-sm text-muted-foreground">No se encontraron resultados.</div>
+            <ul v-else class="divide-y divide-border">
+              <li v-for="p in searchResults" :key="p.idProducto" class="p-4 hover:bg-secondary cursor-pointer flex items-center gap-3" @click="goToProduct(p)">
+                <img :src="p.imgProducto || 'https://via.placeholder.com/56x56?text=IMG'" :alt="p.nombreProducto" class="w-12 h-12 rounded object-cover" />
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium truncate">{{ p.nombreProducto }}</p>
+                  <p class="text-xs text-muted-foreground truncate">SKU: {{ p.skuProducto }}</p>
+                </div>
+                <div class="text-sm font-semibold whitespace-nowrap">${{ Number((p.precioOferta ?? p.precioProducto) || 0).toFixed(2) }}</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </teleport>
 </template>
 
 <style scoped>
