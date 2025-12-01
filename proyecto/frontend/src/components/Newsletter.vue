@@ -46,7 +46,7 @@ const handleSubscribe = () => {
 </script>
 
 <template>
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 animate-fade-in-up-soft">
     <div class="relative overflow-hidden rounded-2xl border border-border p-8 md:p-16 bg-gradient-to-r from-background via-background to-background dark:from-[#121829] dark:via-[#151a2c] dark:to-[#2b0a0a]">
       <div class="absolute inset-0 opacity-30 pointer-events-none">
         <div class="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />

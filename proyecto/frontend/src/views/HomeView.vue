@@ -86,7 +86,7 @@ onMounted(async () => {
 <template>
   <div class="bg-background text-foreground min-h-screen flex flex-col">
     <Header :cart-count="cartCount" />
-    <main class="flex-1">
+    <main class="flex-1 animate-fade-in-soft">
       <HeroSection />
       <CategoriesSection />
       <FeaturedProducts @add-to-cart="handleAddToCart" />
