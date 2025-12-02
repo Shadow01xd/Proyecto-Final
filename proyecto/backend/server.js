@@ -12,6 +12,7 @@ const usuariosRoutes = require('./routes/usuarios');
 const carritoRoutes = require('./routes/carrito');
 const paymentsRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/data');
+const newsletterRoutes = require('./routes/newsletter');
 
 require('dotenv').config();
 
@@ -31,6 +32,7 @@ app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/carrito', carritoRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 const PORT = 3000;
 

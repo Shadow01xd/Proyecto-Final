@@ -11,7 +11,7 @@ const validateEmail = (value) => {
   return re.test(String(value).toLowerCase())
 }
 
-const handleSubscribe = () => {
+const handleSubscribe = async () => {
   message.value = ''
   messageType.value = ''
 
@@ -24,20 +24,31 @@ const handleSubscribe = () => {
   loading.value = true
 
   try {
-    const key = 'newsletter_subscribers'
-    const raw = localStorage.getItem(key)
-    const list = raw ? JSON.parse(raw) : []
+    let idUsuario = null
+    try {
+      const raw = localStorage.getItem('usuario')
+      if (raw) {
+        const u = JSON.parse(raw)
+        idUsuario = u?.idUsuario || null
+      }
+    } catch {}
 
-    if (!list.includes(email.value)) {
-      list.push(email.value)
-      localStorage.setItem(key, JSON.stringify(list))
+    const res = await fetch('http://localhost:3000/api/newsletter/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.value, idUsuario })
+    })
+
+    const data = await res.json()
+    if (!res.ok) {
+      throw new Error(data?.error || 'No se pudo procesar la suscripción')
     }
 
-    message.value = '¡Gracias por suscribirte! Pronto recibirás nuestras novedades.'
+    message.value = data?.message || '¡Gracias por suscribirte! Revisa tu correo.'
     messageType.value = 'success'
     email.value = ''
   } catch (e) {
-    message.value = 'Ocurrió un error al guardar tu suscripción. Intenta más tarde.'
+    message.value = e?.message || 'Ocurrió un error al enviar tu suscripción.'
     messageType.value = 'error'
   } finally {
     loading.value = false

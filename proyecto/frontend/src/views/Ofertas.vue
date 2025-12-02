@@ -23,6 +23,7 @@ const allProducts = ref([])
 const nonOffer = ref([])
 const showAddModal = ref(false)
 const addForm = ref({ ids: [], tipo: 'precio', porcentajeDescuento: '', precioOferta: '', nombreOferta: '' })
+const notifyLoading = ref(false)
 
 const selectedForPreview = computed(() => {
   const set = new Set((addForm.value.ids || []).map(x => String(x)))
@@ -199,6 +200,26 @@ async function agregarOfertaNueva() {
     alert(e.message || 'Error al agregar oferta')
   }
 }
+
+async function notifyUsuarios() {
+  if (notifyLoading.value) return
+  try {
+    notifyLoading.value = true
+    const nombreOferta = (addForm.value.nombreOferta || '').trim()
+    const resp = await fetch('http://localhost:3000/api/newsletter/notify-offer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombreOferta })
+    })
+    const data = await resp.json().catch(() => ({}))
+    if (!resp.ok) throw new Error(data?.error || 'No se pudieron enviar las notificaciones')
+    alert('Oferta notificada')
+  } catch (e) {
+    alert(e.message || 'Error al notificar a los suscriptores')
+  } finally {
+    notifyLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -215,27 +236,51 @@ async function agregarOfertaNueva() {
             </h1>
             <p class="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">Aprovecha los mejores descuentos en productos seleccionados</p>
           </div>
+          <div class="hidden sm:flex items-center gap-2">
+            <button 
+              v-if="isStaff"
+              @click="showAddModal = true"
+              class="items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Nueva Oferta
+            </button>
+            <button
+              v-if="isStaff"
+              @click="notifyUsuarios"
+              :disabled="notifyLoading"
+              class="items-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-red-600 dark:hover:bg-red-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all duration-200">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5" />
+              </svg>
+              {{ notifyLoading ? 'Notificando…' : 'Notificar Usuarios' }}
+            </button>
+          </div>
+        </div>
+        
+        <!-- Mobile Actions -->
+        <div class="sm:hidden grid grid-cols-1 gap-2">
           <button 
             v-if="isStaff"
             @click="showAddModal = true"
-            class="hidden sm:flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200">
+            class="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium shadow-lg">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Nueva Oferta
           </button>
+          <button 
+            v-if="isStaff"
+            @click="notifyUsuarios"
+            :disabled="notifyLoading"
+            class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-red-600 dark:hover:bg-red-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-medium shadow-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5" />
+            </svg>
+            {{ notifyLoading ? 'Notificando…' : 'Notificar Usuarios' }}
+          </button>
         </div>
-        
-        <!-- Mobile Add Button -->
-        <button 
-          v-if="isStaff"
-          @click="showAddModal = true"
-          class="sm:hidden w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium shadow-lg">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Nueva Oferta
-        </button>
       </div>
 
       <!-- Error Alert -->
@@ -479,7 +524,7 @@ async function agregarOfertaNueva() {
           </div>
 
           <!-- Actions -->
-          <div class="flex gap-3 pt-4">
+          <div class="flex flex-col sm:flex-row gap-3 pt-4">
             <button 
               @click="agregarOfertaNueva"
               class="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all">

@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2025-12-02T01:45:48.252Z",
+  "exportedAt": "2025-12-02T05:33:04.649Z",
   "tables": {
     "Roles": [
       {
@@ -365,7 +365,7 @@
         "idCategoria": 1,
         "idProveedor": 1,
         "nombreProducto": "MSI MAG X570 Tomahawk",
-        "descripcionProducto": "Placa madre gaming para Ryzen, chipset X570",
+        "descripcionProducto": "Compatible con Chipset AM4 de AMD",
         "precioProducto": 250,
         "stockProducto": 10,
         "garantiaMeses": 24,
@@ -389,10 +389,10 @@
         "skuProducto": "GPU-GIGA-4070TI",
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/a251c4a029e27ad0398af9c3799e4495/Product/33432/Png",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 5,
+        "precioOferta": 759.99,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 3,
@@ -457,10 +457,10 @@
         "skuProducto": "RX-7900-XTX-24GB",
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/ffebdb331cdc6e8eecf7f2b4b42b8232/Product/32793/Png",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 5,
+        "precioOferta": 712.5,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 7,
@@ -491,10 +491,10 @@
         "skuProducto": "R-5-5600X",
         "esActivo": true,
         "imgProducto": "https://media.mipc.com.mx/catalog/product/g/m/gm-43338-m30_2.png?width=270&height=270&store=default&image-type=image",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 20,
+        "precioOferta": 128,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 9,
@@ -687,8 +687,8 @@
         "idProducto": 20,
         "idCategoria": 3,
         "idProveedor": 13,
-        "nombreProducto": "Trident Z NEO 32GB DDRA",
-        "descripcionProducto": "Memorias Ram trident z neo\n",
+        "nombreProducto": "Trident Z NEO 32GB DDR4",
+        "descripcionProducto": "Memorias Ram trident z neo DDR4\n",
         "precioProducto": 75,
         "stockProducto": 31,
         "garantiaMeses": 3,
@@ -746,10 +746,10 @@
         "skuProducto": "Logi-G502-LS",
         "esActivo": true,
         "imgProducto": "https://resource.logitechg.com/d_transparent.gif/content/dam/gaming/en/products/g502-lightspeed-gaming-mouse/g502-lightspeed-gallery-1.png",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 20,
+        "precioOferta": 128,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 24,
@@ -763,10 +763,10 @@
         "skuProducto": "Corsair-Hs80",
         "esActivo": true,
         "imgProducto": "https://assets.corsair.com/image/upload/c_pad,q_auto,h_1024,w_1024,f_auto/products/Gaming-Headsets/CA-9011235-NA/Gallery/HS80_RGB_WIRELESS_BLACK_01.webp",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 20,
+        "precioOferta": 96,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 25,
@@ -865,10 +865,10 @@
         "skuProducto": "XFX-9070-XT",
         "esActivo": true,
         "imgProducto": "https://img-itopya.mncdn.com/cdn/1000/4-2b3263.png",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 5,
+        "precioOferta": 760,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 31,
@@ -882,10 +882,10 @@
         "skuProducto": "PC-RX-9070",
         "esActivo": true,
         "imgProducto": "https://prod.scorptec.com.au/35/1039/115802/353460_large.jpg",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 5,
+        "precioOferta": 665,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 32,
@@ -899,10 +899,10 @@
         "skuProducto": "MSI-RTX-5070",
         "esActivo": true,
         "imgProducto": "https://asset.msi.com/resize/image/global/product/product_17374383365c2b37a6a41ecbf2d5d1f047570073a3.png62405b38c58fe0f07fcef2367d8a9ba1/600.png",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 3,
+        "precioOferta": 665,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 33,
@@ -977,7 +977,7 @@
         "idCategoria": 1,
         "idProveedor": 2,
         "nombreProducto": "X570x aorus elite ax",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con Chipset AM4 de AMD",
         "precioProducto": 200,
         "stockProducto": 30,
         "garantiaMeses": 6,
@@ -994,24 +994,24 @@
         "idCategoria": 1,
         "idProveedor": 1,
         "nombreProducto": "MSI B550 Gaming plus",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con Chipset AM4 de AMD",
         "precioProducto": 180,
         "stockProducto": 30,
         "garantiaMeses": 3,
         "skuProducto": "MSI-B550-GP",
         "esActivo": true,
         "imgProducto": "https://asset.msi.com/resize/image/global/product/product_16093853844ee7866a719db5745fa37a680e9dd834.png62405b38c58fe0f07fcef2367d8a9ba1/1024.png",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 20,
+        "precioOferta": 144,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 39,
         "idCategoria": 1,
         "idProveedor": 3,
         "nombreProducto": "Asus ROG B550-E Gaming",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con Chipset AM4 de AMD",
         "precioProducto": 230,
         "stockProducto": 30,
         "garantiaMeses": 6,
@@ -1028,7 +1028,7 @@
         "idCategoria": 1,
         "idProveedor": 18,
         "nombreProducto": "ASRock X570 Taichi",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con Chipset AM4 de AMD",
         "precioProducto": 200,
         "stockProducto": 30,
         "garantiaMeses": 3,
@@ -1045,7 +1045,7 @@
         "idCategoria": 1,
         "idProveedor": 2,
         "nombreProducto": "X670 GAMING X AX",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con Chipset AM5 de AMD",
         "precioProducto": 250,
         "stockProducto": 30,
         "garantiaMeses": 6,
@@ -1062,13 +1062,13 @@
         "idCategoria": 1,
         "idProveedor": 1,
         "nombreProducto": "MSI X670 ACE",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con Chipset AM5 de AMD",
         "precioProducto": 350,
         "stockProducto": 20,
         "garantiaMeses": 6,
         "skuProducto": "MSI-X670-ACE",
         "esActivo": true,
-        "imgProducto": "https://m.media-amazon.com/images/I/71rSnrM8XdL._AC_SL1500_.jpg",
+        "imgProducto": "https://gzhls.at/pix/1d/2e/1d2e3d1b59c41f3a-n.webp",
         "esOferta": false,
         "porcentajeDescuento": null,
         "precioOferta": null,
@@ -1079,7 +1079,7 @@
         "idCategoria": 1,
         "idProveedor": 3,
         "nombreProducto": "Asus Tuf X870 Plus-Wifi",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con Chipset AM5 de AMD",
         "precioProducto": 350,
         "stockProducto": 30,
         "garantiaMeses": 6,
@@ -1096,7 +1096,7 @@
         "idCategoria": 1,
         "idProveedor": 18,
         "nombreProducto": "ASRock X670-E",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con Chipset AM5 de AMD",
         "precioProducto": 400,
         "stockProducto": 30,
         "garantiaMeses": 6,
@@ -1113,7 +1113,7 @@
         "idCategoria": 1,
         "idProveedor": 3,
         "nombreProducto": "ASUS X870E PROART ",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con Chipset AM5 de AMD",
         "precioProducto": 500,
         "stockProducto": 22,
         "garantiaMeses": 6,
@@ -1130,7 +1130,7 @@
         "idCategoria": 1,
         "idProveedor": 2,
         "nombreProducto": "Z890 Aorus Elite",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con procesadores Ultra de intel",
         "precioProducto": 500,
         "stockProducto": 30,
         "garantiaMeses": 6,
@@ -1147,7 +1147,7 @@
         "idCategoria": 1,
         "idProveedor": 1,
         "nombreProducto": "Z890 MSI GAMING PLUS",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con procesadores Ultra de intel ",
         "precioProducto": 480,
         "stockProducto": 20,
         "garantiaMeses": 6,
@@ -1164,7 +1164,7 @@
         "idCategoria": 1,
         "idProveedor": 1,
         "nombreProducto": "Z790 MSI GAMING PLUS",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con 13th de intel ",
         "precioProducto": 350,
         "stockProducto": 40,
         "garantiaMeses": 3,
@@ -1181,7 +1181,7 @@
         "idCategoria": 1,
         "idProveedor": 2,
         "nombreProducto": "Gigabyte Z790 Eagle AX",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con 13th de intel ",
         "precioProducto": 400,
         "stockProducto": 40,
         "garantiaMeses": 3,
@@ -1198,16 +1198,16 @@
         "idCategoria": 1,
         "idProveedor": 2,
         "nombreProducto": "z690 aorus ultra",
-        "descripcionProducto": null,
+        "descripcionProducto": "Compatible con 12th de intel ",
         "precioProducto": 300,
         "stockProducto": 30,
         "garantiaMeses": 3,
         "skuProducto": "Giga-Z690-Ultra",
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/3dd84bb95e76cbcd4a67b05fb03f9e33/Product/30050/Png",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
+        "esOferta": true,
+        "porcentajeDescuento": 5,
+        "precioOferta": 285,
         "nombreOferta": null
       },
       {
@@ -1239,10 +1239,10 @@
         "skuProducto": "NZXT-H-710I",
         "esActivo": true,
         "imgProducto": "https://store974.com/cdn/shop/products/nzxt-h710i-atx-mid-tower-case-blackred-279397.png?v=1589406030",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 20,
+        "precioOferta": 104,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 53,
@@ -1256,10 +1256,10 @@
         "skuProducto": "Corsair-4000D-A",
         "esActivo": true,
         "imgProducto": "https://assets.corsair.com/image/upload/c_pad,q_auto,h_1024,w_1024,f_auto/products/Cases/base-4000d-airflow-config/Gallery/4000D_AF_WHITE_01.webp",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 20,
+        "precioOferta": 144,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 54,
@@ -1443,10 +1443,10 @@
         "skuProducto": "Corsair-RM750e-G",
         "esActivo": true,
         "imgProducto": "https://logg.api.cygnus.market/static/logg/Global/Fuente_CORSAIR_RM750e_750W_Gold_Full_Modular_ATX_3.1_PCIe_5.1_12V_2x6/fad9b136c5e34c5f986f1347ac6dc4c0.webp",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 20,
+        "precioOferta": 96,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 65,
@@ -1460,16 +1460,16 @@
         "skuProducto": "Giga-AP750GM-G",
         "esActivo": true,
         "imgProducto": "https://ddtech.mx/assets/uploads/ba22f7e2f0bf8527f32fc98ade5720fd.png",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 20,
+        "precioOferta": 96,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 66,
         "idCategoria": 8,
         "idProveedor": 10,
-        "nombreProducto": "360mm aio nzxt kraken",
+        "nombreProducto": "NZXT KRAKEN 360mm",
         "descripcionProducto": null,
         "precioProducto": 200,
         "stockProducto": 30,
@@ -1528,10 +1528,10 @@
         "skuProducto": "MSI-MAG-240",
         "esActivo": true,
         "imgProducto": "https://asset.msi.com/resize/image/global/product/product_0_20200709150730_5f06c232bd845.png62405b38c58fe0f07fcef2367d8a9ba1/600.png",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 20,
+        "precioOferta": 96,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 70,
@@ -1579,10 +1579,10 @@
         "skuProducto": "DEC-AG620-ARGB",
         "esActivo": true,
         "imgProducto": "https://cdn.deepcool.com/public/ProductFile/DEEPCOOL/Cooling/CPUAirCoolers/AG620_BK_ARGB_V2/Overview/01.png?fm=webp&q=60",
-        "esOferta": false,
-        "porcentajeDescuento": null,
-        "precioOferta": null,
-        "nombreOferta": null
+        "esOferta": true,
+        "porcentajeDescuento": 20,
+        "precioOferta": 96,
+        "nombreOferta": "Black Friday"
       }
     ],
     "Ordenes": [

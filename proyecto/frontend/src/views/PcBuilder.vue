@@ -12,6 +12,20 @@ const productos = ref([])
 const loading = ref(false)
 const error = ref('')
 
+// Wizard state
+const currentStep = ref(0)
+const steps = ref([
+  { name: 'Procesador', categoryPattern: /proces/i, required: true },
+  { name: 'Motherboard', categoryPattern: /mother/i, required: true },
+  { name: 'RAM', categoryPattern: /ram|memoria/i, required: true },
+  { name: 'Storage', categoryPattern: /almacen|storage|disco|ssd|hdd/i, required: true },
+  { name: 'GPU', categoryPattern: /gr[aá]fica|gpu|video/i, required: true },
+  { name: 'PSU', categoryPattern: /fuente|psu|poder/i, required: true },
+  { name: 'Gabinete', categoryPattern: /gabinete|case|caja/i, required: true },
+  { name: 'Periféricos', categoryPattern: /perif[eé]rico|teclado|mouse|rat[oó]n/i, required: false, multiSelect: true },
+  { name: 'Monitor', categoryPattern: /monitor|pantalla/i, required: false, multiSelect: true }
+])
+
 const activeCategoryId = ref(null)
 const selectedComponents = ref({}) // { [idCategoria]: producto }
 const draggedProduct = ref(null)
@@ -102,15 +116,72 @@ async function loadData() {
     categorias.value = dataCats || []
     productos.value = dataProds || []
 
-    if (categorias.value.length > 0) {
-      activeCategoryId.value = categorias.value[0].idCategoria
-    }
+    // Set active category based on current step
+    updateActiveCategoryForStep()
   } catch (e) {
     error.value = e.message || 'Error al cargar datos de armado'
   } finally {
     loading.value = false
   }
 }
+
+// Wizard navigation
+const currentStepData = computed(() => steps.value[currentStep.value])
+
+const currentStepCategory = computed(() => {
+  if (!currentStepData.value) return null
+  return categorias.value.find(c => currentStepData.value.categoryPattern.test(c.nombreCategoria || ''))
+})
+
+const isStepComplete = computed(() => {
+  const cat = currentStepCategory.value
+  if (!cat) return false
+  return !!selectedComponents.value[cat.idCategoria]
+})
+
+const canGoNext = computed(() => {
+  if (!currentStepData.value) return false
+  // Can skip optional steps
+  if (!currentStepData.value.required) return true
+  // Must complete required steps
+  return isStepComplete.value
+})
+
+const canGoPrevious = computed(() => currentStep.value > 0)
+
+const isLastStep = computed(() => currentStep.value === steps.value.length - 1)
+
+function updateActiveCategoryForStep() {
+  const cat = currentStepCategory.value
+  if (cat) {
+    activeCategoryId.value = cat.idCategoria
+  }
+}
+
+function goToNextStep() {
+  if (currentStep.value < steps.value.length - 1) {
+    currentStep.value++
+    updateActiveCategoryForStep()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+function goToPreviousStep() {
+  if (currentStep.value > 0) {
+    currentStep.value--
+    updateActiveCategoryForStep()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+function goToStep(stepIndex) {
+  if (stepIndex >= 0 && stepIndex < steps.value.length) {
+    currentStep.value = stepIndex
+    updateActiveCategoryForStep()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
 
 const productosPorCategoria = computed(() => {
   const map = {}
@@ -120,26 +191,258 @@ const productosPorCategoria = computed(() => {
   return map
 })
 
+const cpuCatId = computed(() => {
+  const c = categorias.value.find(x => /proces/i.test(x.nombreCategoria || ''))
+  return c ? c.idCategoria : 6
+})
+
+const motherboardCatId = computed(() => {
+  const c = categorias.value.find(x => /mother/i.test(x.nombreCategoria || ''))
+  return c ? c.idCategoria : 1
+})
+
+function isIntel(producto) {
+  const t = `${producto?.nombreProducto || ''} ${producto?.descripcionProducto || ''}`.toLowerCase()
+  return t.includes('intel')
+}
+
+function isAMD(producto) {
+  const t = `${producto?.nombreProducto || ''} ${producto?.descripcionProducto || ''}`.toLowerCase()
+  return t.includes('amd') || t.includes('ryzen') || t.includes('am4') || t.includes('am5')
+}
+
+function intelGen(producto) {
+  const t = `${producto?.nombreProducto || ''} ${producto?.descripcionProducto || ''}`.toLowerCase()
+  if (t.includes('ultra')) return 'ultra' // Core Ultra
+  if (t.includes('13th')) return '13th'
+  if (t.includes('12th')) return '12th'
+  return null
+}
+
+function amdSeries(producto) {
+  const t = `${producto?.nombreProducto || ''} ${producto?.descripcionProducto || ''}`.toLowerCase()
+  // Ryzen 7000: 7600, 7800, etc. Ryzen 5000: 5600, 5800, etc.
+  if (/(^|\s)7[0-9]{3}/.test(t) || t.includes('am5') || /ryzen\s*7\d{3}/.test(t)) return '7000'
+  if (/(^|\s)5[0-9]{3}/.test(t) || t.includes('am4') || /ryzen\s*5\d{3}/.test(t)) return '5000'
+  // Fallback por nombres específicos del backup
+  if (t.includes('7600') || t.includes('7800')) return '7000'
+  if (t.includes('5600') || t.includes('5800')) return '5000'
+  return null
+}
+
+function mbIntelSeries(mb) {
+  const t = `${mb?.nombreProducto || ''} ${mb?.descripcionProducto || ''}`.toLowerCase()
+  if (t.includes('z890')) return 'ultra'
+  if (t.includes('z790')) return '13th'
+  if (t.includes('z690')) return '12th'
+  return null
+}
+
+function mbAmdSeries(mb) {
+  const t = `${mb?.nombreProducto || ''} ${mb?.descripcionProducto || ''}`.toLowerCase()
+  if (t.includes('x670') || t.includes('x870') || t.includes('am5')) return '7000'
+  if (t.includes('x570') || t.includes('b550') || t.includes('am4')) return '5000'
+  return null
+}
+
+function amdMbCompatible(mb, series) {
+  const t = `${mb?.nombreProducto || ''} ${mb?.descripcionProducto || ''}`.toLowerCase()
+  // Excluir explícitamente placas Intel cuando buscamos AMD
+  if (t.includes('intel') || t.includes('z690') || t.includes('z790') || t.includes('z890')) return false
+  if (series === '7000') {
+    return t.includes('am5') || t.includes('x670') || t.includes('x870')
+  }
+  if (series === '5000') {
+    return t.includes('am4') || t.includes('x570') || t.includes('b550')
+  }
+  return false
+}
+
+const ramCatId = computed(() => {
+  const c = categorias.value.find(x => /ram|memoria/i.test(x.nombreCategoria || ''))
+  return c ? c.idCategoria : 3
+})
+
+function isDDR4(producto) {
+  const t = `${producto?.nombreProducto || ''} ${producto?.descripcionProducto || ''}`.toLowerCase()
+  return t.includes('ddr4') && !t.includes('ddr5')
+}
+
+function isDDR5(producto) {
+  const t = `${producto?.nombreProducto || ''} ${producto?.descripcionProducto || ''}`.toLowerCase()
+  return t.includes('ddr5')
+}
+
+function getMbRamType(mb) {
+  const t = `${mb?.nombreProducto || ''} ${mb?.descripcionProducto || ''}`.toLowerCase()
+  
+  // AMD Logic
+  if (t.includes('am4') || t.includes('b550') || t.includes('x570')) return 'DDR4'
+  if (t.includes('am5') || t.includes('x670') || t.includes('x870') || t.includes('b650')) return 'DDR5'
+  
+  // Intel Logic
+  if (t.includes('z890') || t.includes('ultra')) return 'DDR5'
+  
+  // Check explicit mention in name/desc
+  if (t.includes('ddr5')) return 'DDR5'
+  if (t.includes('ddr4')) return 'DDR4'
+  
+  // Default for modern Intel (Z690/Z790) if not specified: allow both or default to DDR5?
+  // User asked to search in DB. If not found, we'll be permissive to avoid blocking.
+  return 'BOTH' 
+}
+
+const productosPorCategoriaFiltrados = computed(() => {
+  const map = {}
+  const cpuSel = selectedComponents.value[cpuCatId.value]
+  const mbSel = selectedComponents.value[motherboardCatId.value]
+  
+  for (const c of categorias.value) {
+    const prods = productos.value.filter(p => Number(p.idCategoria) === Number(c.idCategoria))
+    
+    // Filter Motherboards based on CPU
+    if (Number(c.idCategoria) === Number(motherboardCatId.value) && cpuSel) {
+      if (isIntel(cpuSel)) {
+        const gen = intelGen(cpuSel)
+        map[c.idCategoria] = gen
+          ? prods.filter(mb => {
+              const t = `${mb?.nombreProducto || ''} ${mb?.descripcionProducto || ''}`.toLowerCase()
+              const isIntelMb = t.includes('z690') || t.includes('z790') || t.includes('z890') || t.includes('intel')
+              const isAMDToken = t.includes('am4') || t.includes('am5') || t.includes('x570') || t.includes('b550') || t.includes('x670') || t.includes('x870') || t.includes('amd')
+              return isIntelMb && !isAMDToken && mbIntelSeries(mb) === gen
+            })
+          : prods
+      } else if (isAMD(cpuSel)) {
+        const series = amdSeries(cpuSel)
+        map[c.idCategoria] = series ? prods.filter(mb => amdMbCompatible(mb, series)) : prods
+      } else {
+        map[c.idCategoria] = prods
+      }
+    } 
+    // Filter CPUs based on Motherboard
+    else if (Number(c.idCategoria) === Number(cpuCatId.value) && mbSel) {
+      const intelMb = mbIntelSeries(mbSel)
+      const amdMb = mbAmdSeries(mbSel)
+      if (intelMb) {
+        map[c.idCategoria] = prods.filter(cpu => isIntel(cpu) && intelGen(cpu) === intelMb)
+      } else if (amdMb) {
+        map[c.idCategoria] = prods.filter(cpu => isAMD(cpu) && amdSeries(cpu) === amdMb)
+      } else {
+        map[c.idCategoria] = prods
+      }
+    }
+    // Filter RAM based on Motherboard
+    else if (Number(c.idCategoria) === Number(ramCatId.value) && mbSel) {
+      const ramType = getMbRamType(mbSel)
+      if (ramType === 'DDR4') {
+        map[c.idCategoria] = prods.filter(r => isDDR4(r))
+      } else if (ramType === 'DDR5') {
+        map[c.idCategoria] = prods.filter(r => isDDR5(r))
+      } else {
+        map[c.idCategoria] = prods
+      }
+    }
+    // Filter PSU based on GPU
+    else if (Number(c.idCategoria) === Number(psuCatId.value)) {
+      const gpuSel = selectedComponents.value[gpuCatId.value]
+      if (gpuSel && isRTX5080(gpuSel)) {
+        // Si es RTX 5080, filtrar fuentes < 750W (mostrar solo > 750W, ej 850W+)
+        // El usuario dijo: "si elejimos una rtx 5080 no podemos elejir una psu de 750w"
+        // Interpretación: Requiere > 750W.
+        map[c.idCategoria] = prods.filter(psu => {
+          const w = getPSUWattage(psu)
+          return w > 750
+        })
+      } else {
+        map[c.idCategoria] = prods
+      }
+    }
+    else {
+      map[c.idCategoria] = prods
+    }
+  }
+  return map
+})
+
+const gpuCatId = computed(() => {
+  const c = categorias.value.find(x => /gr[aá]fica|gpu|video/i.test(x.nombreCategoria || ''))
+  return c ? c.idCategoria : 5
+})
+
+const psuCatId = computed(() => {
+  const c = categorias.value.find(x => /fuente|psu|poder/i.test(x.nombreCategoria || ''))
+  return c ? c.idCategoria : 4
+})
+
+function isRTX5080(producto) {
+  const t = `${producto?.nombreProducto || ''} ${producto?.descripcionProducto || ''}`.toLowerCase()
+  return t.includes('5080')
+}
+
+function getPSUWattage(producto) {
+  const t = `${producto?.nombreProducto || ''} ${producto?.descripcionProducto || ''} ${producto?.skuProducto || ''}`.toLowerCase()
+  // Buscar patrones como "850w", "1000w", "750 w", o números en SKU como "MSI-MAG-850"
+  
+  // 1. Buscar explícitamente "XXXw" o "XXX w"
+  const matchW = t.match(/(\d{3,4})\s*w/)
+  if (matchW) {
+    return parseInt(matchW[1], 10)
+  }
+
+  // 2. Si no encuentra "w", buscar números de 3 o 4 dígitos en el SKU que suelen indicar potencia (ej: 750, 850, 1000, 1200)
+  // Evitar años (20xx) o modelos genéricos si es posible, pero en PSUs suelen ser la potencia.
+  // Buscamos números aislados o precedidos por guiones/letras comunes en SKUs de fuentes.
+  const sku = (producto?.skuProducto || '').toLowerCase()
+  const matchSku = sku.match(/(?:^|[-_a-z])(\d{3,4})(?:$|[-_a-z])/)
+  if (matchSku) {
+    const val = parseInt(matchSku[1], 10)
+    // Filtrar valores que no parecen potencias comunes (ej: < 300 o > 2000, aunque hay fuentes de 1600)
+    if (val >= 300 && val <= 2000) {
+      return val
+    }
+  }
+
+  return 0
+}
+
+function ramInfo(mb) {
+  const type = getMbRamType(mb)
+  if (type === 'BOTH') return 'DDR4 o DDR5'
+  return type
+}
+
 const totalSeleccionado = computed(() => {
-  return Object.values(selectedComponents.value).reduce((sum, p) => {
-    return sum + Number((p.precioOferta ?? p.precioProducto) || 0)
+  return Object.values(selectedComponents.value).reduce((sum, item) => {
+    if (Array.isArray(item)) {
+      return sum + item.reduce((s, p) => s + Number((p.precioOferta ?? p.precioProducto) || 0), 0)
+    }
+    return sum + Number((item.precioOferta ?? item.precioProducto) || 0)
   }, 0)
 })
 
 const componentesSeleccionadosLista = computed(() => {
   const list = []
   for (const c of categorias.value) {
-    const p = selectedComponents.value[c.idCategoria]
-    if (p) {
-      list.push({ categoria: c.nombreCategoria, producto: p })
+    const item = selectedComponents.value[c.idCategoria]
+    if (item) {
+      if (Array.isArray(item)) {
+        item.forEach(p => list.push({ categoria: c.nombreCategoria, producto: p }))
+      } else {
+        list.push({ categoria: c.nombreCategoria, producto: item })
+      }
     }
   }
   return list
 })
 
-function quitarComponente(idCategoria) {
+function quitarComponente(idCategoria, idProducto = null) {
   const copy = { ...selectedComponents.value }
-  delete copy[idCategoria]
+  if (idProducto && Array.isArray(copy[idCategoria])) {
+    copy[idCategoria] = copy[idCategoria].filter(p => p.idProducto !== idProducto)
+    if (copy[idCategoria].length === 0) delete copy[idCategoria]
+  } else {
+    delete copy[idCategoria]
+  }
   selectedComponents.value = copy
   saveBuilderSelection()
 }
@@ -147,19 +450,61 @@ function quitarComponente(idCategoria) {
 function limpiarSeleccion() {
   selectedComponents.value = {}
   saveBuilderSelection()
+  // Reset wizard to first step and update active category
+  currentStep.value = 0
+  updateActiveCategoryForStep()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function isSelected(producto) {
+  const idCat = producto.idCategoria
+  const current = selectedComponents.value[idCat]
+  if (!current) return false
+  if (Array.isArray(current)) {
+    return current.some(p => p.idProducto === producto.idProducto)
+  }
+  return current.idProducto === producto.idProducto
 }
 
 function toggleSelect(producto) {
   const idCat = producto.idCategoria
   const current = selectedComponents.value[idCat]
-  if (current && current.idProducto === producto.idProducto) {
-    const copy = { ...selectedComponents.value }
-    delete copy[idCat]
-    selectedComponents.value = copy
+  const step = steps.value.find(s => s.categoryPattern.test(categorias.value.find(c => c.idCategoria === idCat)?.nombreCategoria || ''))
+  const isMulti = step?.multiSelect
+
+  if (isMulti) {
+    const list = Array.isArray(current) ? [...current] : (current ? [current] : [])
+    const idx = list.findIndex(p => p.idProducto === producto.idProducto)
+    if (idx >= 0) {
+      list.splice(idx, 1)
+    } else {
+      list.push(producto)
+    }
+    
+    if (list.length > 0) {
+      selectedComponents.value = { ...selectedComponents.value, [idCat]: list }
+    } else {
+      const copy = { ...selectedComponents.value }
+      delete copy[idCat]
+      selectedComponents.value = copy
+    }
+    // No auto-advance for multi-select
   } else {
-    selectedComponents.value = {
-      ...selectedComponents.value,
-      [idCat]: producto
+    if (current && !Array.isArray(current) && current.idProducto === producto.idProducto) {
+      const copy = { ...selectedComponents.value }
+      delete copy[idCat]
+      selectedComponents.value = copy
+    } else {
+      selectedComponents.value = {
+        ...selectedComponents.value,
+        [idCat]: producto
+      }
+      // Auto-advance to next step after selection
+      setTimeout(() => {
+        if (!isLastStep.value && canGoNext.value) {
+          goToNextStep()
+        }
+      }, 300) 
     }
   }
   saveBuilderSelection()
@@ -271,8 +616,8 @@ onMounted(async () => {
         </p>
         <h1 class="text-2xl md:text-3xl font-bold">Diseña tu propio equipo paso a paso</h1>
         <p class="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl">
-          Elige un componente por categoría y mira el precio total en tiempo real. Al finalizar, podrás enviar toda tu
-          selección al carrito para revisarla antes de comprar.
+          Sigue los pasos para armar tu PC. Selecciona un componente en cada categoría y avanza al siguiente paso.
+          Los periféricos y monitores son opcionales.
         </p>
       </section>
 
@@ -281,21 +626,57 @@ onMounted(async () => {
       </section>
 
       <section v-else class="flex flex-col lg:flex-row gap-6 md:gap-8">
-        <!-- Columna izquierda: categorías y productos -->
+        <!-- Columna izquierda: wizard y productos -->
         <div class="flex-1 space-y-4">
-          <div class="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory touch-pan-x">
-            <button
-              v-for="cat in categorias"
-              :key="cat.idCategoria"
-              class="whitespace-nowrap rounded-full border px-3.5 py-2 text-sm md:text-xs font-medium transition-colors flex items-center gap-1 shadow-sm flex-shrink-0 snap-start"
-              :class="Number(activeCategoryId) === Number(cat.idCategoria)
-                ? 'bg-primary text-primary-foreground border-primary shadow-md'
-                : 'bg-background text-foreground border-border hover:bg-secondary/70'"
-              @click="activeCategoryId = cat.idCategoria"
-              :aria-pressed="Number(activeCategoryId) === Number(cat.idCategoria)"
-            >
-              {{ cat.nombreCategoria }}
-            </button>
+          <!-- Wizard Step Indicator -->
+          <div class="rounded-xl border border-border bg-gradient-to-b from-card to-background p-4 md:p-6 space-y-4 shadow-sm">
+            <!-- Step title and counter -->
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-lg md:text-xl font-bold flex items-center gap-2">
+                  <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                    {{ currentStep + 1 }}
+                  </span>
+                  {{ currentStepData?.name }}
+                </h2>
+                <p class="text-xs text-muted-foreground mt-1">
+                  Paso {{ currentStep + 1 }} de {{ steps.length }}
+                  <span v-if="!currentStepData?.required" class="text-primary font-medium">(Opcional)</span>
+                </p>
+              </div>
+              <div v-if="isStepComplete" class="flex items-center gap-1.5 text-xs font-medium text-green-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Completado
+              </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="space-y-2">
+              <div class="flex items-center gap-1">
+                <div
+                  v-for="(step, idx) in steps"
+                  :key="idx"
+                  class="flex-1 h-1.5 rounded-full transition-all duration-300"
+                  :class="idx < currentStep ? 'bg-primary' : idx === currentStep ? 'bg-primary/70' : 'bg-border'"
+                ></div>
+              </div>
+              
+              <!-- Step labels (clickable) - aligned to left of each bar -->
+              <div class="hidden md:flex items-start gap-1">
+                <button
+                  v-for="(step, idx) in steps"
+                  :key="idx"
+                  class="flex-1 hover:text-primary transition-colors text-left text-[10px] text-muted-foreground truncate"
+                  :class="idx === currentStep ? 'text-primary font-semibold' : ''"
+                  @click="goToStep(idx)"
+                  :title="step.name"
+                >
+                  {{ step.name }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div v-if="loading" class="py-10 text-center text-muted-foreground text-sm">
@@ -307,16 +688,13 @@ onMounted(async () => {
               Selecciona uno de los componentes de la categoría actual. Puedes cambiarlo en cualquier momento.
             </p>
 
-            <div v-if="!activeCategoryId || (productosPorCategoria[activeCategoryId] || []).length === 0" class="py-8 text-center text-xs text-muted-foreground">
+            <div v-if="!activeCategoryId || (productosPorCategoriaFiltrados[activeCategoryId] || []).length === 0" class="py-8 text-center text-xs text-muted-foreground">
               No hay productos disponibles para esta categoría.
             </div>
 
-            <div
-              v-else
-              class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
-            >
+            <div v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               <div
-                v-for="p in productosPorCategoria[activeCategoryId]"
+                v-for="p in productosPorCategoriaFiltrados[activeCategoryId]"
                 :key="p.idProducto"
                 class="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition hover:border-primary hover:-translate-y-0.5 hover:shadow-lg cursor-move"
                 draggable="true"
@@ -350,6 +728,9 @@ onMounted(async () => {
                     <p class="line-clamp-2 text-[11px] text-muted-foreground">
                       {{ p.descripcionProducto || 'Componente para tu próxima build.' }}
                     </p>
+                    <p v-if="Number(p.idCategoria) === Number(motherboardCatId)" class="text-[11px] font-medium text-primary/80">
+                      RAM: {{ ramInfo(p) }}
+                    </p>
                   </div>
 
                   <div class="mt-auto flex items-center justify-between gap-2">
@@ -362,12 +743,12 @@ onMounted(async () => {
 
                     <button
                       class="rounded-md border px-3 py-1.5 text-[11px] font-semibold transition-colors shadow-sm"
-                      :class="selectedComponents[p.idCategoria] && selectedComponents[p.idCategoria].idProducto === p.idProducto
+                      :class="isSelected(p)
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'border-primary/40 text-primary hover:bg-primary/10 bg-background'"
                       @click="toggleSelect(p)"
                     >
-                      {{ selectedComponents[p.idCategoria] && selectedComponents[p.idCategoria].idProducto === p.idProducto ? 'Seleccionado' : 'Seleccionar' }}
+                      {{ isSelected(p) ? 'Seleccionado' : 'Seleccionar' }}
                     </button>
                   </div>
                 </div>
@@ -420,7 +801,7 @@ onMounted(async () => {
                   <button
                     class="text-[10px] text-red-500 hover:text-red-400"
                     draggable="false"
-                    @click.stop="quitarComponente(item.producto.idCategoria)"
+                    @click.stop="quitarComponente(item.producto.idCategoria, item.producto.idProducto)"
                   >
                     Quitar
                   </button>
@@ -467,6 +848,40 @@ onMounted(async () => {
                 {{ addMessage }}
               </p>
             </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="rounded-xl border border-border bg-gradient-to-b from-card to-background p-4 space-y-3 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+              <button
+                class="flex-1 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                :disabled="!canGoPrevious"
+                @click="goToPreviousStep"
+              >
+                ← Anterior
+              </button>
+
+              <button
+                v-if="!isLastStep"
+                class="flex-1 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
+                :disabled="!canGoNext"
+                @click="goToNextStep"
+              >
+                Siguiente →
+              </button>
+
+              <button
+                v-else
+                class="flex-1 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+                @click="goToNextStep"
+              >
+                Finalizar
+              </button>
+            </div>
+            
+            <p v-if="!canGoNext && currentStepData?.required" class="text-xs text-center text-amber-500">
+              Selecciona un componente para continuar
+            </p>
           </div>
         </aside>
       </section>

@@ -392,6 +392,24 @@ ADD CONSTRAINT CHK_Productos_PrecioOferta
 GO
 
 
+USE dbTiendaHardwarePC;
+GO
+
+CREATE TABLE NewsletterSubscribers (
+    idSubscriber INT IDENTITY(1,1) PRIMARY KEY,
+    idUsuario    INT NULL,
+    email        VARCHAR(150) NOT NULL,
+    fechaRegistro DATETIME NOT NULL DEFAULT GETDATE(),
+    estadoSuscripcion BIT NOT NULL DEFAULT 1, 
+
+    CONSTRAINT FK_NewsletterSubscribers_Usuarios
+        FOREIGN KEY (idUsuario) REFERENCES Usuarios(idUsuario),
+
+    CONSTRAINT UQ_NewsletterSubscribers_Email UNIQUE (email)
+);
+GO
+
+
 Select * from Usuarios
 
 SELECT * FROM Roles;
