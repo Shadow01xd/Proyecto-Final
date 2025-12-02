@@ -252,6 +252,71 @@ router.post('/subscribe', async (req, res) => {
   }
 })
 
+// POST /api/newsletter/unsubscribe
+router.post('/unsubscribe', async (req, res) => {
+  try {
+    let { email, idUsuario } = req.body || {}
+    email = (email || '').trim()
+
+    if (!email && !idUsuario) {
+      return res.status(400).json({ error: 'Se requiere email o idUsuario' })
+    }
+
+    const pool = await getPool()
+    const request = pool.request()
+    if (email) request.input('email', email)
+    if (idUsuario) request.input('idUsuario', idUsuario)
+
+    const result = await request.query(`
+      UPDATE NewsletterSubscribers
+      SET estadoSuscripcion = 0
+      WHERE (${email ? 'email = @email' : '1 = 0'})
+         OR (${idUsuario ? 'idUsuario = @idUsuario' : '1 = 0'})
+    `)
+
+    if (result.rowsAffected && result.rowsAffected[0] > 0) {
+      return res.json({ message: 'Suscripción cancelada. Ya no recibirás notificaciones.' })
+    }
+
+    return res.status(404).json({ error: 'No se encontró una suscripción activa para este usuario/email' })
+  } catch (err) {
+    console.error('Error en /api/newsletter/unsubscribe:', err)
+    return res.status(500).json({ error: 'No se pudo cancelar la suscripción' })
+  }
+})
+
+// POST /api/newsletter/status - Obtener si un usuario/email está suscrito (estadoSuscripcion = 1)
+router.post('/status', async (req, res) => {
+  try {
+    let { email, idUsuario } = req.body || {}
+    email = (email || '').trim()
+
+    if (!email && !idUsuario) {
+      return res.status(400).json({ error: 'Se requiere email o idUsuario' })
+    }
+
+    const pool = await getPool()
+    const request = pool.request()
+    if (email) request.input('email', email)
+    if (idUsuario) request.input('idUsuario', idUsuario)
+
+    const result = await request.query(`
+      SELECT TOP 1 estadoSuscripcion
+      FROM NewsletterSubscribers
+      WHERE (${email ? 'email = @email' : '1 = 0'})
+         OR (${idUsuario ? 'idUsuario = @idUsuario' : '1 = 0'})
+      ORDER BY idSubscriber DESC
+    `)
+
+    const row = result.recordset[0]
+    const subscribed = !!(row && row.estadoSuscripcion === 1)
+    return res.json({ subscribed })
+  } catch (err) {
+    console.error('Error en /api/newsletter/status:', err)
+    return res.status(500).json({ error: 'No se pudo obtener el estado de suscripción' })
+  }
+})
+
 // POST /api/newsletter/notify-offer
 router.post('/notify-offer', async (req, res) => {
   try {

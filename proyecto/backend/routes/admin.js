@@ -15,6 +15,7 @@ function safeTablesOrder() {
     'DetalleOrden',
     'Pagos',
     'MetodosPagoUsuario',
+    'NewsletterSubscribers',
   ];
 }
 
@@ -79,6 +80,7 @@ function hasIdentityColumn(table) {
     DetalleOrden: 'idDetalleOrden',
     Pagos: 'idPago',
     MetodosPagoUsuario: 'idMetodo',
+    NewsletterSubscribers: 'idSubscriber',
   };
   return guess[table] || null;
 }

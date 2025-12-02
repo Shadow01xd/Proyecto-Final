@@ -255,9 +255,14 @@ router.post('/login', async (req, res) => {
           u.telefonoUsuario,
           u.direccionUsuario,
           u.estadoUsuario,
-          r.nombreRol
+          r.nombreRol,
+          CASE
+            WHEN ns.estadoSuscripcion = 1 THEN 1
+            ELSE 0
+          END AS newsletterSubscribed
         FROM Usuarios u
         INNER JOIN Roles r ON u.idRol = r.idRol
+        LEFT JOIN NewsletterSubscribers ns ON ns.idUsuario = u.idUsuario AND ns.estadoSuscripcion = 1
         WHERE u.emailUsuario = @emailUsuario
       `);
 

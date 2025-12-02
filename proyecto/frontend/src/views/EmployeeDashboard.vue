@@ -13,6 +13,8 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 const activeTab = ref('productos')
+// Loading específico para operaciones de newsletter en admin (no bloquea toda la vista)
+const newsletterLoading = ref(false)
 
 const importFile = ref(null)
 const importWarnings = ref([])
@@ -49,6 +51,7 @@ const usuarios = ref([])
 const roles = ref([])
 const showUserModal = ref(false)
 const editingUser = ref(null)
+const showPassword = ref(false)
 const userForm = ref({
   idRol: '',
   nombreUsuario: '',
@@ -56,7 +59,8 @@ const userForm = ref({
   emailUsuario: '',
   password: '',
   telefonoUsuario: '',
-  direccionUsuario: ''
+  direccionUsuario: '',
+  newsletterSuscrito: false
 })
 
 // Verificar autenticación
@@ -264,6 +268,48 @@ const guardarCategoria = async () => {
     error.value = e.message
   } finally {
     loading.value = false
+  }
+}
+
+const actualizarNewsletterUsuario = async () => {
+  if (!editingUser.value) return
+
+  error.value = ''
+  success.value = ''
+
+  const targetState = !userForm.value.newsletterSuscrito
+  const url = targetState
+    ? 'http://localhost:3000/api/newsletter/subscribe'
+    : 'http://localhost:3000/api/newsletter/unsubscribe'
+
+  try {
+    newsletterLoading.value = true
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: userForm.value.emailUsuario,
+        idUsuario: editingUser.value.idUsuario
+      })
+    })
+
+    const data = await resp.json().catch(() => ({}))
+    if (!resp.ok) throw new Error(data.error || data.message || 'Error al actualizar suscripción')
+
+    userForm.value.newsletterSuscrito = targetState
+    // reflejar también en la lista de usuarios ya cargada
+    const idx = usuarios.value.findIndex(u => u.idUsuario === editingUser.value.idUsuario)
+    if (idx !== -1) {
+      usuarios.value[idx] = { ...usuarios.value[idx], newsletterSuscrito: targetState }
+    }
+
+    success.value = targetState
+      ? 'Usuario suscrito al newsletter.'
+      : 'Suscripción al newsletter cancelada para este usuario.'
+  } catch (e) {
+    error.value = e.message || 'Error al actualizar suscripción'
+  } finally {
+    newsletterLoading.value = false
   }
 }
 
@@ -491,7 +537,16 @@ const cargarRoles = async () => {
 const abrirUserModal = (user = null) => {
   editingUser.value = user
   if (user) {
-    userForm.value = { ...user, password: '' }
+    userForm.value = {
+      idRol: user.idRol,
+      nombreUsuario: user.nombreUsuario,
+      apellidoUsuario: user.apellidoUsuario,
+      emailUsuario: user.emailUsuario,
+      password: '',
+      telefonoUsuario: user.telefonoUsuario || '',
+      direccionUsuario: user.direccionUsuario || '',
+      newsletterSuscrito: !!user.newsletterSuscrito
+    }
   } else {
     resetUserForm()
   }
@@ -524,7 +579,8 @@ const resetUserForm = () => {
     emailUsuario: '',
     password: '',
     telefonoUsuario: '',
-    direccionUsuario: ''
+    direccionUsuario: '',
+    newsletterSuscrito: false
   }
 }
 
@@ -540,8 +596,19 @@ const guardarUsuario = async () => {
 
     const method = editingUser.value ? 'PUT' : 'POST'
 
-    const data = { ...userForm.value }
-    if (editingUser.value && !data.password) delete data.password
+    const data = {
+      idRol: userForm.value.idRol,
+      nombreUsuario: userForm.value.nombreUsuario,
+      apellidoUsuario: userForm.value.apellidoUsuario,
+      emailUsuario: userForm.value.emailUsuario,
+      telefonoUsuario: userForm.value.telefonoUsuario || null,
+      direccionUsuario: userForm.value.direccionUsuario || null,
+      estadoUsuario: editingUser.value ? editingUser.value.estadoUsuario : 1
+    }
+
+    if (!editingUser.value || (editingUser.value && userForm.value.password)) {
+      data.password = userForm.value.password
+    }
 
     const response = await fetch(url, {
       method,
@@ -695,6 +762,13 @@ async function importarDB() {
     }
     success.value = data.message || 'Importación completada'
     importWarnings.value = Array.isArray(data.warnings) ? data.warnings : []
+
+    // Recargar datos del dashboard para reflejar los cambios del backup
+    try {
+      await cargarDatos()
+    } catch (e) {
+      console.error('Error al recargar datos después de importar:', e)
+    }
   } catch (e) {
     error.value = e.message || 'Error al importar'
   } finally {
@@ -1529,15 +1603,13 @@ async function importarDB() {
             <div class="md:col-span-2">
               <label class="block text-sm font-medium text-muted-foreground mb-1.5">Correo electrónico *</label>
               <input 
-                v-model="userForm.correoUsuario" 
+                v-model="userForm.emailUsuario" 
                 type="email" 
                 required 
                 class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition"
                 placeholder="usuario@ejemplo.com"
-                :disabled="editingUser"
-                :class="{ 'opacity-70 cursor-not-allowed': editingUser }"
               />
-              <p v-if="editingUser" class="text-xs text-muted-foreground mt-1">El correo no puede ser modificado</p>
+              <p v-if="editingUser" class="text-xs text-muted-foreground mt-1 text-muted-foreground/80">Si cambias el correo se actualizará también en suscripción al newsletter.</p>
             </div>
             
             <div>
@@ -1571,7 +1643,7 @@ async function importarDB() {
               <label class="block text-sm font-medium text-muted-foreground mb-1.5">Contraseña *</label>
               <div class="relative">
                 <input 
-                  v-model="userForm.contrasenaUsuario" 
+                  v-model="userForm.password" 
                   :type="showPassword ? 'text' : 'password'" 
                   required 
                   class="w-full bg-background border border-border rounded-lg px-4 py-2.5 pr-10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition"
@@ -1594,7 +1666,7 @@ async function importarDB() {
               <label class="block text-sm font-medium text-muted-foreground mb-1.5">Nueva contraseña</label>
               <div class="relative">
                 <input 
-                  v-model="userForm.contrasenaUsuario" 
+                  v-model="userForm.password" 
                   :type="showPassword ? 'text' : 'password'" 
                   class="w-full bg-background border border-border rounded-lg px-4 py-2.5 pr-10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition"
                   placeholder="Dejar en blanco para no cambiar"
@@ -1610,6 +1682,39 @@ async function importarDB() {
                 </button>
               </div>
               <p class="text-xs text-muted-foreground mt-1.5">Solo completa si deseas cambiar la contraseña</p>
+            </div>
+
+            <div v-if="editingUser" class="md:col-span-2 mt-2 border-t border-border pt-3 flex items-center justify-between gap-3">
+              <div class="text-xs">
+                <p class="font-medium flex items-center gap-1">
+                  <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px]">✉️</span>
+                  Suscripción a newsletter
+                </p>
+                <p class="text-[11px] text-muted-foreground mt-0.5">
+                  {{ userForm.newsletterSuscrito ? 'El usuario recibe correos de promociones y novedades.' : 'El usuario no está recibiendo correos de newsletter.' }}
+                </p>
+              </div>
+              <!-- Switch visual igual que en Perfil, pero para admin -->
+              <button
+                type="button"
+                @click="actualizarNewsletterUsuario"
+                :disabled="loading || newsletterLoading"
+                class="relative inline-flex items-center rounded-full px-1 py-0.5 text-[11px] font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="userForm.newsletterSuscrito ? 'bg-emerald-500/10 text-emerald-500' : 'bg-secondary text-muted-foreground'"
+              >
+                <span class="px-2">
+                  {{ userForm.newsletterSuscrito ? 'Suscrito' : 'No suscrito' }}
+                </span>
+                <span
+                  class="ml-1 inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                  :class="userForm.newsletterSuscrito ? 'bg-emerald-500/90' : 'bg-border'"
+                >
+                  <span
+                    class="h-4 w-4 rounded-full bg-background shadow-sm transform transition-transform duration-200"
+                    :class="userForm.newsletterSuscrito ? 'translate-x-4' : 'translate-x-0'"
+                  />
+                </span>
+              </button>
             </div>
           </div>
 

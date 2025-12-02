@@ -16,6 +16,7 @@ function safeTablesOrder() {
     "Carritos",
     "CarritoItems",
     "MetodosPagoUsuario",
+    "NewsletterSubscribers",
   ];
 }
 
@@ -124,6 +125,7 @@ function hasIdentityColumn(table) {
     Carritos: "idCarrito",
     CarritoItems: "idCarritoItem",
     MetodosPagoUsuario: "idMetodoPagoUsuario",
+    NewsletterSubscribers: "idSubscriber",
   };
   return guess[table] || null;
 }

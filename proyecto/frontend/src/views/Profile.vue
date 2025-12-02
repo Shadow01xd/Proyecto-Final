@@ -9,6 +9,9 @@ const router = useRouter()
 const usuario = ref(null)
 const isEditing = ref(false)
 
+// Newsletter
+const newsletterSubscribed = ref(false)
+
 // Formulario
 const form = ref({
   nombreUsuario: '',
@@ -30,7 +33,53 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 
-onMounted(() => {
+const toggleNewsletter = async () => {
+  if (!usuario.value) return
+
+  error.value = ''
+  success.value = ''
+  loading.value = true
+
+  try {
+    const targetState = !newsletterSubscribed.value
+    const url = targetState
+      ? 'http://localhost:3000/api/newsletter/subscribe'
+      : 'http://localhost:3000/api/newsletter/unsubscribe'
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: usuario.value.emailUsuario,
+        idUsuario: usuario.value.idUsuario
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al actualizar suscripción al newsletter')
+    }
+
+    newsletterSubscribed.value = targetState
+    // Guardar también en localStorage para mantener consistencia local
+    const updatedUser = { ...usuario.value, newsletterSubscribed: targetState }
+    usuario.value = updatedUser
+    localStorage.setItem('usuario', JSON.stringify(updatedUser))
+
+    success.value = targetState
+      ? 'Te has suscrito al newsletter correctamente.'
+      : 'Has cancelado la suscripción al newsletter. Ya no recibirás correos.'
+  } catch (err) {
+    error.value = err.message || 'Error al actualizar suscripción al newsletter'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
   const userData = localStorage.getItem('usuario')
   if (!userData) {
     router.push('/login')
@@ -47,6 +96,16 @@ onMounted(() => {
       telefonoUsuario: usuario.value.telefonoUsuario || '',
       direccionUsuario: usuario.value.direccionUsuario || ''
     }
+
+    // Estado inicial del newsletter: usar SIEMPRE lo que venga del login/localStorage
+    // (puede venir como 0/1, true/false, etc.)
+    newsletterSubscribed.value = !!usuario.value.newsletterSubscribed
+
+    // Normalizar también en el objeto guardado
+    const updatedUser = { ...usuario.value, newsletterSubscribed: newsletterSubscribed.value }
+    usuario.value = updatedUser
+    localStorage.setItem('usuario', JSON.stringify(updatedUser))
+
   } catch (e) {
     console.error('Error al parsear usuario:', e)
     localStorage.removeItem('usuario')
@@ -320,6 +379,46 @@ const deleteAccount = async () => {
                   !isEditing ? 'bg-secondary cursor-not-allowed' : 'bg-background'
                 ]"
               />
+            </div>
+
+            <!-- Newsletter toggle -->
+            <div class="mt-6 pt-4 border-t border-border">
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex-1">
+                  <p class="text-sm font-medium flex items-center gap-2">
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs">✉️</span>
+                    Notificaciones por correo
+                  </p>
+                  <p class="text-xs text-muted-foreground mt-1">
+                    Recibe novedades, ofertas y actualizaciones en tu bandeja de entrada.
+                  </p>
+                  <p class="mt-1 text-[11px]" :class="newsletterSubscribed ? 'text-emerald-500' : 'text-muted-foreground'">
+                    {{ newsletterSubscribed ? 'Actualmente estás suscrito al newsletter.' : 'No estás suscrito al newsletter.' }}
+                  </p>
+                </div>
+
+                <!-- Switch visual -->
+                <button
+                  type="button"
+                  @click="toggleNewsletter"
+                  :disabled="loading"
+                  class="relative inline-flex items-center rounded-full px-1 py-0.5 text-[11px] font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  :class="newsletterSubscribed ? 'bg-emerald-500/10 text-emerald-500' : 'bg-secondary text-muted-foreground'"
+                >
+                  <span class="px-2">
+                    {{ newsletterSubscribed ? 'Suscrito' : 'No suscrito' }}
+                  </span>
+                  <span
+                    class="ml-1 inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                    :class="newsletterSubscribed ? 'bg-emerald-500/90' : 'bg-border'"
+                  >
+                    <span
+                      class="h-4 w-4 rounded-full bg-background shadow-sm transform transition-transform duration-200"
+                      :class="newsletterSubscribed ? 'translate-x-4' : 'translate-x-0'"
+                    />
+                  </span>
+                </button>
+              </div>
             </div>
 
             <div v-if="isEditing" class="flex gap-3 pt-4">

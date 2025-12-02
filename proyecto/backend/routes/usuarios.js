@@ -31,9 +31,14 @@ router.get('/', async (req, res) => {
         u.direccionUsuario,
         u.fechaRegistro,
         u.estadoUsuario,
-        r.nombreRol
+        r.nombreRol,
+        CASE
+          WHEN ns.estadoSuscripcion = 1 THEN 1
+          ELSE 0
+        END AS newsletterSuscrito
       FROM Usuarios u
       INNER JOIN Roles r ON u.idRol = r.idRol
+      LEFT JOIN NewsletterSubscribers ns ON ns.idUsuario = u.idUsuario AND ns.estadoSuscripcion = 1
       ORDER BY u.fechaRegistro DESC
     `);
 
@@ -120,14 +125,16 @@ router.put('/:id', async (req, res) => {
   try {
     const pool = await getPool();
 
-    // Verificar que el usuario existe
+    // Verificar que el usuario existe y obtener su email actual
     const checkUser = await pool.request()
       .input('idUsuario', id)
-      .query('SELECT idUsuario FROM Usuarios WHERE idUsuario = @idUsuario');
+      .query('SELECT idUsuario, emailUsuario AS emailActual FROM Usuarios WHERE idUsuario = @idUsuario');
 
     if (checkUser.recordset.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
+
+    const emailActual = checkUser.recordset[0].emailActual;
 
     // Actualizar usuario
     await pool.request()
@@ -150,6 +157,20 @@ router.put('/:id', async (req, res) => {
             estadoUsuario = @estadoUsuario
         WHERE idUsuario = @idUsuario
       `);
+
+    // Si el correo cambió, actualizar también en NewsletterSubscribers para mantener consistencia
+    if (emailUsuario && emailUsuario !== emailActual) {
+      await pool.request()
+        .input('idUsuario', id)
+        .input('nuevoEmail', emailUsuario)
+        .input('emailActual', emailActual)
+        .query(`
+          UPDATE NewsletterSubscribers
+          SET email = @nuevoEmail
+          WHERE (idUsuario = @idUsuario AND idUsuario IS NOT NULL)
+             OR (email = @emailActual)
+        `);
+    }
 
     res.json({ message: 'Usuario actualizado correctamente' });
   } catch (err) {
