@@ -50,24 +50,88 @@ router.get("/export", async (req, res) => {
     const json = JSON.stringify(
       {
         exportedAt: new Date().toISOString(),
-        tables: data,
+        data,
       },
       null,
       2
     );
     res.setHeader("Content-Type", "application/json");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="backup-${Date.now()}.json"`
-    );
-    return res.status(200).send(json);
-  } catch (err) {
-    return res
-      .status(500)
-      .json({
-        error: "No se pudo exportar la base de datos",
-        details: String((err && err.message) || err),
-      });
+    res.setHeader("Content-Disposition", `attachment; filename=export_${Date.now()}.json`);
+    return res.send(json);
+  } catch (e) {
+    return res.status(500).json({ error: "No se pudo exportar" });
+  }
+});
+
+// Reporte consolidado (JSON) para generar PDF en frontend
+router.get("/report", async (req, res) => {
+  try {
+    const pool = await getPool();
+
+    // Tablas base
+    const tables = safeTablesOrder();
+    const report = {};
+    for (const t of tables) {
+      try {
+        const rows = await fetchTable(pool, t);
+        report[t] = rows;
+      } catch {
+        report[t] = [];
+      }
+    }
+
+    // Agregados
+    const [{ totalVentas = 0 }] = (
+      await pool.request().query(
+        `SELECT ISNULL(SUM(montoPago),0) AS totalVentas FROM Pagos`
+      )
+    ).recordset;
+
+    const [{ totalOrdenes = 0 }] = (
+      await pool.request().query(`SELECT COUNT(1) AS totalOrdenes FROM Ordenes`)
+    ).recordset;
+
+    const topUsuarios = (
+      await pool
+        .request()
+        .query(`
+          SELECT TOP 5 u.idUsuario, u.nombreUsuario, u.apellidoUsuario, u.emailUsuario,
+                 ISNULL(SUM(p.montoPago),0) AS totalGastado,
+                 COUNT(DISTINCT o.idOrden) AS ordenes
+          FROM Usuarios u
+          LEFT JOIN Ordenes o ON o.idUsuarioCliente = u.idUsuario
+          LEFT JOIN Pagos p ON p.idOrden = o.idOrden
+          GROUP BY u.idUsuario, u.nombreUsuario, u.apellidoUsuario, u.emailUsuario
+          ORDER BY totalGastado DESC
+        `)
+    ).recordset || [];
+
+    const ventasPorMes = (
+      await pool
+        .request()
+        .query(`
+          SELECT 
+            FORMAT(o.fechaOrden, 'yyyy-MM') AS periodo,
+            ISNULL(SUM(p.montoPago),0) AS total
+          FROM Ordenes o
+          LEFT JOIN Pagos p ON p.idOrden = o.idOrden
+          GROUP BY FORMAT(o.fechaOrden, 'yyyy-MM')
+          ORDER BY periodo ASC
+        `)
+    ).recordset || [];
+
+    return res.json({
+      generatedAt: new Date().toISOString(),
+      aggregates: {
+        totalVentas: Number(totalVentas),
+        totalOrdenes: Number(totalOrdenes),
+        topUsuarios,
+        ventasPorMes,
+      },
+      data: report,
+    });
+  } catch (e) {
+    return res.status(500).json({ error: "No se pudo generar el reporte" });
   }
 });
 

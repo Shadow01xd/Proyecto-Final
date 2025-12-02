@@ -18,9 +18,9 @@ const emit = defineEmits(['close'])
           <div class="px-6 py-5 space-y-3 text-sm">
             <p>¿Tienes un problema con tu pedido o producto? Estamos para ayudarte.</p>
             <div class="grid gap-3">
-              <a href="mailto:soporte@novatech.com" class="inline-flex items-center gap-2 text-primary hover:underline">
+              <a href="mailto:novatech69xd@gmail.com" class="inline-flex items-center gap-2 text-primary hover:underline">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>
-                soporte@novatech.com
+                novatech69xd@gmail.com
               </a>
               <a href="https://wa.me/5215555555555" target="_blank" class="inline-flex items-center gap-2 text-primary hover:underline">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 12a9.5 9.5 0 0 1-13.4 8.7L3 21l.3-5.1A9.5 9.5 0 1 1 21.5 12z"/></svg>

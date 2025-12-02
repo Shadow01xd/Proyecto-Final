@@ -8,6 +8,36 @@ const productos = ref([])
 const loading = ref(false)
 const error = ref('')
 
+// Cart badge
+const cartCount = ref(0)
+function getUserId() {
+  try {
+    const raw = localStorage.getItem('usuario')
+    if (!raw) return null
+    const u = JSON.parse(raw)
+    return u?.idUsuario || null
+  } catch { return null }
+}
+async function loadCartCount() {
+  const uid = getUserId()
+  const key = uid ? `cart_${uid}` : 'cart'
+  if (uid) {
+    try {
+      const res = await fetch(`http://localhost:3000/api/carrito/${uid}`)
+      if (res.ok) {
+        const data = await res.json()
+        cartCount.value = (data.items || []).length
+        return
+      }
+    } catch {}
+  }
+  try {
+    const raw = localStorage.getItem(key)
+    const items = raw ? JSON.parse(raw) : []
+    cartCount.value = items.length
+  } catch { cartCount.value = 0 }
+}
+
 function getUsuario() {
   try {
     const raw = localStorage.getItem('usuario')
@@ -51,6 +81,7 @@ onMounted(async () => {
   isStaff.value = idRol === 1 || idRol === 2
   await cargarOfertas()
   await cargarNoOfertas()
+  await loadCartCount()
 })
 
 async function cargarOfertas() {
@@ -224,7 +255,7 @@ async function notifyUsuarios() {
 
 <template>
   <div class="bg-background text-foreground min-h-screen flex flex-col">
-    <Header />
+    <Header :cart-count="cartCount" />
     
     <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       <!-- Hero Section -->

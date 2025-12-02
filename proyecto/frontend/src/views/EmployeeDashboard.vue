@@ -13,14 +13,26 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 const activeTab = ref('productos')
-// Loading específico para operaciones de newsletter en admin (no bloquea toda la vista)
 const newsletterLoading = ref(false)
 
 const importFile = ref(null)
 const importWarnings = ref([])
 const importDetails = ref('')
 
-// Permisos (case-insensitive, soporta variantes de nombres)
+// Cart badge
+const cartCount = ref(0)
+function getUserId(){
+  try{ const raw = localStorage.getItem('usuario'); if(!raw) return null; const u = JSON.parse(raw); return u?.idUsuario || null }catch{ return null }
+}
+async function loadCartCount(){
+  const uid = getUserId()
+  const key = uid ? `cart_${uid}` : 'cart'
+  if (uid){
+    try{ const r = await fetch(`http://localhost:3000/api/carrito/${uid}`); if(r.ok){ const d = await r.json(); cartCount.value = (d.items||[]).length; return } }catch{}
+  }
+  try{ const raw = localStorage.getItem(key); const items = raw ? JSON.parse(raw) : []; cartCount.value = items.length }catch{ cartCount.value = 0 }
+}
+
 const esAdmin = computed(() => {
   const rol = (usuario.value?.nombreRol || '').toUpperCase()
   return rol === 'ADMIN' || rol === 'ADMINISTRADOR'
@@ -88,6 +100,7 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+  await loadCartCount()
 })
 
 const cargarDatos = async () => {
@@ -497,6 +510,110 @@ const guardarProducto = async () => {
   }
 }
 
+
+async function generarReporte() {
+  if (!esAdmin.value) { error.value = 'Solo administradores'; return }
+  error.value = ''
+  success.value = ''
+  loading.value = true
+  try {
+    const resp = await fetch('http://localhost:3000/api/admin/report')
+    const data = await resp.json().catch(()=> ({}))
+    if (!resp.ok) throw new Error(data.error || 'No se pudo generar el reporte')
+    const html = buildReportHtml(data)
+    const w = window.open('', '_blank')
+    if (!w) throw new Error('No se pudo abrir la ventana de impresión')
+    w.document.open()
+    w.document.write(html)
+    w.document.close()
+    w.focus()
+    // pequeño delay para asegurar estilos cargados
+    setTimeout(() => { try { w.print(); } catch {} }, 300)
+  } catch (e) {
+    error.value = e.message || 'Error al generar reporte'
+  } finally {
+    loading.value = false
+  }
+}
+
+function currency(v){ try{ return '$'+Number(v||0).toFixed(2) }catch{ return '$0.00' } }
+
+function buildReportHtml(payload){
+  const ag = payload.aggregates || {}
+  const data = payload.data || {}
+  const ventasPorMes = Array.isArray(ag.ventasPorMes) ? ag.ventasPorMes : []
+  const topUsuarios = Array.isArray(ag.topUsuarios) ? ag.topUsuarios : []
+  const style = `
+    <style>
+      body{ font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; padding:24px; color:#111 }
+      h1{ font-size:22px; margin:0 0 8px }
+      h2{ font-size:18px; margin:16px 0 8px }
+      table{ width:100%; border-collapse:collapse; margin:8px 0 16px }
+      th,td{ border:1px solid #ddd; padding:6px 8px; font-size:12px; text-align:left }
+      .muted{ color:#666; font-size:12px }
+      .grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px }
+      .card{ border:1px solid #ddd; border-radius:8px; padding:12px }
+    </style>
+  `
+  const header = `
+    <div>
+      <h1>Reporte General</h1>
+      <div class="muted">Generado: ${payload.generatedAt || new Date().toISOString()}</div>
+    </div>
+  `
+  const resumen = `
+    <div class="grid">
+      <div class="card">
+        <h2>Resumen</h2>
+        <div>Total ventas: <strong>${currency(ag.totalVentas)}</strong></div>
+        <div>Total órdenes: <strong>${ag.totalOrdenes || 0}</strong></div>
+      </div>
+      <div class="card">
+        <h2>Ventas por mes</h2>
+        <table>
+          <thead><tr><th>Periodo</th><th>Total</th></tr></thead>
+          <tbody>
+            ${ventasPorMes.map(r=>`<tr><td>${r.periodo}</td><td>${currency(r.total)}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `
+  const top = `
+    <div class="card">
+      <h2>Top clientes por gasto</h2>
+      <table>
+        <thead><tr><th>Usuario</th><th>Email</th><th>Órdenes</th><th>Total</th></tr></thead>
+        <tbody>
+          ${topUsuarios.map(u=>`<tr><td>${u.nombreUsuario} ${u.apellidoUsuario}</td><td>${u.emailUsuario}</td><td>${u.ordenes||0}</td><td>${currency(u.totalGastado||0)}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `
+  function tableBlock(title, rows){
+    if (!rows || !rows.length) return ''
+    const cols = Object.keys(rows[0])
+    const head = cols.map(c=>`<th>${c}</th>`).join('')
+    const body = rows.map(r=>`<tr>${cols.map(c=>`<td>${String(r[c]??'')}</td>`).join('')}</tr>`).join('')
+    return `<div class="card"><h2>${title}</h2><div class="muted">${rows.length} filas</div><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`
+  }
+  const allTables = [
+    tableBlock('Usuarios', data.Usuarios),
+    tableBlock('Métodos de pago por usuario', data.MetodosPagoUsuario),
+    tableBlock('Órdenes', data.Ordenes),
+    tableBlock('Pagos', data.Pagos),
+    tableBlock('Detalle de orden', data.DetalleOrden),
+    tableBlock('Productos', data.Productos),
+    tableBlock('Categorías', data.Categorias),
+    tableBlock('Proveedores', data.Proveedores),
+    tableBlock('Carritos', data.Carritos),
+    tableBlock('CarritoItems', data.CarritoItems),
+    tableBlock('Newsletter', data.NewsletterSubscribers)
+  ].join('')
+
+  return `<!doctype html><html><head><meta charset="utf-8"/>${style}</head><body>${header}${resumen}${top}${allTables}</body></html>`
+}
+
 const eliminarProducto = async (id) => {
   if (!confirm('¿Estás seguro de desactivar este producto?')) return
 
@@ -534,7 +651,7 @@ const cargarRoles = async () => {
   }
 }
 
-const abrirUserModal = (user = null) => {
+const abrirUserModal = async (user = null) => {
   editingUser.value = user
   if (user) {
     userForm.value = {
@@ -553,6 +670,15 @@ const abrirUserModal = (user = null) => {
   showUserModal.value = true
   error.value = ''
   success.value = ''
+
+  // Cargar métodos de pago del usuario cuando se edita
+  try {
+    if (user && user.idUsuario) {
+      await cargarMetodosPagoUsuario(user.idUsuario)
+    } else {
+      paymentMethods.value = []
+    }
+  } catch {}
 }
 
 // Abrir modal para crear específicamente un EMPLEADO desde la pestaña de Empleados
@@ -691,6 +817,41 @@ const activarUsuario = async (id) => {
   }
 }
 
+// === MÉTODOS DE PAGO (ADMIN/EMPLEADO dentro del modal) ===
+const paymentMethods = ref([])
+const paymentMethodsLoading = ref(false)
+
+const cargarMetodosPagoUsuario = async (idUsuario) => {
+  paymentMethodsLoading.value = true
+  try {
+    const resp = await fetch(`http://localhost:3000/api/payments/methods/user/${idUsuario}`)
+    const data = await resp.json().catch(() => ({}))
+    if (!resp.ok) throw new Error(data.error || 'No se pudieron cargar los métodos')
+    paymentMethods.value = Array.isArray(data.methods) ? data.methods : []
+  } catch (e) {
+    error.value = e.message || 'Error al cargar métodos de pago'
+    paymentMethods.value = []
+  } finally {
+    paymentMethodsLoading.value = false
+  }
+}
+
+const eliminarMetodoPago = async (idMetodoPagoUsuario) => {
+  if (!confirm('¿Eliminar este método de pago? Esta acción no se puede deshacer.')) return
+  try {
+    const resp = await fetch(`http://localhost:3000/api/payments/methods/${idMetodoPagoUsuario}`, { method: 'DELETE' })
+    const data = await resp.json().catch(() => ({}))
+    if (!resp.ok) throw new Error(data.error || 'No se pudo eliminar el método')
+    success.value = data.message || 'Método eliminado'
+    if (editingUser.value?.idUsuario) {
+      await cargarMetodosPagoUsuario(editingUser.value.idUsuario)
+    }
+    setTimeout(() => (success.value = ''), 1500)
+  } catch (e) {
+    error.value = e.message || 'Error al eliminar método'
+  }
+}
+
 // Filtrar usuarios según rol (case-insensitive)
 const usuariosFiltrados = computed(() => {
   const normalizarRol = (rol) => (rol || '').toUpperCase()
@@ -779,7 +940,7 @@ async function importarDB() {
 
 <template>
   <div class="min-h-screen bg-background text-foreground flex flex-col">
-    <Header />
+    <Header :cart-count="cartCount" />
 
     <!-- Tabs/Header dentro del contenido principal -->
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
@@ -1147,11 +1308,6 @@ async function importarDB() {
                   </button>
                 </td>
               </tr>
-              <tr v-if="usuariosFiltrados.length === 0">
-                <td colspan="5" class="px-4 py-6 text-center text-sm text-muted-foreground">
-                  No hay {{ esAdmin ? 'usuarios' : 'clientes' }} registrados aún.
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
@@ -1337,6 +1493,19 @@ async function importarDB() {
               <ul class="list-disc ml-5 space-y-1">
                 <li v-for="(w, idx) in importWarnings" :key="idx">{{ w }}</li>
               </ul>
+            </div>
+          </div>
+
+          <!-- Generar reportes (PDF) -->
+          <div class="sm:col-span-2 mt-4 p-4 border border-border rounded-lg bg-secondary/20">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold">Generar reportes</h3>
+                <p class="text-xs text-muted-foreground">Reporte consolidado de usuarios, órdenes, pagos, productos, etc. Se abre para imprimir/guardar como PDF.</p>
+              </div>
+              <button @click="generarReporte" :disabled="loading || !esAdmin" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium disabled:opacity-50">
+                Generar PDF
+              </button>
             </div>
           </div>
         </div>
@@ -1615,7 +1784,7 @@ async function importarDB() {
             <div>
               <label class="block text-sm font-medium text-muted-foreground mb-1.5">Teléfono</label>
               <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">+52</span>
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">+503</span>
                 <input 
                   v-model="userForm.telefonoUsuario" 
                   type="tel" 
@@ -1716,6 +1885,32 @@ async function importarDB() {
                 </span>
               </button>
             </div>
+
+            <!-- Métodos de pago del usuario -->
+            <div v-if="editingUser" class="md:col-span-2 mt-4 border-t border-border pt-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold">Métodos de pago guardados <span class="ml-1 text-[11px] text-muted-foreground">({{ paymentMethods.length }})</span></h3>
+                <button
+                  type="button"
+                  @click="editingUser && cargarMetodosPagoUsuario(editingUser.idUsuario)"
+                  class="text-xs px-2 py-1 border border-border rounded hover:bg-secondary"
+                >Refrescar</button>
+              </div>
+              <div v-if="paymentMethodsLoading" class="text-xs text-muted-foreground mt-2">Cargando métodos...</div>
+              <div v-else>
+                <div v-if="paymentMethods.length === 0" class="text-xs text-muted-foreground mt-2">No hay métodos guardados.</div>
+                <ul v-else class="mt-2 space-y-2">
+                  <li v-for="m in paymentMethods" :key="m.idMetodoPagoUsuario" class="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                    <div class="text-sm">
+                      <div class="font-medium">{{ m.aliasTarjeta || m.nombreMetodo || 'Tarjeta' }} •••• {{ m.ultimos4 }}</div>
+                      <div class="text-xs text-muted-foreground">Titular: {{ m.titularTarjeta || 'N/A' }} • Exp: {{ m.mesExpiracion }}/{{ m.anioExpiracion }}</div>
+                    </div>
+                    <button @click="eliminarMetodoPago(m.idMetodoPagoUsuario)" class="text-red-600 hover:text-red-800 text-xs font-medium">Eliminar</button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
           </div>
 
           <div class="flex flex-col sm:flex-row gap-3 pt-6">

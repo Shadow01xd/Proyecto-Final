@@ -2,8 +2,11 @@
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import { RouterLink } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import SupportModal from '@/components/SupportModal.vue'
 import imgKG from '@/assets/Img/img_KG.jpeg'
 import imgMG from '@/assets/Img/imgMG.jpg'
+
 const team = [
   {
     name: 'Miguel Ángel Hernández',
@@ -42,11 +45,29 @@ const faqs = [
       'Podemos cotizar envíos a la mayoría de estados/ciudades. Escríbenos con tu ubicación para confirmarlo.'
   }
 ]
+
+const supportOpen = ref(false)
+
+// Cart badge
+const cartCount = ref(0)
+function getUserId(){
+  try{ const raw = localStorage.getItem('usuario'); if(!raw) return null; const u = JSON.parse(raw); return u?.idUsuario || null }catch{ return null }
+}
+async function loadCartCount(){
+  const uid = getUserId()
+  const key = uid ? `cart_${uid}` : 'cart'
+  if (uid){
+    try{ const r = await fetch(`http://localhost:3000/api/carrito/${uid}`); if(r.ok){ const d = await r.json(); cartCount.value = (d.items||[]).length; return } }catch{}
+  }
+  try{ const raw = localStorage.getItem(key); const items = raw ? JSON.parse(raw) : []; cartCount.value = items.length }catch{ cartCount.value = 0 }
+}
+
+onMounted(loadCartCount)
 </script>
 
 <template>
   <div class="bg-background text-foreground min-h-screen flex flex-col">
-    <Header />
+    <Header :cart-count="cartCount" />
 
     <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 lg:py-10 space-y-12 lg:space-y-16 relative">
       <!-- Hero / Introducción -->
@@ -228,12 +249,13 @@ const faqs = [
           </p>
         </div>
         <div class="flex flex-wrap gap-3">
-          <a
-            href="mailto:contacto@novatech.com?subject=Consulta%20PC%20personalizada&body=Hola%20NovaTech%2C%20quiero%20cotizar%20una%20PC%20para..."
+          <button
+            type="button"
+            @click="supportOpen = true"
             class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
           >
             Escríbenos
-          </a>
+          </button>
           <RouterLink
             to="/hardware"
             class="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-xs font-medium text-foreground hover:bg-secondary"
@@ -244,6 +266,7 @@ const faqs = [
       </section>
     </main>
 
+    <SupportModal :open="supportOpen" @close="supportOpen = false" />
     <Footer />
   </div>
 </template>

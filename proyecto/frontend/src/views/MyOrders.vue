@@ -12,6 +12,36 @@ const orders = ref([])
 const loading = ref(true)
 const error = ref('')
 
+// Cart badge
+const cartCount = ref(0)
+function getUserId() {
+  try {
+    const raw = localStorage.getItem('usuario')
+    if (!raw) return null
+    const u = JSON.parse(raw)
+    return u?.idUsuario || null
+  } catch { return null }
+}
+async function loadCartCount() {
+  const uid = getUserId()
+  const key = uid ? `cart_${uid}` : 'cart'
+  if (uid) {
+    try {
+      const res = await fetch(`http://localhost:3000/api/carrito/${uid}`)
+      if (res.ok) {
+        const data = await res.json()
+        cartCount.value = (data.items || []).length
+        return
+      }
+    } catch {}
+  }
+  try {
+    const raw = localStorage.getItem(key)
+    const items = raw ? JSON.parse(raw) : []
+    cartCount.value = items.length
+  } catch { cartCount.value = 0 }
+}
+
 onMounted(async () => {
   const userData = localStorage.getItem('usuario')
   if (!userData) {
@@ -22,6 +52,7 @@ onMounted(async () => {
   try {
     usuario.value = JSON.parse(userData)
     await loadOrders()
+    await loadCartCount()
   } catch (e) {
     console.error('Error al parsear usuario:', e)
     localStorage.removeItem('usuario')
@@ -104,7 +135,7 @@ const openDetails = (order) => {
 
 <template>
   <div class="bg-background text-foreground min-h-screen flex flex-col">
-    <Header />
+    <Header :cart-count="cartCount" />
 
     <main class="flex-1 py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-5xl mx-auto">

@@ -51,20 +51,12 @@ function getSimMethodsKey(uid) {
 }
 
 function loadSimSavedMethods(uid) {
-  try {
-    const raw = localStorage.getItem(getSimMethodsKey(uid))
-    const arr = raw ? JSON.parse(raw) : []
-    if (Array.isArray(arr)) simSavedMethods.value = arr
-  } catch { simSavedMethods.value = [] }
+  // Deshabilitado: ya no se usan métodos simulados en localStorage
+  simSavedMethods.value = []
 }
 
 function saveSimMethod(uid, method) {
-  try {
-    const arr = Array.isArray(simSavedMethods.value) ? simSavedMethods.value.slice() : []
-    arr.push(method)
-    simSavedMethods.value = arr
-    localStorage.setItem(getSimMethodsKey(uid), JSON.stringify(arr))
-  } catch {}
+  // Deshabilitado: no persistir métodos simulados en localStorage
 }
 
 function cancelEditAddress() {
@@ -133,18 +125,16 @@ onMounted(() => {
   // cargar métodos guardados del usuario
   const uid = getUserId()
   if (uid) {
-    // cargar primero las simuladas
-    loadSimSavedMethods(uid)
-    // luego pedir backend y fusionar al resolver
+    // pedir backend únicamente
     fetch(`http://localhost:3000/api/payments/methods/user/${uid}`)
       .then(r => r.json())
       .then(d => {
         const backend = Array.isArray(d.methods) ? d.methods : []
-        savedMethods.value = backend.concat(simSavedMethods.value || [])
+        savedMethods.value = backend
       })
       .catch(() => {
-        // si falla backend, mostrar las simuladas
-        savedMethods.value = [...(simSavedMethods.value || [])]
+        // si falla backend, no mostrar nada
+        savedMethods.value = []
       })
 
     // cargar items del carrito para mostrar resumen real
@@ -203,19 +193,48 @@ async function pagar() {
 
     // SIMULADO: aprobar sin contactar backend
     if (paymentMode.value === 'sim') {
+
       if (usingSaved) {
         const chosen = (savedMethods.value || []).find(m => m.idMetodoPagoUsuario === selectedMethodId.value)
         if (chosen && !chosen.sim) {
           error.value = 'En modo simulado solo puedes usar tarjetas simuladas.'
           return
         }
+        if (chosen) {
+          const m = chosen.mesExpiracion
+          const y = chosen.anioExpiracion
+          if (isExpired(m, y)) {
+            error.value = 'La tarjeta seleccionada está vencida.'
+            return
+          }
+        }
       }
+
       // Si se seleccionó una tarjeta guardada, permitir cualquiera (simulada o real)
-      // Si desea guardar el método, persistir localmente como simulado
+      // Para ingreso manual, validar siempre; si además desea guardar, persistir local y backend como simulado
+      if (!usingSaved) {
+        const num = String(cardNumber.value || '').replace(/\D+/g, '')
+        const cv = String(cvv.value || '').replace(/\D+/g, '')
+        const m = expMonth.value
+        const y = expYear.value
+        if (num.length < 13 || num.length > 19) {
+          error.value = 'Número de tarjeta inválido.'
+          return
+        }
+        if (cv.length !== 3) {
+          error.value = 'CVV inválido.'
+          return
+        }
+        if (isExpired(m, y)) {
+          error.value = 'La tarjeta está vencida.'
+          return
+        }
+      }
+
+      // Si además desea guardar el método, persistir local y backend como simulado
       if (saveMethod.value && !usingSaved) {
         const last4 = String(cardNumber.value || '').replace(/\D+/g, '').slice(-4)
-        const simMethod = {
-          idMetodoPagoUsuario: `sim-${Date.now()}`,
+        const baseSim = {
           aliasTarjeta: 'Simulada',
           nombreMetodo: 'Simulada',
           ultimos4: last4 || '0000',
@@ -223,9 +242,33 @@ async function pagar() {
           anioExpiracion: expYear.value,
           sim: true
         }
-        saveSimMethod(idUsuario, simMethod)
-        // Añadir a la lista visible en sesión actual
-        savedMethods.value = [...savedMethods.value, simMethod]
+        // Guardar únicamente en la base de datos
+        try {
+          const resp = await fetch('http://localhost:3000/api/payments/methods/sim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              idUsuario,
+              cardNumber: String(cardNumber.value || '').replace(/\s+/g, ''),
+              expMonth: expMonth.value,
+              expYear: expYear.value,
+              cvv: cvv.value,
+              aliasTarjeta: 'Simulada',
+              titularTarjeta: 'Usuario'
+            })
+          })
+          const data = await resp.json().catch(() => ({}))
+          if (resp.ok && data && data.idMetodoPagoUsuario) {
+            const dbSim = { idMetodoPagoUsuario: data.idMetodoPagoUsuario, ...baseSim }
+            savedMethods.value = [...savedMethods.value, dbSim]
+          } else {
+            error.value = data.error || 'No se pudo guardar el método simulado'
+            return
+          }
+        } catch {
+          error.value = 'No se pudo contactar al backend para guardar el método'
+          return
+        }
       }
 
       // Guardar orden simulada en localStorage para que aparezca en Mis Pedidos
@@ -252,6 +295,16 @@ async function pagar() {
         const arr = JSON.parse(localStorage.getItem(key) || '[]')
         arr.unshift(simOrder)
         localStorage.setItem(key, JSON.stringify(arr))
+      } catch {}
+
+      // Limpiar carrito tras pago simulado
+      try {
+        const uid = getUserId()
+        if (uid) {
+          await fetch(`http://localhost:3000/api/carrito/clear/${uid}`, { method: 'DELETE' })
+        } else {
+          localStorage.setItem('cart', JSON.stringify([]))
+        }
       } catch {}
 
       success.value = 'Pago aprobado (modo simulado). Orden #' + 'SIM-' + Math.floor(Math.random()*100000)
@@ -291,6 +344,16 @@ async function pagar() {
     const data = await resp.json()
 
     if (resp.ok && data.status === 'approved') {
+      // Limpiar carrito tras pago real aprobado (backend ya limpia DB, pero forzamos estado local)
+      try {
+        const uid = getUserId()
+        if (uid) {
+          await fetch(`http://localhost:3000/api/carrito/clear/${uid}`, { method: 'DELETE' })
+        } else {
+          localStorage.setItem('cart', JSON.stringify([]))
+        }
+      } catch {}
+
       success.value = 'Pago aprobado. Orden #' + data.idOrden
       // redirigir al historial de pedidos
       setTimeout(() => router.push('/my-orders'), 700)
@@ -304,6 +367,16 @@ async function pagar() {
         })
         const finData = await fin.json()
         if (fin.ok && finData.status === 'approved') {
+          // Limpiar carrito tras finalizar
+          try {
+            const uid = getUserId()
+            if (uid) {
+              await fetch(`http://localhost:3000/api/carrito/clear/${uid}`, { method: 'DELETE' })
+            } else {
+              localStorage.setItem('cart', JSON.stringify([]))
+            }
+          } catch {}
+
           success.value = 'Pago aprobado. Orden #' + finData.idOrden
           setTimeout(() => router.push('/my-orders'), 700)
         } else {
@@ -354,6 +427,24 @@ function onYearInput(e) {
 function onCvvInput(e) {
   let v = String(e.target.value || '').replace(/\D+/g, '').slice(0, 3)
   cvv.value = v
+}
+
+function toInt(v) {
+  return Number(String(v || '').replace(/\D+/g, ''))
+}
+function normalizeYear(y) {
+  const s = String(y || '')
+  const n = toInt(s)
+  return s.length <= 2 ? 2000 + (n % 100) : n
+}
+function isExpired(m, y) {
+  const mm = toInt(m)
+  const yyyy = normalizeYear(y)
+  if (mm < 1 || mm > 12 || !yyyy) return true
+  const now = new Date()
+  const ym = yyyy * 100 + mm
+  const nowYm = now.getFullYear() * 100 + (now.getMonth() + 1)
+  return ym < nowYm
 }
 
 // =======================

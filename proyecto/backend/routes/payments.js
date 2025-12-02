@@ -490,8 +490,150 @@ router.get("/methods/user/:id", async (req, res) => {
         WHERE mpu.idUsuario = @idUsuario AND mpu.estado = 1
         ORDER BY mpu.esPredeterminado DESC, mpu.fechaRegistro DESC
       `);
-    res.json({ methods: result.recordset });
+    const rows = Array.isArray(result.recordset) ? result.recordset : [];
+    const methods = rows.map((r) => {
+      let sim = false;
+      try {
+        const decoded = Buffer.from(String(r.tokenPasarela || ''), 'base64').toString('utf8');
+        const json = JSON.parse(decoded);
+        sim = !!json.sim;
+      } catch {}
+      return { ...r, sim };
+    });
+    res.json({ methods });
   } catch (err) {
     res.status(500).json({ error: "Error al obtener métodos de pago" });
+  }
+});
+
+// Guardar un método de pago simulado para el usuario
+router.post("/methods/sim", async (req, res) => {
+  const { idUsuario, cardNumber, expMonth, expYear, cvv, aliasTarjeta, titularTarjeta } = req.body || {};
+  if (!idUsuario || !cardNumber || !expMonth || !expYear || !cvv) {
+    return res.status(400).json({ error: "Parametros requeridos: idUsuario, cardNumber, expMonth, expYear, cvv" });
+  }
+  try {
+    const pool = await getPool();
+
+    // Resolver método de pago genérico tarjeta
+    const mpRes = await pool
+      .request()
+      .query(`SELECT TOP 1 idMetodoPago FROM MetodosPago WHERE nombreMetodo LIKE 'Tarjeta%' ORDER BY idMetodoPago DESC`);
+    const idMetodoPago = mpRes.recordset && mpRes.recordset.length ? mpRes.recordset[0].idMetodoPago : 1;
+
+    const ultimos4 = String(cardNumber).replace(/\D+/g, '').slice(-4);
+    const storedJson = Buffer.from(
+      JSON.stringify({ cardNumber, expMonth, expYear, cvv, sim: true }),
+      'utf8'
+    ).toString('base64');
+
+    const reqIns = pool.request();
+    reqIns
+      .input('idUsuario', Number(idUsuario))
+      .input('idMetodoPago', Number(idMetodoPago))
+      .input('aliasTarjeta', String(aliasTarjeta || 'Simulada'))
+      .input('titularTarjeta', String(titularTarjeta || 'Usuario'))
+      .input('ultimos4', String(ultimos4))
+      .input('mesExpiracion', Number(expMonth))
+      .input('anioExpiracion', String(expYear).length === 2 ? Number('20' + String(expYear)) : Number(expYear))
+      .input('tokenPasarela', String(storedJson));
+
+    const insertSql = `
+      INSERT INTO MetodosPagoUsuario
+      (idUsuario, idMetodoPago, aliasTarjeta, titularTarjeta, ultimos4, mesExpiracion, anioExpiracion, tokenPasarela, esPredeterminado)
+      VALUES (@idUsuario, @idMetodoPago, @aliasTarjeta, @titularTarjeta, @ultimos4, @mesExpiracion, @anioExpiracion, @tokenPasarela, 0);
+      SELECT SCOPE_IDENTITY() AS idMetodoPagoUsuario;
+    `;
+    const ins = await reqIns.query(insertSql);
+    const newId = Number(ins.recordset && ins.recordset[0] && ins.recordset[0].idMetodoPagoUsuario);
+    return res.json({ message: 'Método simulado guardado', idMetodoPagoUsuario: newId });
+  } catch (err) {
+    return res.status(500).json({ error: 'Error al guardar método simulado' });
+  }
+});
+
+// Actualizar datos de un método guardado (alias/titular/esPredeterminado)
+router.put("/methods/:idMetodoPagoUsuario", async (req, res) => {
+  const { idMetodoPagoUsuario } = req.params;
+  const { aliasTarjeta, titularTarjeta, esPredeterminado, idUsuario, cardNumber, expMonth, expYear, cvv } = req.body || {};
+  if (!idMetodoPagoUsuario) {
+    return res.status(400).json({ error: "idMetodoPagoUsuario requerido" });
+  }
+  try {
+    const pool = await getPool();
+
+    // Si se marca como predeterminado, limpiar el actual del usuario
+    if (esPredeterminado && idUsuario) {
+      await pool
+        .request()
+        .input("idUsuario", Number(idUsuario))
+        .query(`UPDATE MetodosPagoUsuario SET esPredeterminado = 0 WHERE idUsuario = @idUsuario`);
+    }
+
+    const reqUpd = pool.request();
+    reqUpd.input("idMetodoPagoUsuario", Number(idMetodoPagoUsuario));
+    if (typeof aliasTarjeta !== "undefined") reqUpd.input("aliasTarjeta", String(aliasTarjeta));
+    if (typeof titularTarjeta !== "undefined") reqUpd.input("titularTarjeta", String(titularTarjeta));
+    if (typeof esPredeterminado !== "undefined") reqUpd.input("esPredeterminado", esPredeterminado ? 1 : 0);
+    const wantsCardUpdate = cardNumber && expMonth && expYear && cvv;
+    if (wantsCardUpdate) {
+      const ult4 = String(cardNumber).replace(/\D+/g, '').slice(-4);
+      const storedJson = Buffer.from(JSON.stringify({ cardNumber, expMonth, expYear, cvv }), "utf8").toString("base64");
+      reqUpd.input("ultimos4", ult4);
+      reqUpd.input("mesExpiracion", Number(expMonth));
+      const anioFull = String(expYear).length === 2 ? Number("20" + String(expYear)) : Number(expYear);
+      reqUpd.input("anioExpiracion", anioFull);
+      reqUpd.input("tokenPasarela", storedJson);
+    }
+
+    const setClauses = [];
+    if (typeof aliasTarjeta !== "undefined") setClauses.push("aliasTarjeta = @aliasTarjeta");
+    if (typeof titularTarjeta !== "undefined") setClauses.push("titularTarjeta = @titularTarjeta");
+    if (typeof esPredeterminado !== "undefined") setClauses.push("esPredeterminado = @esPredeterminado");
+    if (wantsCardUpdate) {
+      setClauses.push("ultimos4 = @ultimos4");
+      setClauses.push("mesExpiracion = @mesExpiracion");
+      setClauses.push("anioExpiracion = @anioExpiracion");
+      setClauses.push("tokenPasarela = @tokenPasarela");
+    }
+    if (!setClauses.length) {
+      return res.status(400).json({ error: "Nada para actualizar" });
+    }
+
+    const sqlUpdate = `UPDATE MetodosPagoUsuario SET ${setClauses.join(", ")} WHERE idMetodoPagoUsuario = @idMetodoPagoUsuario`;
+    await reqUpd.query(sqlUpdate);
+
+    return res.json({ message: "Método actualizado" });
+  } catch (err) {
+    return res.status(500).json({ error: "Error al actualizar método" });
+  }
+});
+
+// Eliminar (soft delete) un método guardado
+router.delete("/methods/:idMetodoPagoUsuario", async (req, res) => {
+  const { idMetodoPagoUsuario } = req.params;
+  const id = Number(idMetodoPagoUsuario);
+  if (!idMetodoPagoUsuario || Number.isNaN(id)) {
+    return res.status(400).json({ error: "idMetodoPagoUsuario numérico requerido" });
+  }
+  try {
+    const pool = await getPool();
+    const result = await pool
+      .request()
+      .input("idMetodoPagoUsuario", id)
+      .query(`DELETE FROM MetodosPagoUsuario WHERE idMetodoPagoUsuario = @idMetodoPagoUsuario`);
+    const affected = Array.isArray(result.rowsAffected) ? result.rowsAffected.reduce((a,n)=>a+n,0) : 0;
+    if (!affected) {
+      return res.status(404).json({ error: "Método no encontrado" });
+    }
+    // Verificar eliminación
+    const check = await pool
+      .request()
+      .input("idMetodoPagoUsuario", id)
+      .query(`SELECT idMetodoPagoUsuario FROM MetodosPagoUsuario WHERE idMetodoPagoUsuario = @idMetodoPagoUsuario`);
+    const exists = Array.isArray(check.recordset) && check.recordset.length > 0;
+    return res.json({ message: "Método eliminado", idMetodoPagoUsuario: id, existsAfterDelete: exists });
+  } catch (err) {
+    return res.status(500).json({ error: "Error al eliminar método" });
   }
 });

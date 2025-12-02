@@ -33,6 +33,119 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 
+// Cart badge
+const cartCount = ref(0)
+function getUserId() {
+  try {
+    const raw = localStorage.getItem('usuario')
+    if (!raw) return null
+    const u = JSON.parse(raw)
+    return u?.idUsuario || null
+  } catch { return null }
+}
+async function loadCartCount() {
+  const uid = getUserId()
+  const key = uid ? `cart_${uid}` : 'cart'
+  if (uid) {
+    try {
+      const res = await fetch(`http://localhost:3000/api/carrito/${uid}`)
+      if (res.ok) {
+        const data = await res.json()
+        cartCount.value = (data.items || []).length
+        return
+      }
+    } catch {}
+  }
+  try {
+    const raw = localStorage.getItem(key)
+    const items = raw ? JSON.parse(raw) : []
+    cartCount.value = items.length
+  } catch { cartCount.value = 0 }
+}
+
+// Métodos de pago
+const paymentMethods = ref([])
+const methodsLoading = ref(false)
+const methodsError = ref('')
+const editingMethodId = ref(null)
+const editMethodForm = ref({ aliasTarjeta: '', titularTarjeta: '', esPredeterminado: false, cardNumber: '', expMonth: '', expYear: '', cvv: '' })
+
+async function loadPaymentMethods(){
+  if (!usuario.value) return
+  methodsLoading.value = true
+  methodsError.value = ''
+  const uid = usuario.value.idUsuario
+  try {
+    const r = await fetch(`http://localhost:3000/api/payments/methods/user/${uid}`)
+    const d = await r.json()
+    const backend = Array.isArray(d.methods) ? d.methods : []
+    paymentMethods.value = backend
+  } catch {
+    paymentMethods.value = []
+  } finally {
+    methodsLoading.value = false
+  }
+}
+function startEditMethod(m){
+  editingMethodId.value = m.idMetodoPagoUsuario
+  editMethodForm.value = {
+    aliasTarjeta: m.aliasTarjeta || '',
+    titularTarjeta: m.titularTarjeta || '',
+    esPredeterminado: !!m.esPredeterminado,
+    cardNumber: '',
+    expMonth: m.mesExpiracion != null ? String(m.mesExpiracion) : '',
+    expYear: m.anioExpiracion != null ? String(m.anioExpiracion) : '',
+    cvv: ''
+  }
+}
+function cancelEditMethod(){
+  editingMethodId.value = null
+  editMethodForm.value = { aliasTarjeta: '', titularTarjeta: '', esPredeterminado: false, cardNumber: '', expMonth: '', expYear: '', cvv: '' }
+}
+async function saveMethodChanges(m){
+  try{
+    methodsLoading.value = true
+    const uid = usuario.value?.idUsuario
+    const cleanedNumber = (editMethodForm.value.cardNumber || '').toString().replace(/\s+/g,'')
+    const resp = await fetch(`http://localhost:3000/api/payments/methods/${m.idMetodoPagoUsuario}`,{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        aliasTarjeta: editMethodForm.value.aliasTarjeta,
+        titularTarjeta: editMethodForm.value.titularTarjeta,
+        esPredeterminado: !!editMethodForm.value.esPredeterminado,
+        idUsuario: uid,
+        cardNumber: cleanedNumber,
+        expMonth: editMethodForm.value.expMonth,
+        expYear: editMethodForm.value.expYear,
+        cvv: editMethodForm.value.cvv
+      })
+    })
+    const data = await resp.json()
+    if(!resp.ok){ throw new Error(data.error||'Error al actualizar método') }
+    await loadPaymentMethods()
+    cancelEditMethod()
+    success.value = 'Método actualizado'
+  } catch(e){
+    methodsError.value = e.message || 'Error al actualizar método'
+  } finally {
+    methodsLoading.value = false
+  }
+}
+async function deleteMethod(m){
+  try{
+    methodsLoading.value = true
+    const resp = await fetch(`http://localhost:3000/api/payments/methods/${m.idMetodoPagoUsuario}`,{ method:'DELETE' })
+    const data = await resp.json()
+    if(!resp.ok){ throw new Error(data.error||'Error al eliminar método') }
+    await loadPaymentMethods()
+    success.value = 'Método eliminado'
+  } catch(e){
+    methodsError.value = e.message || 'Error al eliminar método'
+  } finally {
+    methodsLoading.value = false
+  }
+}
+
 const toggleNewsletter = async () => {
   if (!usuario.value) return
 
@@ -111,6 +224,8 @@ onMounted(async () => {
     localStorage.removeItem('usuario')
     router.push('/login')
   }
+  await loadPaymentMethods()
+  await loadCartCount()
 })
 
 const toggleEdit = () => {
@@ -280,7 +395,7 @@ const deleteAccount = async () => {
 
 <template>
   <div class="bg-background text-foreground min-h-screen flex flex-col">
-    <Header />
+    <Header :cart-count="cartCount" />
 
     <main class="flex-1 py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-3xl mx-auto">
@@ -511,6 +626,79 @@ const deleteAccount = async () => {
               </button>
             </div>
           </form>
+        </div>
+
+        <!-- Métodos de pago -->
+        <div class="bg-card border border-border rounded-xl p-6 mt-8">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">Métodos de pago</h2>
+              <p class="text-sm text-muted-foreground mt-1">Administra tus tarjetas guardadas</p>
+            </div>
+          </div>
+          <div v-if="methodsError" class="mb-3 bg-red-500/10 border border-red-500 text-red-500 px-3 py-2 rounded-md text-sm">{{ methodsError }}</div>
+          <div v-if="methodsLoading" class="text-sm text-muted-foreground">Cargando métodos...</div>
+          <div v-else>
+            <div v-if="!paymentMethods.length" class="text-sm text-muted-foreground">No tienes métodos guardados.</div>
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div v-for="m in paymentMethods" :key="m.idMetodoPagoUsuario" class="border border-border rounded-md p-4">
+                <div class="flex items-start gap-3">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <div class="font-semibold">{{ m.aliasTarjeta || m.nombreMetodo || 'Tarjeta' }}</div>
+                      <span v-if="m.sim" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500">Simulado</span>
+                      <span v-else-if="m.esPredeterminado" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500">Predeterminado</span>
+                    </div>
+                    <div class="text-sm text-muted-foreground">**** **** **** {{ m.ultimos4 }}</div>
+                    <div class="text-xs text-muted-foreground">Expira: {{ m.mesExpiracion }}/{{ String(m.anioExpiracion).slice(-2) }}</div>
+                  </div>
+                </div>
+
+                <div v-if="editingMethodId === m.idMetodoPagoUsuario" class="mt-3 space-y-2">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-muted-foreground">Alias</label>
+                      <input v-model="editMethodForm.aliasTarjeta" class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-muted-foreground">Titular</label>
+                      <input v-model="editMethodForm.titularTarjeta" class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+                    </div>
+                  </div>
+                  <label v-if="!m.sim" class="text-xs flex items-center gap-2">
+                    <input type="checkbox" v-model="editMethodForm.esPredeterminado" />
+                    Establecer como predeterminado
+                  </label>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div class="sm:col-span-2">
+                      <label class="block text-xs text-muted-foreground">Número de tarjeta</label>
+                      <input v-model="editMethodForm.cardNumber" placeholder="•••• •••• •••• ••••" class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-muted-foreground">Mes expiración</label>
+                      <input v-model="editMethodForm.expMonth" placeholder="MM" class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-muted-foreground">Año expiración</label>
+                      <input v-model="editMethodForm.expYear" placeholder="YYYY o YY" class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-muted-foreground">CVV</label>
+                      <input v-model="editMethodForm.cvv" placeholder="CVV" class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+                    </div>
+                  </div>
+                  <div class="flex gap-2 justify-end">
+                    <button class="px-3 py-1.5 border border-border rounded-md text-sm" @click="cancelEditMethod">Cancelar</button>
+                    <button class="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm" :disabled="methodsLoading" @click="saveMethodChanges(m)">Guardar</button>
+                  </div>
+                </div>
+                <div v-else class="mt-3 flex gap-2 justify-end">
+                  <button class="px-3 py-1.5 border border-border rounded-md text-sm" @click="startEditMethod(m)">Editar</button>
+                  <button class="px-3 py-1.5 bg-red-500 text-white rounded-md text-sm" :disabled="methodsLoading" @click="deleteMethod(m)">Eliminar</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Card de zona peligrosa -->
