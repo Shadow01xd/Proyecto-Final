@@ -2,6 +2,7 @@
 const sql = require('mssql');
 
 
+/*
 const config = {
   user: 'Shadow01xd',
   password: 'PraiseTheFool',
@@ -12,8 +13,8 @@ const config = {
     trustServerCertificate: true
   }
 };
+*/
 
-/*
 const config = {
   user: 'kenn',
   password: '123',
@@ -26,7 +27,7 @@ const config = {
   },
   connectionTimeout: 30000,
   requestTimeout: 30000
-};*/
+};
 
 let pool;
 

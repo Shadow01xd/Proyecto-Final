@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+
 import { useRouter } from 'vue-router'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
@@ -13,15 +14,14 @@ const error = ref('')
 const success = ref('')
 const activeTab = ref('productos')
 
+const importFile = ref(null)
+const importWarnings = ref([])
+const importDetails = ref('')
+
 // Permisos (case-insensitive, soporta variantes de nombres)
 const esAdmin = computed(() => {
   const rol = (usuario.value?.nombreRol || '').toUpperCase()
   return rol === 'ADMIN' || rol === 'ADMINISTRADOR'
-})
-
-const esEmpleado = computed(() => {
-  const rol = (usuario.value?.nombreRol || '').toUpperCase()
-  return rol === 'EMPLEADO'
 })
 
 // === PRODUCTOS ===
@@ -636,6 +636,71 @@ const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   router.push('/login')
 }
+
+async function exportarDB() {
+  error.value = ''
+  success.value = ''
+  importWarnings.value = []
+  importDetails.value = ''
+  loading.value = true
+  try {
+    const resp = await fetch('http://localhost:3000/api/admin/export')
+    if (!resp.ok) {
+      const txt = await resp.text().catch(()=>'')
+      throw new Error(txt || 'No se pudo exportar')
+    }
+    const blob = await resp.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `backup-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.json`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+    success.value = 'Exportación completada'
+  } catch (e) {
+    error.value = e.message || 'Error al exportar'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function importarDB() {
+  error.value = ''
+  success.value = ''
+  importWarnings.value = []
+  importDetails.value = ''
+  if (!importFile.value || !importFile.value.files || importFile.value.files.length === 0) {
+    error.value = 'Selecciona un archivo JSON'
+    return
+  }
+  const file = importFile.value.files[0]
+  try {
+    const text = await file.text()
+    let payload
+    try { payload = JSON.parse(text) } catch (_) { throw new Error('Archivo inválido: JSON no válido') }
+    loading.value = true
+    const resp = await fetch('http://localhost:3000/api/admin/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    const data = await resp.json().catch(()=> ({}))
+    if (!resp.ok) {
+      error.value = data.error || data.message || 'No se pudo importar'
+      importDetails.value = data.details || ''
+      importWarnings.value = Array.isArray(data.warnings) ? data.warnings : []
+      return
+    }
+    success.value = data.message || 'Importación completada'
+    importWarnings.value = Array.isArray(data.warnings) ? data.warnings : []
+  } catch (e) {
+    error.value = e.message || 'Error al importar'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
@@ -720,6 +785,17 @@ const cerrarSesion = () => {
           ]"
         >
           👨‍💼 Empleados
+        </button>
+        <button
+          @click="activeTab = 'datos'"
+          :class="[
+            'px-4 py-2 font-medium transition -mb-px',
+            activeTab === 'datos'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
+        >
+          🗂️ Datos
         </button>
       </div>
     </div>
@@ -1152,6 +1228,43 @@ const cerrarSesion = () => {
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'datos' && !loading" class="bg-card rounded-xl shadow-sm overflow-hidden border border-border">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold">Importar / Exportar Datos</h2>
+            <p class="text-sm text-muted-foreground">Opera sobre todas las tablas (productos, usuarios, carritos, órdenes, pagos, etc.).</p>
+          </div>
+          <div class="flex gap-2">
+            <button @click="exportarDB" :disabled="loading" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Exportar JSON</button>
+          </div>
+        </div>
+
+        <div class="p-6 grid gap-4 sm:grid-cols-2">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium">Archivo JSON</label>
+            <input ref="importFile" type="file" accept="application/json,.json" class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+          </div>
+          <div class="sm:col-span-2">
+            <button @click="importarDB" :disabled="loading" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">Importar</button>
+          </div>
+
+          <div v-if="importDetails" class="sm:col-span-2">
+            <div class="bg-red-500/10 border border-red-500 text-red-600 rounded-lg p-3 text-sm whitespace-pre-wrap">
+              {{ importDetails }}
+            </div>
+          </div>
+
+          <div v-if="importWarnings && importWarnings.length" class="sm:col-span-2">
+            <div class="bg-yellow-500/10 border border-yellow-500 text-yellow-700 rounded-lg p-3 text-sm">
+              <div class="font-medium mb-1">Avisos:</div>
+              <ul class="list-disc ml-5 space-y-1">
+                <li v-for="(w, idx) in importWarnings" :key="idx">{{ w }}</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </main>

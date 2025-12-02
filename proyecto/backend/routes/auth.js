@@ -3,6 +3,143 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { getPool } = require('../db');
+const nodemailer = require('nodemailer');
+
+function getTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 587);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) throw new Error('SMTP no configurado (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)');
+  return nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } });
+}
+
+async function ensurePasswordResetsTable(pool) {
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[PasswordResets]') AND type in (N'U'))
+    BEGIN
+      CREATE TABLE [dbo].[PasswordResets](
+        emailUsuario VARCHAR(120) NOT NULL,
+        codigo VARCHAR(4) NOT NULL,
+        expiracion DATETIME NOT NULL,
+        intentos TINYINT NOT NULL DEFAULT 0
+      );
+      CREATE INDEX IX_PasswordResets_Email ON [dbo].[PasswordResets](emailUsuario);
+    END
+  `);
+}
+
+function generarCodigo4() {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function buildForgotHtml(nombre, codigo, minutos) {
+  const safeNombre = nombre ? String(nombre) : 'Usuario';
+  return `
+  <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0b0b0c;color:#e5e7eb;border-radius:12px;border:1px solid #1f2937;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:22px;font-weight:700;color:#60a5fa;">NovaTech</div>
+      <div style="font-size:12px;color:#9ca3af;">Recuperación de contraseña</div>
+    </div>
+    <p style="font-size:14px;color:#e5e7eb;">Hola ${safeNombre},</p>
+    <p style="font-size:14px;color:#d1d5db;line-height:1.6;margin:8px 0 16px;">
+      Usa el siguiente código para restablecer tu contraseña. Por seguridad, <strong>expira en ${minutos} minutos</strong>.
+    </p>
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:12px 20px;border-radius:10px;background:#111827;border:1px solid #374151;color:#f3f4f6;font-size:28px;letter-spacing:6px;font-weight:800;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">
+        ${codigo}
+      </div>
+    </div>
+    <p style="font-size:12px;color:#9ca3af;margin-top:12px;">Si no solicitaste este código, puedes ignorar este mensaje.</p>
+    <hr style="border:none;border-top:1px solid #1f2937;margin:16px 0;"/>
+    <p style="font-size:11px;color:#6b7280;text-align:center;">Este es un mensaje automático. No respondas a este correo.</p>
+  </div>`;
+}
+
+// POST /api/auth/forgot - Enviar código por correo
+router.post('/forgot', async (req, res) => {
+  const { emailUsuario } = req.body || {};
+  if (!emailUsuario) return res.status(400).json({ error: 'Email requerido' });
+  try {
+    const pool = await getPool();
+    // Verificar usuario
+    const r = await pool.request().input('emailUsuario', emailUsuario).query('SELECT idUsuario, nombreUsuario FROM Usuarios WHERE emailUsuario = @emailUsuario');
+    if (r.recordset.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    await ensurePasswordResetsTable(pool);
+    const codigo = generarCodigo4();
+    const expiracionMin = 10;
+    await pool.request()
+      .input('emailUsuario', emailUsuario)
+      .input('codigo', codigo)
+      .query(`
+        DELETE FROM PasswordResets WHERE emailUsuario = @emailUsuario;
+        INSERT INTO PasswordResets(emailUsuario, codigo, expiracion)
+        VALUES(@emailUsuario, @codigo, DATEADD(MINUTE, ${expiracionMin}, GETDATE()));
+      `);
+
+    const transporter = getTransporter();
+    const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+    const nombre = r.recordset[0]?.nombreUsuario || '';
+    await transporter.sendMail({
+      from,
+      to: emailUsuario,
+      subject: 'Código de verificación (recuperación de contraseña)',
+      text: `Hola ${nombre || 'Usuario'}, tu código de verificación es: ${codigo}. Expira en ${expiracionMin} minutos. Si no solicitaste este código, ignora este correo.`,
+      html: buildForgotHtml(nombre, codigo, expiracionMin)
+    });
+
+    return res.json({ message: 'Código enviado', expiresInMinutes: expiracionMin });
+  } catch (err) {
+    console.error('Error en /forgot:', err);
+    return res.status(500).json({ error: 'No se pudo enviar el código' });
+  }
+});
+
+// POST /api/auth/forgot/reset - Verificar código y cambiar contraseña
+router.post('/forgot/reset', async (req, res) => {
+  let { emailUsuario, codigo, nuevaContrasena } = req.body || {};
+  emailUsuario = (emailUsuario || '').trim();
+  codigo = String((codigo || '')).trim();
+  if (!emailUsuario || !codigo || !nuevaContrasena) return res.status(400).json({ error: 'Email, código y nueva contraseña son requeridos' });
+  if (nuevaContrasena.length < 6) return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
+  try {
+    const pool = await getPool();
+    await ensurePasswordResetsTable(pool);
+    // limpiar expirados (según tiempo del servidor SQL)
+    await pool.request().query('DELETE FROM PasswordResets WHERE expiracion < GETDATE()');
+
+    // validar existencia de registro para el email
+    const rAll = await pool.request().input('emailUsuario', emailUsuario).query('SELECT codigo, expiracion FROM PasswordResets WHERE emailUsuario = @emailUsuario');
+    if (rAll.recordset.length === 0) return res.status(400).json({ error: 'No hay un código activo para este email' });
+
+    // validar código y expiración en SQL para evitar desfaces de zona horaria
+    const rValid = await pool.request()
+      .input('emailUsuario', emailUsuario)
+      .input('codigo', codigo)
+      .query('SELECT 1 AS ok FROM PasswordResets WHERE emailUsuario = @emailUsuario AND codigo = @codigo AND expiracion >= GETDATE()');
+    if (rValid.recordset.length === 0) {
+      // determinar si expiró o es incorrecto
+      const rExp = await pool.request().input('emailUsuario', emailUsuario).query('SELECT 1 AS expired FROM PasswordResets WHERE emailUsuario = @emailUsuario AND expiracion < GETDATE()');
+      if (rExp.recordset.length > 0) {
+        return res.status(400).json({ error: 'El código ha expirado' });
+      }
+      await pool.request().input('emailUsuario', emailUsuario).query('UPDATE PasswordResets SET intentos = intentos + 1 WHERE emailUsuario = @emailUsuario');
+      return res.status(400).json({ error: 'Código incorrecto' });
+    }
+
+    const hashed = await bcrypt.hash(nuevaContrasena, 10);
+    await pool.request()
+      .input('emailUsuario', emailUsuario)
+      .input('passwordHash', hashed)
+      .query('UPDATE Usuarios SET passwordHash = @passwordHash WHERE emailUsuario = @emailUsuario');
+    await pool.request().input('emailUsuario', emailUsuario).query('DELETE FROM PasswordResets WHERE emailUsuario = @emailUsuario');
+    return res.json({ message: 'Contraseña restablecida' });
+  } catch (err) {
+    console.error('Error en /forgot/reset:', err);
+    return res.status(500).json({ error: 'No se pudo restablecer la contraseña' });
+  }
+});
 
 // POST /api/auth/register - Registro de nuevo usuario (cliente)
 router.post('/register', async (req, res) => {

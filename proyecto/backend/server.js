@@ -11,13 +11,14 @@ const proveedoresRoutes = require('./routes/proveedores');
 const usuariosRoutes = require('./routes/usuarios');
 const carritoRoutes = require('./routes/carrito');
 const paymentsRoutes = require('./routes/payments');
+const adminRoutes = require('./routes/data');
 
 require('dotenv').config();
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Rutas API
 app.use('/api/auth', authRoutes);
@@ -29,6 +30,7 @@ app.use('/api/proveedores', proveedoresRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/carrito', carritoRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/admin', adminRoutes);
 
 const PORT = 3000;
 
