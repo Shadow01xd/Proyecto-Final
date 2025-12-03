@@ -8,9 +8,7 @@ GO
 USE dbTiendaHardwarePC;
 GO
 
--- ========================================================
--- TABLA: Roles  (SIN UNIQUE PARA QUE NO DE ERROR)
--- ========================================================
+-- TABLA: Roles 
 CREATE TABLE Roles (
     idRol INT IDENTITY(1,1) PRIMARY KEY,
     nombreRol      VARCHAR(50) NOT NULL,
@@ -18,9 +16,7 @@ CREATE TABLE Roles (
 );
 GO
 
--- ========================================================
--- TABLA: Usuarios (login de la web)
--- ========================================================
+-- TABLA: Usuarios 
 CREATE TABLE Usuarios (
     idUsuario INT IDENTITY(1,1) PRIMARY KEY,
     idRol            INT NOT NULL,
@@ -37,9 +33,8 @@ CREATE TABLE Usuarios (
 );
 GO
 
--- ========================================================
+
 -- TABLA: Proveedores
--- ========================================================
 CREATE TABLE Proveedores (
     idProveedor INT IDENTITY(1,1) PRIMARY KEY,
     nombreEmpresa       VARCHAR(120) NOT NULL,
@@ -51,9 +46,7 @@ CREATE TABLE Proveedores (
 );
 GO
 
--- ========================================================
 -- TABLA: Categorias
--- ========================================================
 CREATE TABLE Categorias (
     idCategoria INT IDENTITY(1,1) PRIMARY KEY,
     nombreCategoria      VARCHAR(80) NOT NULL,
@@ -61,9 +54,7 @@ CREATE TABLE Categorias (
 );
 GO
 
--- ========================================================
--- TABLA: M?todos de Pago (solo tarjetas)
--- ========================================================
+-- TABLA: Metodos de Pago (solo tarjetas)
 CREATE TABLE MetodosPago (
     idMetodoPago INT IDENTITY(1,1) PRIMARY KEY,
     nombreMetodo      VARCHAR(60) NOT NULL,
@@ -71,9 +62,7 @@ CREATE TABLE MetodosPago (
 );
 GO
 
--- ========================================================
 -- TABLA: Productos
--- ========================================================
 CREATE TABLE Productos (
     idProducto INT IDENTITY(1,1) PRIMARY KEY,
     idCategoria         INT NOT NULL,
@@ -98,9 +87,7 @@ CREATE TABLE Productos (
 );
 GO
 
--- ========================================================
 -- TABLA: Ordenes
--- ========================================================
 CREATE TABLE Ordenes (
     idOrden INT IDENTITY(1,1) PRIMARY KEY,
     idUsuarioCliente INT NOT NULL,
@@ -118,9 +105,7 @@ CREATE TABLE Ordenes (
 );
 GO
 
--- ========================================================
 -- TABLA: DetalleOrden
--- ========================================================
 CREATE TABLE DetalleOrden (
     idDetalleOrden INT IDENTITY(1,1) PRIMARY KEY,
     idOrden        INT NOT NULL,
@@ -141,9 +126,7 @@ CREATE TABLE DetalleOrden (
 );
 GO
 
--- ========================================================
 -- TABLA: Pagos
--- ========================================================
 CREATE TABLE Pagos (
     idPago INT IDENTITY(1,1) PRIMARY KEY,
     idOrden      INT NOT NULL,
@@ -160,9 +143,7 @@ CREATE TABLE Pagos (
 );
 GO
 
--- ========================================================
 -- TABLA: MetodosPagoUsuario
--- ========================================================
 CREATE TABLE MetodosPagoUsuario (
     idMetodoPagoUsuario INT IDENTITY(1,1) PRIMARY KEY,
     idUsuario      INT NOT NULL,
@@ -187,11 +168,73 @@ CREATE TABLE MetodosPagoUsuario (
 );
 GO
 
-/* =======================================================
-    INSERTS
-   ======================================================= */
 
--- ROLES (solo admin, empleado, cliente; repetidos para llegar a 5)
+-- TABLAS: Carritos y CarritoItems
+-- Carritos
+CREATE TABLE Carritos (
+    idCarrito INT IDENTITY(1,1) PRIMARY KEY,
+    idUsuario INT NOT NULL,
+    estado BIT NOT NULL DEFAULT 1,             
+    fechaCreacion DATETIME NOT NULL DEFAULT GETDATE(),
+    fechaActualizacion DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_Carritos_Usuarios
+        FOREIGN KEY (idUsuario) REFERENCES Usuarios(idUsuario)
+);
+GO
+
+-- Único carrito activo por usuario 
+CREATE UNIQUE INDEX UX_Carritos_UsuarioActivo
+ON Carritos (idUsuario)
+WHERE estado = 1;
+GO
+
+-- CarritoItems
+CREATE TABLE CarritoItems (
+    idCarritoItem INT IDENTITY(1,1) PRIMARY KEY,
+    idCarrito     INT NOT NULL,
+    idProducto    INT NOT NULL,
+    cantidad      INT NOT NULL,
+    precioUnitario DECIMAL(10,2) NOT NULL,      
+    fechaCreacion DATETIME NOT NULL DEFAULT GETDATE(),
+    fechaActualizacion DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_CarritoItems_Carritos
+        FOREIGN KEY (idCarrito) REFERENCES Carritos(idCarrito),
+    CONSTRAINT FK_CarritoItems_Productos
+        FOREIGN KEY (idProducto) REFERENCES Productos(idProducto),
+    CONSTRAINT CHK_CarritoItems_Cantidad
+        CHECK (cantidad > 0),
+    CONSTRAINT CHK_CarritoItems_PrecioUnitario
+        CHECK (precioUnitario >= 0)
+);
+GO
+
+-- NewsletterSubscribers
+CREATE TABLE NewsletterSubscribers (
+    idSubscriber INT IDENTITY(1,1) PRIMARY KEY,
+    idUsuario    INT NULL,
+    email        VARCHAR(150) NOT NULL,
+    fechaRegistro DATETIME NOT NULL DEFAULT GETDATE(),
+    estadoSuscripcion BIT NOT NULL DEFAULT 1, 
+
+    CONSTRAINT FK_NewsletterSubscribers_Usuarios
+        FOREIGN KEY (idUsuario) REFERENCES Usuarios(idUsuario),
+
+    CONSTRAINT UQ_NewsletterSubscribers_Email UNIQUE (email)
+);
+GO
+
+-- No permitir productos duplicados en el mismo carrito
+CREATE UNIQUE INDEX UX_CarritoItems_CarritoProducto
+ON CarritoItems (idCarrito, idProducto);
+GO
+
+-- Índices de apoyo
+CREATE INDEX IX_CarritoItems_IdCarrito ON CarritoItems (idCarrito);
+CREATE INDEX IX_CarritoItems_IdProducto ON CarritoItems (idProducto);
+GO
+
+--INSERTS
+-- ROLES 
 INSERT INTO Roles (nombreRol, descripcionRol)
 VALUES
 ('ADMIN',    'Administrador de la tienda web'),
@@ -211,7 +254,7 @@ VALUES
 (3, 'Kenneth',      'Granados Claros',     'kenneth@correo.com',    'HASH_CLIENTE_2',  '7777-0005', 'San Miguel, Reparto Los H?roes');
 GO
 
--- PROVEEDORES (MSI, GIGABYTE, ASUS + 2 extra)
+-- PROVEEDORES 
 INSERT INTO Proveedores (nombreEmpresa, nombreContacto, telefonoProveedor, emailProveedor, direccionProveedor, sitioWebProveedor)
 VALUES
 ('MSI',       'Contacto MSI',      '2200-1001', 'ventas@msi.com',       'Taiw?n, oficinas regionales', 'https://www.msi.com'),
@@ -221,7 +264,7 @@ VALUES
 ('Seagate',   'Contacto Seagate',  '2200-1005', 'sales@seagate.com',    'USA, oficinas regionales',    'https://www.seagate.com');
 GO
 
--- CATEGOR?AS
+-- CATEGORiAS
 INSERT INTO Categorias (nombreCategoria, descripcionCategoria)
 VALUES
 ('Procesadores',     'CPUs para equipos de escritorio y gaming'),
@@ -231,14 +274,11 @@ VALUES
 ('Perif?ricos',      'Teclados, mouse, headsets y otros accesorios');
 GO
 
--- M?TODOS DE PAGO (solo tarjetas)
+-- M?TODOS DE PAGO 
 INSERT INTO MetodosPago (nombreMetodo, descripcionMetodo)
 VALUES
-('Tarjeta Cr?dito Visa',       'Pago con tarjeta de cr?dito Visa'),
-('Tarjeta Cr?dito MasterCard', 'Pago con tarjeta de cr?dito MasterCard'),
-('Tarjeta D?bito Visa',        'Pago con tarjeta de d?bito Visa'),
-('Tarjeta D?bito MasterCard',  'Pago con tarjeta de d?bito MasterCard'),
-('Tarjeta Cr?dito/D?bito',     'Tarjetas internacionales de cr?dito o d?bito');
+('Tarjeta povy',       'Pago con tarjeta de povy sandbox'),
+('Tarjeta simulada', 'Pago con tarjeta simulada de nuestra tienda');
 GO
 
 -- PRODUCTOS
@@ -251,7 +291,7 @@ VALUES
 (5, 3, 'ASUS ROG Gladius III',        'Mouse gamer ROG con sensor ?ptico de alta precisi?n',   89.99, 25, 12,  'MOU-ASUS-GLADIUS3');
 GO
 
--- ORDENES (clientes = usuarios 4 y 5)
+-- ORDENES 
 INSERT INTO Ordenes (idUsuarioCliente, fechaOrden, estadoOrden, totalOrden, direccionEnvio, observaciones)
 VALUES
 (4, '2025-11-01 10:30:00', 'Pagada',   979.89, 'San Salvador, Col. Escal?n',     'Compra de GPU y mouse'),
@@ -281,7 +321,7 @@ VALUES
 (5, 4, '2025-11-05 11:30:00', 179.90, 'MC-DB-0005');
 GO
 
--- M?TODOS DE PAGO GUARDADOS
+-- METODOS DE PAGO GUARDADOS
 INSERT INTO MetodosPagoUsuario
 (idUsuario, idMetodoPago, aliasTarjeta, titularTarjeta, ultimos4, mesExpiracion, anioExpiracion, tokenPasarela, esPredeterminado)
 VALUES
@@ -292,59 +332,7 @@ VALUES
 (4, 4, 'D?bito secundaria',   'Carlos L?pez Ram?rez',  '2468',  8, 2028, 'TOK_MCDB_2468',0);
 GO
 
--- ========================================================
--- TABLAS: Carritos y CarritoItems
--- ========================================================
-
--- Carritos: 1 activo por usuario (estado = 1)
-CREATE TABLE Carritos (
-    idCarrito INT IDENTITY(1,1) PRIMARY KEY,
-    idUsuario INT NOT NULL,
-    estado BIT NOT NULL DEFAULT 1,                -- 1 = activo, 0 = cerrado/inactivo
-    fechaCreacion DATETIME NOT NULL DEFAULT GETDATE(),
-    fechaActualizacion DATETIME NOT NULL DEFAULT GETDATE(),
-    CONSTRAINT FK_Carritos_Usuarios
-        FOREIGN KEY (idUsuario) REFERENCES Usuarios(idUsuario)
-);
-GO
-
--- Único carrito activo por usuario (índice único filtrado)
-CREATE UNIQUE INDEX UX_Carritos_UsuarioActivo
-ON Carritos (idUsuario)
-WHERE estado = 1;
-GO
-
--- CarritoItems: productos dentro de un carrito
-CREATE TABLE CarritoItems (
-    idCarritoItem INT IDENTITY(1,1) PRIMARY KEY,
-    idCarrito     INT NOT NULL,
-    idProducto    INT NOT NULL,
-    cantidad      INT NOT NULL,
-    precioUnitario DECIMAL(10,2) NOT NULL,       -- snapshot del precio del momento
-    fechaCreacion DATETIME NOT NULL DEFAULT GETDATE(),
-    fechaActualizacion DATETIME NOT NULL DEFAULT GETDATE(),
-    CONSTRAINT FK_CarritoItems_Carritos
-        FOREIGN KEY (idCarrito) REFERENCES Carritos(idCarrito),
-    CONSTRAINT FK_CarritoItems_Productos
-        FOREIGN KEY (idProducto) REFERENCES Productos(idProducto),
-    CONSTRAINT CHK_CarritoItems_Cantidad
-        CHECK (cantidad > 0),
-    CONSTRAINT CHK_CarritoItems_PrecioUnitario
-        CHECK (precioUnitario >= 0)
-);
-GO
-
--- No permitir productos duplicados en el mismo carrito
-CREATE UNIQUE INDEX UX_CarritoItems_CarritoProducto
-ON CarritoItems (idCarrito, idProducto);
-GO
-
--- Índices de apoyo
-CREATE INDEX IX_CarritoItems_IdCarrito ON CarritoItems (idCarrito);
-CREATE INDEX IX_CarritoItems_IdProducto ON CarritoItems (idProducto);
-GO
-
---updates
+--updates y alters
 ALTER TABLE Productos
 ADD imgProducto VARCHAR(300);
 
@@ -391,33 +379,7 @@ ADD CONSTRAINT CHK_Productos_PrecioOferta
     CHECK (precioOferta IS NULL OR precioOferta >= 0);
 GO
 
-
-USE dbTiendaHardwarePC;
-GO
-
-CREATE TABLE NewsletterSubscribers (
-    idSubscriber INT IDENTITY(1,1) PRIMARY KEY,
-    idUsuario    INT NULL,
-    email        VARCHAR(150) NOT NULL,
-    fechaRegistro DATETIME NOT NULL DEFAULT GETDATE(),
-    estadoSuscripcion BIT NOT NULL DEFAULT 1, 
-
-    CONSTRAINT FK_NewsletterSubscribers_Usuarios
-        FOREIGN KEY (idUsuario) REFERENCES Usuarios(idUsuario),
-
-    CONSTRAINT UQ_NewsletterSubscribers_Email UNIQUE (email)
-);
-GO
-
-
-Select * from Usuarios
-
-SELECT * FROM Roles;
-
--- ========================================================
 -- FUNCION: fn_GetPrecioEfectivo
--- Encapsula la lógica de ofertas para obtener el precio vigente de un producto
--- ========================================================
 GO
 IF OBJECT_ID('dbo.fn_GetPrecioEfectivo', 'FN') IS NOT NULL
     DROP FUNCTION dbo.fn_GetPrecioEfectivo;
@@ -443,11 +405,7 @@ BEGIN
 END;
 GO
 
--- ========================================================
 -- FUNCION 2: fn_GetTotalOrden
--- Devuelve el total de una orden a partir de DetalleOrden
--- (si no hay detalle, usa Ordenes.totalOrden)
--- ========================================================
 IF OBJECT_ID('dbo.fn_GetTotalOrden', 'FN') IS NOT NULL
     DROP FUNCTION dbo.fn_GetTotalOrden;
 GO
@@ -475,10 +433,7 @@ BEGIN
 END;
 GO
 
--- ========================================================
 -- FUNCION 3: fn_GetStockDisponible
--- Devuelve el stock disponible de un producto (0 si no existe)
--- ========================================================
 IF OBJECT_ID('dbo.fn_GetStockDisponible', 'FN') IS NOT NULL
     DROP FUNCTION dbo.fn_GetStockDisponible;
 GO
@@ -499,10 +454,7 @@ BEGIN
 END;
 GO
 
--- ========================================================
--- VISTA: vw_OrdenesResumen
--- Resumen de órdenes con datos de cliente y método de pago
--- ========================================================
+-- VISTA 1: vw_OrdenesResumen
 IF OBJECT_ID('dbo.vw_OrdenesResumen', 'V') IS NOT NULL
     DROP VIEW dbo.vw_OrdenesResumen;
 GO
@@ -537,10 +489,7 @@ LEFT JOIN MetodosPago mp
     ON mp.idMetodoPago = pg.idMetodoPago;
 GO
 
--- ========================================================
--- VISTA: vw_DetalleOrdenCompleto
--- Detalle de orden con datos del producto (nombre, SKU, imagen)
--- ========================================================
+-- VISTA 2: vw_DetalleOrdenCompleto
 IF OBJECT_ID('dbo.vw_DetalleOrdenCompleto', 'V') IS NOT NULL
     DROP VIEW dbo.vw_DetalleOrdenCompleto;
 GO
@@ -561,10 +510,7 @@ INNER JOIN Productos p
     ON d.idProducto = p.idProducto;
 GO
 
--- ========================================================
 -- VISTA 3: vw_ProductosConOferta
--- Lista los productos que están en oferta con su categoría
--- ========================================================
 IF OBJECT_ID('dbo.vw_ProductosConOferta', 'V') IS NOT NULL
     DROP VIEW dbo.vw_ProductosConOferta;
 GO
@@ -585,21 +531,7 @@ INNER JOIN Categorias c
 WHERE p.esOferta = 1;
 GO
 
--- ========================================================
--- PROCEDIMIENTO: sp_CrearOrdenDesdeCarrito
--- Crea una orden completa (Ordenes, DetalleOrden, Pagos) a partir
--- del carrito activo de un usuario, y luego cierra el carrito.
--- - Calcula el precio efectivo usando fn_GetPrecioEfectivo
--- - Soporta modo simulado o normal para escoger el método de pago
--- Parámetros:
---   @idUsuario       -> usuario dueño del carrito
---   @esSimulado      -> 1 = usa método con '%simul%' en MetodosPago, 0 = 'Tarjeta%'
---   @direccionEnvio  -> opcional
---   @observaciones   -> opcional
---   @referenciaPago  -> referencia de la pasarela o 'SIM-XXX'
---   @idOrden         -> OUTPUT, id de orden creada
---   @total           -> OUTPUT, total calculado
--- ========================================================
+-- PROCEDIMIENTO 1: sp_CrearOrdenDesdeCarrito
 IF OBJECT_ID('dbo.sp_CrearOrdenDesdeCarrito', 'P') IS NOT NULL
     DROP PROCEDURE dbo.sp_CrearOrdenDesdeCarrito;
 GO
@@ -617,7 +549,6 @@ BEGIN
 
     DECLARE @idCarrito INT;
 
-    -- Carrito activo
     SELECT TOP 1 @idCarrito = idCarrito
     FROM Carritos
     WHERE idUsuario = @idUsuario AND estado = 1
@@ -629,7 +560,6 @@ BEGIN
         RETURN;
     END;
 
-    -- Items del carrito con precio efectivo
     DECLARE @tmpItems TABLE (
         idProducto INT,
         cantidad   INT,
@@ -652,7 +582,6 @@ BEGIN
         RETURN;
     END;
 
-    -- Total
     SELECT @total = SUM(CONVERT(DECIMAL(10,2), cantidad) * precioUnitarioEfectivo)
     FROM @tmpItems;
 
@@ -660,7 +589,6 @@ BEGIN
 
     DECLARE @idMetodoPago INT;
 
-    -- Resolver método de pago según modo
     IF @esSimulado = 1
     BEGIN
         SELECT TOP 1 @idMetodoPago = idMetodoPago
@@ -678,7 +606,6 @@ BEGIN
 
     IF @idMetodoPago IS NULL SET @idMetodoPago = 1;
 
-    -- Transacción principal
     BEGIN TRY
         BEGIN TRAN;
 
@@ -696,7 +623,6 @@ BEGIN
 
         SET @idNuevaOrden = SCOPE_IDENTITY();
 
-        -- Detalle
         INSERT INTO DetalleOrden
             (idOrden, idProducto, cantidad, precioUnitario, subtotal)
         SELECT
@@ -707,19 +633,16 @@ BEGIN
             CONVERT(DECIMAL(10,2), t.cantidad * t.precioUnitarioEfectivo)
         FROM @tmpItems t;
 
-        -- Descontar stock de productos según las cantidades vendidas
         UPDATE p
         SET p.stockProducto = p.stockProducto - t.cantidad
         FROM Productos p
         INNER JOIN @tmpItems t ON p.idProducto = t.idProducto;
 
-        -- Pago
         INSERT INTO Pagos
             (idOrden, idMetodoPago, fechaPago, montoPago, referenciaPago)
         VALUES
             (@idNuevaOrden, @idMetodoPago, GETDATE(), @total, @referenciaPago);
 
-        -- Cerrar carrito y limpiar items
         UPDATE Carritos
         SET estado = 0,
             fechaActualizacion = GETDATE()
@@ -741,11 +664,7 @@ BEGIN
 END;
 GO
 
--- ========================================================
 -- PROCEDIMIENTO 2: sp_ReporteVentasRango
--- Reporte de ventas por rango de fechas (para Admin Dashboard)
--- Devuelve resumen de órdenes pagadas y enviadas, agrupadas por día
--- ========================================================
 IF OBJECT_ID('dbo.sp_ReporteVentasRango', 'P') IS NOT NULL
     DROP PROCEDURE dbo.sp_ReporteVentasRango;
 GO
@@ -756,7 +675,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Normalizar rango
     IF @fechaInicio IS NULL SET @fechaInicio = '2000-01-01';
     IF @fechaFin IS NULL SET @fechaFin = DATEADD(DAY, 1, GETDATE());
 
@@ -777,15 +695,7 @@ BEGIN
 END;
 GO
 
--- ========================================================
 -- PROCEDIMIENTO 3: sp_ReporteProductosMasVendidos
--- Devuelve los productos más vendidos en un rango de fechas
--- usando la tabla DetalleOrden (para dashboard de inventario/ventas)
--- Parámetros:
---   @fechaInicio -> fecha inicial (incluida)
---   @fechaFin    -> fecha final (excluida); si es NULL se usa GETDATE()+1
---   @topN        -> cantidad máxima de productos a devolver
--- ========================================================
 IF OBJECT_ID('dbo.sp_ReporteProductosMasVendidos', 'P') IS NOT NULL
     DROP PROCEDURE dbo.sp_ReporteProductosMasVendidos;
 GO

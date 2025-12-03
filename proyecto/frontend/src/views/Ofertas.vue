@@ -137,13 +137,61 @@ function bindEdit(p) {
   return edit.value[p.idProducto]
 }
 
+function onPctChange(p) {
+  const vals = bindEdit(p)
+  const pct = Number(vals.porcentajeDescuento)
+  const base = Number(p.precioProducto)
+  if (!base || isNaN(base)) {
+    return
+  }
+  if (!pct || isNaN(pct) || pct < 0) {
+    // si el porcentaje no es válido, limpiamos el precio de oferta
+    vals.precioOferta = ''
+    return
+  }
+  const clamped = Math.min(99, Math.max(0, pct))
+  vals.porcentajeDescuento = clamped
+  const newPrice = Number((base * (1 - clamped / 100)).toFixed(2))
+  vals.precioOferta = newPrice
+}
+
+function onPriceChange(p) {
+  const vals = bindEdit(p)
+  const base = Number(p.precioProducto)
+  const offer = Number(vals.precioOferta)
+  if (!base || isNaN(base)) {
+    return
+  }
+  if (!offer || isNaN(offer) || offer <= 0) {
+    // si el precio no es válido, limpiamos el porcentaje
+    vals.porcentajeDescuento = ''
+    return
+  }
+  // porcentaje = 100 * (1 - precioOferta / precioBase)
+  let pct = 100 * (1 - offer / base)
+  if (pct < 0) pct = 0
+  if (pct > 99) pct = 99
+  vals.porcentajeDescuento = Number(pct.toFixed(2))
+}
+
 async function aplicarOferta(p) {
   const vals = bindEdit(p)
   const payload = {}
-  if (vals.porcentajeDescuento !== '' && vals.porcentajeDescuento != null)
-    payload.porcentajeDescuento = Number(vals.porcentajeDescuento)
-  if (vals.precioOferta !== '' && vals.precioOferta != null)
+  const hasPct = vals.porcentajeDescuento !== '' && vals.porcentajeDescuento != null
+  const hasPrice = vals.precioOferta !== '' && vals.precioOferta != null
+
+  // Regla:
+  // - Si hay precio ingresado: el precio manda. Enviamos precioOferta y, si existe, también porcentajeDescuento.
+  // - Si NO hay precio pero SÍ hay porcentaje: solo enviamos porcentajeDescuento para que el backend recalcule precioOferta.
+  if (hasPrice) {
     payload.precioOferta = Number(vals.precioOferta)
+    if (hasPct) {
+      payload.porcentajeDescuento = Number(vals.porcentajeDescuento)
+    }
+  } else if (hasPct) {
+    payload.porcentajeDescuento = Number(vals.porcentajeDescuento)
+  }
+
   if (vals.nombreOferta && vals.nombreOferta.trim())
     payload.nombreOferta = vals.nombreOferta.trim()
   const u = getUsuario()
@@ -415,6 +463,7 @@ async function notifyUsuarios() {
                     max="99" 
                     step="1" 
                     v-model="bindEdit(p).porcentajeDescuento" 
+                    @input="onPctChange(p)"
                     class="w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-ring focus:border-transparent" 
                     placeholder="10"
                   />
@@ -426,6 +475,7 @@ async function notifyUsuarios() {
                     min="0" 
                     step="0.01" 
                     v-model="bindEdit(p).precioOferta" 
+                    @input="onPriceChange(p)"
                     class="w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-ring focus:border-transparent" 
                     placeholder="99.99"
                   />

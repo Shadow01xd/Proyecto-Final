@@ -178,7 +178,7 @@ function proceedToPayment() {
         </template>
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t pt-4">
-          <button class="rounded border px-3 py-2 w-full sm:w-auto" @click="clearCart">Limpiar carrito</button>
+          <button class="rounded border px-3 py-2 w-full sm:w-auto hover:bg-secondary/40 transition-colors" @click="clearCart">Limpiar carrito</button>
           <div class="text-lg sm:text-xl font-semibold text-right sm:text-left">
             Total: ${{ Number(totalAmount).toFixed(2) }}
           </div>

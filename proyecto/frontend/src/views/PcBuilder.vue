@@ -77,7 +77,17 @@ function handleDragLeaveResumen() {
 
 function saveBuilderSelection() {
   try {
-    const ids = Object.values(selectedComponents.value).map(p => p.idProducto)
+    // Guardar todos los productos seleccionados (incluyendo multiSelect) como lista plana de IDs
+    const ids = []
+    for (const val of Object.values(selectedComponents.value)) {
+      if (Array.isArray(val)) {
+        for (const p of val) {
+          if (p && p.idProducto != null) ids.push(p.idProducto)
+        }
+      } else if (val && val.idProducto != null) {
+        ids.push(val.idProducto)
+      }
+    }
     localStorage.setItem(BUILDER_PERSIST_KEY, JSON.stringify(ids))
   } catch {}
 }
@@ -90,8 +100,28 @@ function restoreBuilderSelection() {
     const map = {}
     for (const id of ids) {
       const p = productos.value.find(pr => pr.idProducto === id)
-      if (p) {
-        map[p.idCategoria] = p
+      if (!p) continue
+
+      const idCat = p.idCategoria
+      const step = steps.value.find(s =>
+        s.categoryPattern.test(
+          (categorias.value.find(c => c.idCategoria === idCat)?.nombreCategoria || '')
+        )
+      )
+      const isMulti = step?.multiSelect
+
+      if (isMulti) {
+        const current = map[idCat]
+        if (!current) {
+          map[idCat] = [p]
+        } else if (Array.isArray(current)) {
+          if (!current.some(x => x.idProducto === p.idProducto)) {
+            current.push(p)
+          }
+        }
+      } else {
+        // categorías de un solo producto: último seleccionado gana
+        map[idCat] = p
       }
     }
     selectedComponents.value = map
@@ -539,7 +569,16 @@ async function agregarBuildAlCarrito() {
   addMessage.value = ''
   addMessageType.value = ''
 
-  const seleccion = Object.values(selectedComponents.value)
+  // Aplanar selección: puede haber categorías con múltiples productos (arrays)
+  const seleccion = []
+  for (const val of Object.values(selectedComponents.value)) {
+    if (Array.isArray(val)) {
+      seleccion.push(...val)
+    } else if (val) {
+      seleccion.push(val)
+    }
+  }
+
   if (seleccion.length === 0) {
     addMessage.value = 'Selecciona al menos un componente para agregar al carrito.'
     addMessageType.value = 'error'
@@ -596,6 +635,15 @@ async function agregarBuildAlCarrito() {
 
 function irAlCarrito() {
   router.push({ name: 'carrito' })
+}
+
+async function finalizarBuilder() {
+  // Usa la misma lógica de agregar al carrito
+  await agregarBuildAlCarrito()
+  // Si se agregó correctamente, redirige al carrito
+  if (addMessageType.value === 'success') {
+    irAlCarrito()
+  }
 }
 
 onMounted(async () => {
@@ -873,7 +921,7 @@ onMounted(async () => {
               <button
                 v-else
                 class="flex-1 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
-                @click="goToNextStep"
+                @click="finalizarBuilder"
               >
                 Finalizar
               </button>
