@@ -13,26 +13,17 @@ router.get('/usuario/:id', async (req, res) => {
       .input('idUsuario', id)
       .query(`
         SELECT
-          o.idOrden,
-          o.fechaOrden,
-          o.estadoOrden,
-          o.totalOrden,
-          o.direccionEnvio,
-          o.observaciones,
-          pay.nombreMetodo AS metodoPagoNombre,
-          pay.referenciaPago AS referenciaPago
-        FROM Ordenes o
-        OUTER APPLY (
-          SELECT TOP 1
-            mp.nombreMetodo,
-            p.referenciaPago
-          FROM Pagos p
-          INNER JOIN MetodosPago mp ON mp.idMetodoPago = p.idMetodoPago
-          WHERE p.idOrden = o.idOrden
-          ORDER BY p.fechaPago DESC, p.idOrden DESC
-        ) AS pay
-        WHERE o.idUsuarioCliente = @idUsuario
-        ORDER BY o.fechaOrden DESC
+          v.idOrden,
+          v.fechaOrden,
+          v.estadoOrden,
+          v.totalOrden,
+          v.direccionEnvio,
+          v.observaciones,
+          v.metodoPagoNombre,
+          v.referenciaPago
+        FROM vw_OrdenesResumen v
+        WHERE v.idUsuarioCliente = @idUsuario
+        ORDER BY v.fechaOrden DESC
       `);
 
     res.json({ ordenes: result.recordset });
@@ -48,16 +39,17 @@ router.get('/', async (req, res) => {
     const pool = await getPool();
     const result = await pool.request().query(`
       SELECT
-        o.idOrden,
-        o.fechaOrden,
-        o.estadoOrden,
-        o.totalOrden,
-        o.observaciones,
-        u.nombreUsuario,
-        u.apellidoUsuario
-      FROM Ordenes o
-      INNER JOIN Usuarios u ON o.idUsuarioCliente = u.idUsuario
-      ORDER BY o.fechaOrden DESC
+        v.idOrden,
+        v.fechaOrden,
+        v.estadoOrden,
+        v.totalOrden,
+        v.observaciones,
+        v.nombreUsuario,
+        v.apellidoUsuario,
+        v.metodoPagoNombre,
+        v.referenciaPago
+      FROM vw_OrdenesResumen v
+      ORDER BY v.fechaOrden DESC
     `);
 
     res.json(result.recordset);
@@ -74,22 +66,23 @@ router.get('/:id', async (req, res) => {
   try {
     const pool = await getPool();
 
-    // Datos de la orden
+    // Datos de la orden (usando vista)
     const ordenResult = await pool.request()
       .input('idOrden', Number(id))
       .query(`
         SELECT
-          o.idOrden,
-          o.fechaOrden,
-          o.estadoOrden,
-          o.totalOrden,
-          o.direccionEnvio,
-          o.observaciones,
-          u.nombreUsuario,
-          u.apellidoUsuario
-        FROM Ordenes o
-        INNER JOIN Usuarios u ON o.idUsuarioCliente = u.idUsuario
-        WHERE o.idOrden = @idOrden
+          v.idOrden,
+          v.fechaOrden,
+          v.estadoOrden,
+          v.totalOrden,
+          v.direccionEnvio,
+          v.observaciones,
+          v.nombreUsuario,
+          v.apellidoUsuario,
+          v.metodoPagoNombre,
+          v.referenciaPago
+        FROM vw_OrdenesResumen v
+        WHERE v.idOrden = @idOrden
       `);
 
     if (ordenResult.recordset.length === 0) {
@@ -101,20 +94,34 @@ router.get('/:id', async (req, res) => {
       .input('idOrden', Number(id))
       .query(`
         SELECT
-          d.idDetalleOrden,
-          d.cantidad,
-          d.precioUnitario,
-          d.subtotal,
-          p.idProducto,
-          p.nombreProducto,
-          p.skuProducto
-        FROM DetalleOrden d
-        INNER JOIN Productos p ON d.idProducto = p.idProducto
-        WHERE d.idOrden = @idOrden
+          v.idDetalleOrden,
+          v.idProducto,
+          v.cantidad,
+          v.precioUnitario,
+          v.subtotal,
+          v.nombreProducto,
+          v.skuProducto,
+          v.imgProducto
+        FROM vw_DetalleOrdenCompleto v
+        WHERE v.idOrden = @idOrden
       `);
 
+    // Total calculado usando la función fn_GetTotalOrden
+    const totalFnResult = await pool.request()
+      .input('idOrden', Number(id))
+      .query(`SELECT dbo.fn_GetTotalOrden(@idOrden) AS totalCalculado`);
+
+    const orden = ordenResult.recordset[0];
+    const totalCalculado =
+      totalFnResult.recordset.length > 0
+        ? Number(totalFnResult.recordset[0].totalCalculado || 0)
+        : null;
+
     res.json({
-      orden: ordenResult.recordset[0],
+      orden: {
+        ...orden,
+        totalCalculado,
+      },
       detalle: detalleResult.recordset
     });
   } catch (err) {

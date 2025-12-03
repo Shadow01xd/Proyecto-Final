@@ -82,9 +82,18 @@ const loadOrders = async () => {
       simOrders = []
     }
 
+    // Limpiar pedidos simulados antiguos que tenían idOrden tipo 'SIM-...'
+    // Nos quedamos solo con los que tienen idOrden numérico o vienen ya de backend
+    const cleanedSimOrders = (Array.isArray(simOrders) ? simOrders : []).filter(o => {
+      if (!o || o.idOrden == null) return false
+      // Si es string y empieza con 'SIM-', descartar (formato viejo)
+      if (typeof o.idOrden === 'string' && o.idOrden.startsWith('SIM-')) return false
+      return true
+    })
+
     // Fusionar evitando duplicados por idOrden: priorizar órdenes de backend
     const byId = new Map()
-    for (const o of simOrders) {
+    for (const o of cleanedSimOrders) {
       if (o && o.idOrden != null) {
         byId.set(String(o.idOrden), o)
       }

@@ -280,12 +280,12 @@ router.post("/checkout", async (req, res) => {
 
     const itemsRes = await pool.request().input("idCarrito", Number(idCarrito))
       .query(`
-        SELECT ci.idProducto,
-               ci.cantidad,
-               ci.precioUnitario AS precioUnitarioSnapshot,
-               CASE WHEN p.esOferta = 1 AND p.precioOferta IS NOT NULL THEN p.precioOferta ELSE p.precioProducto END AS precioUnitarioEfectivo
+        SELECT
+          ci.idProducto,
+          ci.cantidad,
+          ci.precioUnitario AS precioUnitarioSnapshot,
+          dbo.fn_GetPrecioEfectivo(ci.idProducto) AS precioUnitarioEfectivo
         FROM CarritoItems ci
-        INNER JOIN Productos p ON p.idProducto = ci.idProducto
         WHERE ci.idCarrito = @idCarrito
       `);
     const items = itemsRes.recordset;
@@ -415,129 +415,79 @@ router.post("/checkout", async (req, res) => {
       referencia = povy.reference || povy.id || povy.tx || "POVY";
     }
 
-    // Registrar orden + detalle + pago en transacción
-    const transaction = pool.transaction();
-    await transaction.begin();
-    try {
-      const reqTx = transaction.request();
+    // Crear orden completa mediante SP (usa el carrito actual, descuenta stock y registra el pago)
+    const spOut = await pool
+      .request()
+      .input("idUsuario", Number(idUsuario))
+      .input("esSimulado", 0)
+      .input("direccionEnvio", direccionEnvio || null)
+      .input("observaciones", observaciones || "Pago Povy aprobado")
+      .input("referenciaPago", String(referencia))
+      .output("idOrden", 0)
+      .output("total", 0)
+      .execute("sp_CrearOrdenDesdeCarrito");
 
-      // Crear orden
-      const ordenIns = await reqTx
-        .input("idUsuarioCliente", Number(idUsuario))
-        .input("estadoOrden", "Pagada")
-        .input("totalOrden", Number(total.toFixed(2)))
-        .input("direccionEnvio", direccionEnvio || null)
-        .input("observaciones", observaciones || "Pago Povy aprobado").query(`
-          INSERT INTO Ordenes (idUsuarioCliente, fechaOrden, estadoOrden, totalOrden, direccionEnvio, observaciones)
-          VALUES (@idUsuarioCliente, GETDATE(), @estadoOrden, @totalOrden, @direccionEnvio, @observaciones);
-          SELECT SCOPE_IDENTITY() AS idOrden;
-        `);
-      const idOrden = Number(ordenIns.recordset[0].idOrden);
+    const idOrden = Number(spOut.output.idOrden || 0);
+    const totalFinal = Number(spOut.output.total || 0) || Number(total.toFixed(2));
 
-      // Insert detalle
-      for (const it of items) {
-        const cantidad = Number(it.cantidad);
-        const precio = Number(
-          it.precioUnitarioEfectivo ?? it.precioUnitarioSnapshot
+    if (!idOrden) {
+      return res.status(500).json({ error: "No se pudo crear la orden luego del pago" });
+    }
+
+    // Guardar método de pago del usuario (fuera del SP)
+    if (!savedMethodId && saveMethod) {
+      const mpRes = await pool
+        .request()
+        .query(
+          `SELECT TOP 1 idMetodoPago FROM MetodosPago WHERE nombreMetodo LIKE 'Tarjeta%' ORDER BY idMetodoPago DESC`
         );
-        const subtotal = Number((cantidad * precio).toFixed(2));
-        const reqItem = transaction.request();
-        await reqItem
-          .input("idOrden", idOrden)
-          .input("idProducto", Number(it.idProducto))
-          .input("cantidad", cantidad)
-          .input("precioUnitario", precio)
-          .input("subtotal", subtotal).query(`
-            INSERT INTO DetalleOrden (idOrden, idProducto, cantidad, precioUnitario, subtotal)
-            VALUES (@idOrden, @idProducto, @cantidad, @precioUnitario, @subtotal)
-          `);
-      }
-
-      // Resolver método de pago (escoger genérico crédito/débito si existe)
-      const mpRes = await reqTx.query(
-        `SELECT TOP 1 idMetodoPago FROM MetodosPago WHERE nombreMetodo LIKE 'Tarjeta%' ORDER BY idMetodoPago DESC`
-      );
       const idMetodoPago = mpRes.recordset.length
         ? mpRes.recordset[0].idMetodoPago
         : 1;
 
-      // Referencia de Povy
+      const ultimos4 = String(cardNumber).slice(-4);
+      const storedJson = Buffer.from(
+        JSON.stringify({
+          cardNumber,
+          expMonth,
+          expYear,
+          cvv,
+        }),
+        "utf8"
+      ).toString("base64");
 
-      // Registrar pago
-      const reqPay = transaction.request();
-      await reqPay
-        .input("idOrden", idOrden)
+      await pool
+        .request()
+        .input("idUsuario", Number(idUsuario))
         .input("idMetodoPago", idMetodoPago)
-        .input("montoPago", Number(total.toFixed(2)))
-        .input("referenciaPago", String(referencia)).query(`
-          INSERT INTO Pagos (idOrden, idMetodoPago, fechaPago, montoPago, referenciaPago)
-          VALUES (@idOrden, @idMetodoPago, GETDATE(), @montoPago, @referenciaPago)
+        .input("aliasTarjeta", "Povy Card")
+        .input("titularTarjeta", "Usuario")
+        .input("ultimos4", ultimos4)
+        .input("mesExpiracion", Number(expMonth))
+        .input("anioExpiracion", Number("20" + String(expYear)))
+        .input("tokenPasarela", storedJson).query(`
+          INSERT INTO MetodosPagoUsuario
+          (idUsuario, idMetodoPago, aliasTarjeta, titularTarjeta, ultimos4, mesExpiracion, anioExpiracion, tokenPasarela, esPredeterminado)
+          VALUES (@idUsuario, @idMetodoPago, @aliasTarjeta, @titularTarjeta, @ultimos4, @mesExpiracion, @anioExpiracion, @tokenPasarela, 0)
         `);
-
-      // Guardar método de pago del usuario (opcional)
-      if (!savedMethodId && saveMethod) {
-        const ultimos4 = String(cardNumber).slice(-4);
-        const storedJson = Buffer.from(
-          JSON.stringify({
-            cardNumber,
-            expMonth,
-            expYear,
-            cvv,
-          }),
-          "utf8"
-        ).toString("base64");
-        const reqSave = transaction.request();
-        await reqSave
-          .input("idUsuario", Number(idUsuario))
-          .input("idMetodoPago", idMetodoPago)
-          .input("aliasTarjeta", "Povy Card")
-          .input("titularTarjeta", "Usuario")
-          .input("ultimos4", ultimos4)
-          .input("mesExpiracion", Number(expMonth))
-          .input("anioExpiracion", Number("20" + String(expYear)))
-          .input("tokenPasarela", storedJson).query(`
-            INSERT INTO MetodosPagoUsuario
-            (idUsuario, idMetodoPago, aliasTarjeta, titularTarjeta, ultimos4, mesExpiracion, anioExpiracion, tokenPasarela, esPredeterminado)
-            VALUES (@idUsuario, @idMetodoPago, @aliasTarjeta, @titularTarjeta, @ultimos4, @mesExpiracion, @anioExpiracion, @tokenPasarela, 0)
-          `);
-      }
-
-      // Cerrar carrito y limpiar items
-      const reqClose = transaction.request();
-      await reqClose.input("idCarrito", Number(idCarrito))
-        .query(`UPDATE Carritos SET estado = 0, fechaActualizacion = GETDATE() WHERE idCarrito = @idCarrito;
-                DELETE FROM CarritoItems WHERE idCarrito = @idCarrito;`);
-
-      await transaction.commit();
-
-      // Enviar correo de confirmación (no bloqueante para la transacción)
-      sendOrderEmail(pool, { idUsuario, idOrden, total, items, simulado: false }).catch(() => {});
-
-      return res.json({
-        status: "approved",
-        idOrden,
-        total: Number(total.toFixed(2)),
-      });
-    } catch (txErr) {
-      await transaction.rollback();
-      console.error("Error en checkout (tx):", txErr);
-      // Devolver referencia de Povy para permitir /finalize sin volver a cobrar
-      const referencia = povy?.reference || povy?.id || povy?.tx || "POVY";
-      return res.status(500).json({
-        error: "Error al registrar la compra",
-        canFinalize: true,
-        referencia,
-      });
     }
+
+    // Enviar correo de confirmación (usa los items leídos del carrito antes del SP)
+    sendOrderEmail(pool, { idUsuario, idOrden, total: totalFinal, items, simulado: false }).catch(() => {});
+
+    return res.json({
+      status: "approved",
+      idOrden,
+      total: Number(totalFinal.toFixed(2)),
+    });
   } catch (err) {
     console.error("Error en checkout:", err);
     return res.status(500).json({ error: "No se pudo procesar el checkout" });
   }
 });
 
-// Checkout simulado: registra orden, detalle y pago sin contactar Povy
 router.post("/checkout-sim", async (req, res) => {
-  const { idUsuario, currency, direccionEnvio, observaciones } = req.body || {};
+  const { idUsuario, direccionEnvio, observaciones } = req.body || {};
   if (!idUsuario) {
     return res.status(400).json({ error: "Parametro requerido: idUsuario" });
   }
@@ -545,7 +495,8 @@ router.post("/checkout-sim", async (req, res) => {
   try {
     const pool = await getPool();
 
-    // Obtener carrito activo y sus items
+    // Antes de llamar al SP, obtenemos los items del carrito para poder
+    // usarlos en el correo electrónico de confirmación.
     const carritoRes = await pool
       .request()
       .input("idUsuario", Number(idUsuario))
@@ -561,12 +512,12 @@ router.post("/checkout-sim", async (req, res) => {
 
     const itemsRes = await pool.request().input("idCarrito", Number(idCarrito))
       .query(`
-        SELECT ci.idProducto,
-               ci.cantidad,
-               ci.precioUnitario AS precioUnitarioSnapshot,
-               CASE WHEN p.esOferta = 1 AND p.precioOferta IS NOT NULL THEN p.precioOferta ELSE p.precioProducto END AS precioUnitarioEfectivo
+        SELECT
+          ci.idProducto,
+          ci.cantidad,
+          ci.precioUnitario AS precioUnitarioSnapshot,
+          dbo.fn_GetPrecioEfectivo(ci.idProducto) AS precioUnitarioEfectivo
         FROM CarritoItems ci
-        INNER JOIN Productos p ON p.idProducto = ci.idProducto
         WHERE ci.idCarrito = @idCarrito
       `);
     const items = itemsRes.recordset;
@@ -574,93 +525,33 @@ router.post("/checkout-sim", async (req, res) => {
       return res.status(400).json({ error: "El carrito está vacío" });
     }
 
-    const total = items.reduce(
-      (a, it) => a + Number(it.cantidad) * Number(it.precioUnitarioEfectivo ?? it.precioUnitarioSnapshot),
-      0
-    );
+    // Llamar al procedimiento almacenado para crear Orden + Detalle + Pago y cerrar carrito
+    const out = await pool
+      .request()
+      .input("idUsuario", Number(idUsuario))
+      .input("esSimulado", 1)
+      .input("direccionEnvio", direccionEnvio || null)
+      .input("observaciones", observaciones || null)
+      .input("referenciaPago", `SIM-${Date.now()}`)
+      .output("idOrden", 0)
+      .output("total", 0)
+      .execute("sp_CrearOrdenDesdeCarrito");
 
-    const transaction = pool.transaction();
-    await transaction.begin();
-    try {
-      const reqTx = transaction.request();
+    const idOrden = Number(out.output.idOrden || 0);
+    const total = Number(out.output.total || 0);
 
-      // Crear orden simulada
-      const ordenIns = await reqTx
-        .input("idUsuarioCliente", Number(idUsuario))
-        .input("estadoOrden", "Pagada")
-        .input("totalOrden", Number(total.toFixed(2)))
-        .input("direccionEnvio", direccionEnvio || null)
-        .input(
-          "observaciones",
-          observaciones || "Pago simulado aprobado"
-        ).query(`
-          INSERT INTO Ordenes (idUsuarioCliente, fechaOrden, estadoOrden, totalOrden, direccionEnvio, observaciones)
-          VALUES (@idUsuarioCliente, GETDATE(), @estadoOrden, @totalOrden, @direccionEnvio, @observaciones);
-          SELECT SCOPE_IDENTITY() AS idOrden;
-        `);
-      const idOrden = Number(ordenIns.recordset[0].idOrden);
-
-      // Insert detalle
-      for (const it of items) {
-        const cantidad = Number(it.cantidad);
-        const precio = Number(
-          it.precioUnitarioEfectivo ?? it.precioUnitarioSnapshot
-        );
-        const subtotal = Number((cantidad * precio).toFixed(2));
-        const reqItem = transaction.request();
-        await reqItem
-          .input("idOrden", idOrden)
-          .input("idProducto", Number(it.idProducto))
-          .input("cantidad", cantidad)
-          .input("precioUnitario", precio)
-          .input("subtotal", subtotal).query(`
-            INSERT INTO DetalleOrden (idOrden, idProducto, cantidad, precioUnitario, subtotal)
-            VALUES (@idOrden, @idProducto, @cantidad, @precioUnitario, @subtotal)
-          `);
-      }
-
-      // Resolver método de pago simulado (intenta uno con 'simul' en el nombre)
-      const mpRes = await reqTx.query(
-        `SELECT TOP 1 idMetodoPago FROM MetodosPago WHERE nombreMetodo LIKE '%simul%' ORDER BY idMetodoPago DESC`
-      );
-      const idMetodoPago = mpRes.recordset.length
-        ? mpRes.recordset[0].idMetodoPago
-        : 1;
-
-      const referencia = `SIM-${idOrden}`;
-
-      // Registrar pago simulado
-      const reqPay = transaction.request();
-      await reqPay
-        .input("idOrden", idOrden)
-        .input("idMetodoPago", idMetodoPago)
-        .input("montoPago", Number(total.toFixed(2)))
-        .input("referenciaPago", String(referencia)).query(`
-          INSERT INTO Pagos (idOrden, idMetodoPago, fechaPago, montoPago, referenciaPago)
-          VALUES (@idOrden, @idMetodoPago, GETDATE(), @montoPago, @referenciaPago)
-        `);
-
-      // Cerrar carrito y limpiar items
-      const reqClose = transaction.request();
-      await reqClose.input("idCarrito", Number(idCarrito))
-        .query(`UPDATE Carritos SET estado = 0, fechaActualizacion = GETDATE() WHERE idCarrito = @idCarrito;
-                DELETE FROM CarritoItems WHERE idCarrito = @idCarrito;`);
-
-      await transaction.commit();
-
-      // Enviar correo de confirmación para compra simulada
-      sendOrderEmail(pool, { idUsuario, idOrden, total, items, simulado: true }).catch(() => {});
-
-      return res.json({
-        status: "approved",
-        idOrden,
-        total: Number(total.toFixed(2)),
-      });
-    } catch (txErr) {
-      await transaction.rollback();
-      console.error("Error en checkout-sim (tx):", txErr);
-      return res.status(500).json({ error: "Error al registrar la compra simulada" });
+    if (!idOrden) {
+      return res.status(500).json({ error: "No se pudo crear la orden simulada" });
     }
+
+    // Enviar correo de confirmación para compra simulada
+    sendOrderEmail(pool, { idUsuario, idOrden, total, items, simulado: true }).catch(() => {});
+
+    return res.json({
+      status: "approved",
+      idOrden,
+      total: Number(total.toFixed(2)),
+    });
   } catch (err) {
     console.error("Error en checkout-sim:", err);
     return res.status(500).json({ error: "No se pudo procesar el checkout simulado" });
@@ -680,7 +571,7 @@ router.post("/finalize", async (req, res) => {
   try {
     const pool = await getPool();
 
-    // Obtener carrito activo e items
+    // Obtener carrito activo e items (para el correo)
     const carritoRes = await pool
       .request()
       .input("idUsuario", Number(idUsuario))
@@ -704,87 +595,39 @@ router.post("/finalize", async (req, res) => {
     if (!items || items.length === 0) {
       return res.status(400).json({ error: "El carrito está vacío" });
     }
-    const total = items.reduce(
-      (a, it) => a + Number(it.cantidad) * Number(it.precioUnitario),
-      0
-    );
 
-    // Transacción para registrar orden, detalle y pago
-    const transaction = pool.transaction();
-    await transaction.begin();
-    try {
-      const reqTx = transaction.request();
+    // Crear orden completa mediante SP usando la referencia ya aprobada
+    const spOut = await pool
+      .request()
+      .input("idUsuario", Number(idUsuario))
+      .input("esSimulado", 0)
+      .input("direccionEnvio", direccionEnvio || null)
+      .input(
+        "observaciones",
+        observaciones || "Pago Povy aprobado (finalize)"
+      )
+      .input("referenciaPago", String(referencia))
+      .output("idOrden", 0)
+      .output("total", 0)
+      .execute("sp_CrearOrdenDesdeCarrito");
 
-      const ordenIns = await reqTx
-        .input("idUsuarioCliente", Number(idUsuario))
-        .input("estadoOrden", "Pagada")
-        .input("totalOrden", Number(total.toFixed(2)))
-        .input("direccionEnvio", direccionEnvio || null)
-        .input(
-          "observaciones",
-          observaciones || "Pago Povy aprobado (finalize)"
-        ).query(`
-          INSERT INTO Ordenes (idUsuarioCliente, fechaOrden, estadoOrden, totalOrden, direccionEnvio, observaciones)
-          VALUES (@idUsuarioCliente, GETDATE(), @estadoOrden, @totalOrden, @direccionEnvio, @observaciones);
-          SELECT SCOPE_IDENTITY() AS idOrden;
-        `);
-      const idOrden = Number(ordenIns.recordset[0].idOrden);
+    const idOrden = Number(spOut.output.idOrden || 0);
+    const total = Number(spOut.output.total || 0);
 
-      for (const it of items) {
-        const cantidad = Number(it.cantidad);
-        const precio = Number(it.precioUnitario);
-        const subtotal = Number((cantidad * precio).toFixed(2));
-        const reqItem = transaction.request();
-        await reqItem
-          .input("idOrden", idOrden)
-          .input("idProducto", Number(it.idProducto))
-          .input("cantidad", cantidad)
-          .input("precioUnitario", precio)
-          .input("subtotal", subtotal).query(`
-            INSERT INTO DetalleOrden (idOrden, idProducto, cantidad, precioUnitario, subtotal)
-            VALUES (@idOrden, @idProducto, @cantidad, @precioUnitario, @subtotal)
-          `);
-      }
-
-      const mpRes = await reqTx.query(
-        `SELECT TOP 1 idMetodoPago FROM MetodosPago WHERE nombreMetodo LIKE 'Tarjeta%' ORDER BY idMetodoPago DESC`
-      );
-      const idMetodoPago = mpRes.recordset.length
-        ? mpRes.recordset[0].idMetodoPago
-        : 1;
-
-      const reqPay = transaction.request();
-      await reqPay
-        .input("idOrden", idOrden)
-        .input("idMetodoPago", idMetodoPago)
-        .input("montoPago", Number(total.toFixed(2)))
-        .input("referenciaPago", String(referencia)).query(`
-          INSERT INTO Pagos (idOrden, idMetodoPago, fechaPago, montoPago, referenciaPago)
-          VALUES (@idOrden, @idMetodoPago, GETDATE(), @montoPago, @referenciaPago)
-        `);
-
-      const reqClose = transaction.request();
-      await reqClose.input("idCarrito", Number(idCarrito))
-        .query(`UPDATE Carritos SET estado = 0, fechaActualizacion = GETDATE() WHERE idCarrito = @idCarrito;
-                DELETE FROM CarritoItems WHERE idCarrito = @idCarrito;`);
-
-      await transaction.commit();
-
-      // Enviar correo de confirmación para finalize (Povy)
-      sendOrderEmail(pool, { idUsuario, idOrden, total, items, simulado: false }).catch(() => {});
-
-      return res.json({
-        status: "approved",
-        idOrden,
-        total: Number(total.toFixed(2)),
-      });
-    } catch (txErr) {
-      await transaction.rollback();
-      console.error("Error en finalize (tx):", txErr);
+    if (!idOrden) {
       return res
         .status(500)
-        .json({ error: "Error al registrar la compra (finalize)" });
+        .json({ error: "No se pudo crear la orden (finalize)" });
     }
+
+    // Enviar correo de confirmación para finalize (Povy)
+    sendOrderEmail(pool, { idUsuario, idOrden, total, items, simulado: false }).catch(() => {});
+
+    return res.json({
+      status: "approved",
+      idOrden,
+      total: Number(total.toFixed(2)),
+    });
   } catch (err) {
     console.error("Error en finalize:", err);
     return res.status(500).json({ error: "No se pudo finalizar la compra" });

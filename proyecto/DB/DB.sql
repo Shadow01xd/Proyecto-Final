@@ -413,3 +413,318 @@ GO
 Select * from Usuarios
 
 SELECT * FROM Roles;
+
+-- ========================================================
+-- FUNCION: fn_GetPrecioEfectivo
+-- Encapsula la lógica de ofertas para obtener el precio vigente de un producto
+-- ========================================================
+GO
+IF OBJECT_ID('dbo.fn_GetPrecioEfectivo', 'FN') IS NOT NULL
+    DROP FUNCTION dbo.fn_GetPrecioEfectivo;
+GO
+CREATE FUNCTION dbo.fn_GetPrecioEfectivo
+(
+    @idProducto INT
+)
+RETURNS DECIMAL(10,2)
+AS
+BEGIN
+    DECLARE @precio DECIMAL(10,2);
+
+    SELECT TOP 1
+        @precio = CASE
+                      WHEN esOferta = 1 AND precioOferta IS NOT NULL THEN precioOferta
+                      ELSE precioProducto
+                  END
+    FROM Productos
+    WHERE idProducto = @idProducto;
+
+    RETURN ISNULL(@precio, 0);
+END;
+GO
+
+-- ========================================================
+-- FUNCION 2: fn_GetTotalOrden
+-- Devuelve el total de una orden a partir de DetalleOrden
+-- (si no hay detalle, usa Ordenes.totalOrden)
+-- ========================================================
+IF OBJECT_ID('dbo.fn_GetTotalOrden', 'FN') IS NOT NULL
+    DROP FUNCTION dbo.fn_GetTotalOrden;
+GO
+CREATE FUNCTION dbo.fn_GetTotalOrden
+(
+    @idOrden INT
+)
+RETURNS DECIMAL(10,2)
+AS
+BEGIN
+    DECLARE @total DECIMAL(10,2);
+
+    SELECT @total = SUM(CONVERT(DECIMAL(10,2), d.cantidad) * d.precioUnitario)
+    FROM DetalleOrden d
+    WHERE d.idOrden = @idOrden;
+
+    IF @total IS NULL
+    BEGIN
+        SELECT @total = o.totalOrden
+        FROM Ordenes o
+        WHERE o.idOrden = @idOrden;
+    END;
+
+    RETURN ISNULL(@total, 0);
+END;
+GO
+
+-- ========================================================
+-- VISTA: vw_OrdenesResumen
+-- Resumen de órdenes con datos de cliente y método de pago
+-- ========================================================
+IF OBJECT_ID('dbo.vw_OrdenesResumen', 'V') IS NOT NULL
+    DROP VIEW dbo.vw_OrdenesResumen;
+GO
+CREATE VIEW dbo.vw_OrdenesResumen
+AS
+SELECT
+    o.idOrden,
+    o.idUsuarioCliente,
+    o.fechaOrden,
+    o.estadoOrden,
+    o.totalOrden,
+    o.direccionEnvio,
+    o.observaciones,
+    u.nombreUsuario,
+    u.apellidoUsuario,
+    mp.nombreMetodo      AS metodoPagoNombre,
+    pg.referenciaPago    AS referenciaPago
+FROM Ordenes o
+INNER JOIN Usuarios u
+    ON o.idUsuarioCliente = u.idUsuario
+OUTER APPLY (
+    SELECT TOP 1
+        p.idPago,
+        p.idMetodoPago,
+        p.referenciaPago,
+        p.fechaPago
+    FROM Pagos p
+    WHERE p.idOrden = o.idOrden
+    ORDER BY p.fechaPago DESC, p.idPago DESC
+) AS pg
+LEFT JOIN MetodosPago mp
+    ON mp.idMetodoPago = pg.idMetodoPago;
+GO
+
+-- ========================================================
+-- VISTA: vw_DetalleOrdenCompleto
+-- Detalle de orden con datos del producto (nombre, SKU, imagen)
+-- ========================================================
+IF OBJECT_ID('dbo.vw_DetalleOrdenCompleto', 'V') IS NOT NULL
+    DROP VIEW dbo.vw_DetalleOrdenCompleto;
+GO
+CREATE VIEW dbo.vw_DetalleOrdenCompleto
+AS
+SELECT
+    d.idDetalleOrden,
+    d.idOrden,
+    d.idProducto,
+    d.cantidad,
+    d.precioUnitario,
+    d.subtotal,
+    p.nombreProducto,
+    p.skuProducto,
+    p.imgProducto
+FROM DetalleOrden d
+INNER JOIN Productos p
+    ON d.idProducto = p.idProducto;
+GO
+
+-- ========================================================
+-- PROCEDIMIENTO: sp_CrearOrdenDesdeCarrito
+-- Crea una orden completa (Ordenes, DetalleOrden, Pagos) a partir
+-- del carrito activo de un usuario, y luego cierra el carrito.
+-- - Calcula el precio efectivo usando fn_GetPrecioEfectivo
+-- - Soporta modo simulado o normal para escoger el método de pago
+-- Parámetros:
+--   @idUsuario       -> usuario dueño del carrito
+--   @esSimulado      -> 1 = usa método con '%simul%' en MetodosPago, 0 = 'Tarjeta%'
+--   @direccionEnvio  -> opcional
+--   @observaciones   -> opcional
+--   @referenciaPago  -> referencia de la pasarela o 'SIM-XXX'
+--   @idOrden         -> OUTPUT, id de orden creada
+--   @total           -> OUTPUT, total calculado
+-- ========================================================
+IF OBJECT_ID('dbo.sp_CrearOrdenDesdeCarrito', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_CrearOrdenDesdeCarrito;
+GO
+CREATE PROCEDURE dbo.sp_CrearOrdenDesdeCarrito
+    @idUsuario      INT,
+    @esSimulado    BIT,
+    @direccionEnvio VARCHAR(250) = NULL,
+    @observaciones  VARCHAR(300) = NULL,
+    @referenciaPago VARCHAR(100) = NULL,
+    @idOrden        INT OUTPUT,
+    @total          DECIMAL(10,2) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @idCarrito INT;
+
+    -- Carrito activo
+    SELECT TOP 1 @idCarrito = idCarrito
+    FROM Carritos
+    WHERE idUsuario = @idUsuario AND estado = 1
+    ORDER BY idCarrito DESC;
+
+    IF @idCarrito IS NULL
+    BEGIN
+        RAISERROR('No hay carrito activo para el usuario', 16, 1);
+        RETURN;
+    END;
+
+    -- Items del carrito con precio efectivo
+    DECLARE @tmpItems TABLE (
+        idProducto INT,
+        cantidad   INT,
+        precioUnitarioSnapshot DECIMAL(10,2),
+        precioUnitarioEfectivo DECIMAL(10,2)
+    );
+
+    INSERT INTO @tmpItems (idProducto, cantidad, precioUnitarioSnapshot, precioUnitarioEfectivo)
+    SELECT
+        ci.idProducto,
+        ci.cantidad,
+        ci.precioUnitario,
+        dbo.fn_GetPrecioEfectivo(ci.idProducto)
+    FROM CarritoItems ci
+    WHERE ci.idCarrito = @idCarrito;
+
+    IF NOT EXISTS (SELECT 1 FROM @tmpItems)
+    BEGIN
+        RAISERROR('El carrito esta vacio', 16, 1);
+        RETURN;
+    END;
+
+    -- Total
+    SELECT @total = SUM(CONVERT(DECIMAL(10,2), cantidad) * precioUnitarioEfectivo)
+    FROM @tmpItems;
+
+    IF @total IS NULL SET @total = 0;
+
+    DECLARE @idMetodoPago INT;
+
+    -- Resolver método de pago según modo
+    IF @esSimulado = 1
+    BEGIN
+        SELECT TOP 1 @idMetodoPago = idMetodoPago
+        FROM MetodosPago
+        WHERE nombreMetodo LIKE '%simul%'
+        ORDER BY idMetodoPago DESC;
+    END
+    ELSE
+    BEGIN
+        SELECT TOP 1 @idMetodoPago = idMetodoPago
+        FROM MetodosPago
+        WHERE nombreMetodo LIKE 'Tarjeta%'
+        ORDER BY idMetodoPago DESC;
+    END;
+
+    IF @idMetodoPago IS NULL SET @idMetodoPago = 1;
+
+    -- Transacción principal
+    BEGIN TRY
+        BEGIN TRAN;
+
+        DECLARE @idNuevaOrden INT;
+
+        INSERT INTO Ordenes
+            (idUsuarioCliente, fechaOrden, estadoOrden, totalOrden, direccionEnvio, observaciones)
+        VALUES
+            (@idUsuario, GETDATE(), 'Pagada', @total,
+             @direccionEnvio,
+             ISNULL(@observaciones,
+                    CASE WHEN @esSimulado = 1 THEN 'Pago simulado aprobado'
+                         ELSE 'Pago Povy aprobado (SP)'
+                    END));
+
+        SET @idNuevaOrden = SCOPE_IDENTITY();
+
+        -- Detalle
+        INSERT INTO DetalleOrden
+            (idOrden, idProducto, cantidad, precioUnitario, subtotal)
+        SELECT
+            @idNuevaOrden,
+            t.idProducto,
+            t.cantidad,
+            t.precioUnitarioEfectivo,
+            CONVERT(DECIMAL(10,2), t.cantidad * t.precioUnitarioEfectivo)
+        FROM @tmpItems t;
+
+        -- Descontar stock de productos según las cantidades vendidas
+        UPDATE p
+        SET p.stockProducto = p.stockProducto - t.cantidad
+        FROM Productos p
+        INNER JOIN @tmpItems t ON p.idProducto = t.idProducto;
+
+        -- Pago
+        INSERT INTO Pagos
+            (idOrden, idMetodoPago, fechaPago, montoPago, referenciaPago)
+        VALUES
+            (@idNuevaOrden, @idMetodoPago, GETDATE(), @total, @referenciaPago);
+
+        -- Cerrar carrito y limpiar items
+        UPDATE Carritos
+        SET estado = 0,
+            fechaActualizacion = GETDATE()
+        WHERE idCarrito = @idCarrito;
+
+        DELETE FROM CarritoItems
+        WHERE idCarrito = @idCarrito;
+
+        COMMIT TRAN;
+
+        SET @idOrden = @idNuevaOrden;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@msg, 16, 1);
+        RETURN;
+    END CATCH;
+END;
+GO
+
+-- ========================================================
+-- PROCEDIMIENTO 2: sp_ReporteVentasRango
+-- Reporte de ventas por rango de fechas (para Admin Dashboard)
+-- Devuelve resumen de órdenes pagadas y enviadas, agrupadas por día
+-- ========================================================
+IF OBJECT_ID('dbo.sp_ReporteVentasRango', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_ReporteVentasRango;
+GO
+CREATE PROCEDURE dbo.sp_ReporteVentasRango
+    @fechaInicio DATETIME,
+    @fechaFin    DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Normalizar rango
+    IF @fechaInicio IS NULL SET @fechaInicio = '2000-01-01';
+    IF @fechaFin IS NULL SET @fechaFin = DATEADD(DAY, 1, GETDATE());
+
+    ;WITH OrdenesFiltradas AS (
+        SELECT *
+        FROM Ordenes
+        WHERE fechaOrden >= @fechaInicio
+          AND fechaOrden <  @fechaFin
+          AND estadoOrden IN ('Pagada','Enviada')
+    )
+    SELECT
+        CONVERT(date, o.fechaOrden) AS fecha,
+        COUNT(DISTINCT o.idOrden)   AS cantidadOrdenes,
+        SUM(o.totalOrden)           AS totalVendido
+    FROM OrdenesFiltradas o
+    GROUP BY CONVERT(date, o.fechaOrden)
+    ORDER BY fecha;
+END;
+GO

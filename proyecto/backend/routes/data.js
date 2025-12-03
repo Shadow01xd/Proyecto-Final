@@ -32,31 +32,41 @@ async function fetchTable(pool, table, schema = 'dbo') {
 router.get("/export", async (req, res) => {
   try {
     const pool = await getPool();
-    const tables = safeTablesOrder();
-    const data = {};
-    // Detect schema for each table (fallback dbo)
+    const order = safeTablesOrder();
+    const tables = {};
+    // Detectar esquema real de cada tabla (fallback dbo)
     const schemas = {};
-    for (const t of tables) {
+    for (const t of order) {
       try {
-        const r = await pool.request()
-          .input('t', t)
-          .query(`SELECT TOP 1 TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @t`);
-        schemas[t] = (r.recordset[0] && r.recordset[0].TABLE_SCHEMA) || 'dbo';
-      } catch (_) { schemas[t] = 'dbo'; }
+        const r = await pool
+          .request()
+          .input("t", t)
+          .query(
+            `SELECT TOP 1 TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @t`
+          );
+        schemas[t] = (r.recordset[0] && r.recordset[0].TABLE_SCHEMA) || "dbo";
+      } catch (_) {
+        schemas[t] = "dbo";
+      }
     }
-    for (const t of tables) {
-      data[t] = await fetchTable(pool, t, schemas[t] || 'dbo');
+    for (const t of order) {
+      tables[t] = await fetchTable(pool, t, schemas[t] || "dbo");
     }
+
+    // Estructura compatible con /import: { tables: { ... } }
     const json = JSON.stringify(
       {
         exportedAt: new Date().toISOString(),
-        data,
+        tables,
       },
       null,
       2
     );
     res.setHeader("Content-Type", "application/json");
-    res.setHeader("Content-Disposition", `attachment; filename=export_${Date.now()}.json`);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=export_${Date.now()}.json`
+    );
     return res.send(json);
   } catch (e) {
     return res.status(500).json({ error: "No se pudo exportar" });
@@ -106,18 +116,20 @@ router.get("/report", async (req, res) => {
         `)
     ).recordset || [];
 
+    // Usar SP sp_ReporteVentasRango para obtener ventas por fecha (últimos 12 meses)
+    const hoy = new Date();
+    const inicio = new Date(hoy);
+    inicio.setMonth(inicio.getMonth() - 11);
+    inicio.setHours(0, 0, 0, 0);
+    const fin = new Date(hoy);
+    fin.setHours(23, 59, 59, 999);
+
     const ventasPorMes = (
       await pool
         .request()
-        .query(`
-          SELECT 
-            FORMAT(o.fechaOrden, 'yyyy-MM') AS periodo,
-            ISNULL(SUM(p.montoPago),0) AS total
-          FROM Ordenes o
-          LEFT JOIN Pagos p ON p.idOrden = o.idOrden
-          GROUP BY FORMAT(o.fechaOrden, 'yyyy-MM')
-          ORDER BY periodo ASC
-        `)
+        .input("fechaInicio", sql.DateTime, inicio)
+        .input("fechaFin", sql.DateTime, fin)
+        .query(`EXEC dbo.sp_ReporteVentasRango @fechaInicio, @fechaFin`)
     ).recordset || [];
 
     return res.json({
