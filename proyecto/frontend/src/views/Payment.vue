@@ -25,6 +25,8 @@ const savedMethods = ref([])
 const selectedMethodId = ref(null)
 const summaryItems = ref([])
 
+const paymentMethods = ref([])
+
 const numberRef = ref(null)
 const monthRef = ref(null)
 const yearRef = ref(null)
@@ -41,45 +43,18 @@ function startEditAddress() {
   editingAddress.value = true
 }
 
-// Modo de pago: 'povy' | 'sim'
+// Modo de pago actual, derivado del método seleccionado: 'povy' | 'sim'
 const paymentMode = ref('povy')
-// Tarjetas simuladas guardadas localmente para el usuario
-const simSavedMethods = ref([])
-
-function getSimMethodsKey(uid) {
-  return `sim_methods_${uid}`
-}
-
-function loadSimSavedMethods(uid) {
-  // Deshabilitado: ya no se usan métodos simulados en localStorage
-  simSavedMethods.value = []
-}
-
-function saveSimMethod(uid, method) {
-  // Deshabilitado: no persistir métodos simulados en localStorage
-}
 
 function cancelEditAddress() {
   editingAddress.value = false
   addressInput.value = address.value || ''
 }
 
-function saveAddressLocal() {
-  const val = String(addressInput.value || '').trim()
-  if (!val) {
-    error.value = 'La dirección no puede estar vacía.'
-    return
-  }
-  try {
-    const raw = localStorage.getItem('usuario')
-    if (raw) {
-      const u = JSON.parse(raw)
-      u.direccionUsuario = val
-      localStorage.setItem('usuario', JSON.stringify(u))
-    }
-  } catch {}
-  address.value = val
-  editingAddress.value = false
+function selectPaymentMethod(method) {
+  if (!method) return
+  const nombre = String(method.nombreMetodo || '').toLowerCase()
+  paymentMode.value = nombre.includes('simul') ? 'sim' : 'povy'
 }
 
 function getUserId() {
@@ -90,16 +65,6 @@ function getUserId() {
     return u?.idUsuario || null
   } catch {
     return null
-  }
-}
-
-function setPaymentMode(mode) {
-  paymentMode.value = mode
-  const chosen = (savedMethods.value || []).find(m => m.idMetodoPagoUsuario === selectedMethodId.value)
-  if (mode === 'povy') {
-    if (chosen && chosen.sim) selectedMethodId.value = null
-  } else if (mode === 'sim') {
-    if (chosen && !chosen.sim) selectedMethodId.value = null
   }
 }
 
@@ -149,6 +114,21 @@ onMounted(() => {
       })
       .catch(() => { })
   }
+
+  // Cargar métodos de pago disponibles desde la BD
+  fetch('http://localhost:3000/api/payments/methods')
+    .then(r => r.json())
+    .then(d => {
+      const methods = Array.isArray(d.methods) ? d.methods : []
+      paymentMethods.value = methods
+      if (methods.length) {
+        // Seleccionar el primer método por defecto y ajustar modo
+        selectPaymentMethod(methods[0])
+      }
+    })
+    .catch(() => {
+      paymentMethods.value = []
+    })
 
   // cargar dirección desde el usuario en localStorage
   try {
@@ -271,10 +251,32 @@ async function pagar() {
         }
       }
 
+      // Registrar la compra simulada en el backend (Ordenes, Pagos, DetalleOrden)
+      let simData
+      try {
+        const respSim = await fetch('http://localhost:3000/api/payments/checkout-sim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            idUsuario,
+            currency: currency.value,
+            direccionEnvio: address.value
+          })
+        })
+        simData = await respSim.json().catch(() => ({}))
+        if (!respSim.ok || simData.status !== 'approved') {
+          error.value = simData.error || 'No se pudo registrar la compra simulada'
+          return
+        }
+      } catch {
+        error.value = 'No se pudo contactar al backend para registrar la compra simulada'
+        return
+      }
+
       // Guardar orden simulada en localStorage para que aparezca en Mis Pedidos
       try {
         const now = new Date()
-        const simId = `SIM-${now.getTime()}`
+        const refSim = simData && simData.idOrden ? `SIM-${simData.idOrden}` : `SIM-${now.getTime()}`
         const detalles = (summaryItems.value || []).map(it => ({
           nombreProducto: it.nombreProducto,
           cantidad: Number(it.cantidad) || 1,
@@ -282,14 +284,16 @@ async function pagar() {
           subtotal: (Number(it.cantidad) || 1) * Number(it.precioUnitarioEfectivo ?? it.precioUnitarioSnapshot ?? it.precioUnitario ?? 0)
         }))
         const simOrder = {
-          idOrden: simId,
+          idOrden: simData && simData.idOrden ? simData.idOrden : refSim,
           fechaOrden: now.toISOString(),
           totalOrden: Number(amount.value) || 0,
           estadoOrden: 'Pagada',
           direccionEnvio: address.value || '',
           observaciones: '',
           detalles,
-          sim: true
+          sim: true,
+          metodoPagoNombre: 'Tarjeta simulada',
+          referenciaPago: refSim
         }
         const key = `sim_orders_${idUsuario}`
         const arr = JSON.parse(localStorage.getItem(key) || '[]')
@@ -297,7 +301,7 @@ async function pagar() {
         localStorage.setItem(key, JSON.stringify(arr))
       } catch {}
 
-      // Limpiar carrito tras pago simulado
+      // Limpiar carrito tras pago simulado (backend también lo limpia, esto es por consistencia local)
       try {
         const uid = getUserId()
         if (uid) {
@@ -307,7 +311,7 @@ async function pagar() {
         }
       } catch {}
 
-      success.value = 'Pago aprobado (modo simulado). Orden #' + 'SIM-' + Math.floor(Math.random()*100000)
+      success.value = 'Pago aprobado (modo simulado). Orden #' + (simData && simData.idOrden ? simData.idOrden : 'SIM')
       setTimeout(() => router.push('/my-orders'), 700)
       return
     }
@@ -556,27 +560,28 @@ function toggleSaved(id, m) {
               <div class="flex items-center justify-between">
                 <div class="font-semibold text-base">Modo de pago</div>
               </div>
-              <div class="mt-3 grid grid-cols-2 gap-3">
+              <div v-if="paymentMethods.length" class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
+                  v-for="m in paymentMethods"
+                  :key="m.idMetodoPago"
                   type="button"
                   :class="[
-                    'rounded-md border px-3 py-2 text-sm font-medium',
-                    paymentMode === 'povy' ? 'ring-2 ring-blue-500 dark:ring-red-500 bg-blue-200/50 dark:bg-red-500/10' : 'hover:bg-secondary'
+                    'rounded-md border px-3 py-2 text-sm font-medium text-left',
+                    (paymentMode === 'sim' && String(m.nombreMetodo || '').toLowerCase().includes('simul')) ||
+                    (paymentMode === 'povy' && !String(m.nombreMetodo || '').toLowerCase().includes('simul'))
+                      ? 'ring-2 ring-blue-500 dark:ring-red-500 bg-blue-200/50 dark:bg-red-500/10'
+                      : 'hover:bg-secondary'
                   ]"
-                  @click="setPaymentMode('povy')"
+                  @click="selectPaymentMethod(m)"
                 >
-                  Povy 
+                  {{ m.nombreMetodo }}
+                  <div v-if="m.descripcionMetodo" class="text-xs text-muted-foreground mt-0.5">
+                    {{ m.descripcionMetodo }}
+                  </div>
                 </button>
-                <button
-                  type="button"
-                  :class="[
-                    'rounded-md border px-3 py-2 text-sm font-medium',
-                    paymentMode === 'sim' ? 'ring-2 ring-blue-500 dark:ring-red-500 bg-blue-200/50 dark:bg-red-500/10' : 'hover:bg-secondary'
-                  ]"
-                  @click="setPaymentMode('sim')"
-                >
-                  Simulado 
-                </button>
+              </div>
+              <div v-else class="mt-3 text-xs text-muted-foreground">
+                No hay métodos de pago configurados en el sistema.
               </div>
               <p class="mt-2 text-xs text-muted-foreground">
                 En modo <strong>Simulado</strong> puedes usar cualquier tarjeta de prueba y aprobará sin cargos reales.

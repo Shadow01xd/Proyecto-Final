@@ -20,6 +20,8 @@ const fecha = computed(() => props.order?.fechaOrden ?? props.order?.fecha ?? nu
 const estado = computed(() => props.order?.estadoOrden ?? props.order?.estado ?? null)
 const direccion = computed(() => props.order?.direccionEnvio ?? null)
 const observaciones = computed(() => props.order?.observaciones ?? null)
+const metodoPago = computed(() => props.order?.metodoPagoNombre || null)
+const referenciaPago = computed(() => props.order?.referenciaPago || null)
 
 const closeOnEsc = (e) => {
   if (e.key === 'Escape') emit('close')
@@ -69,6 +71,13 @@ onBeforeUnmount(() => {
               <div class="bg-muted/30 rounded-lg p-3">
                 <div class="text-xs text-muted-foreground">Total</div>
                 <div class="text-sm font-bold text-primary">{{ total != null ? new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(total) : '—' }}</div>
+              </div>
+              <div v-if="metodoPago" class="bg-muted/30 rounded-lg p-3">
+                <div class="text-xs text-muted-foreground">Método de pago</div>
+                <div class="text-sm font-medium">
+                  {{ metodoPago }}
+                  <span v-if="referenciaPago" class="text-xs text-muted-foreground"> · Ref: {{ referenciaPago }}</span>
+                </div>
               </div>
               <div v-if="direccion" class="bg-muted/30 rounded-lg p-3 sm:col-span-2">
                 <div class="text-xs text-muted-foreground">Dirección de envío</div>

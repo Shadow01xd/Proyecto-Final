@@ -82,8 +82,20 @@ const loadOrders = async () => {
       simOrders = []
     }
 
-    // Fusionar y ordenar por fecha descendente si existe
-    const merged = [...simOrders, ...backendOrders]
+    // Fusionar evitando duplicados por idOrden: priorizar órdenes de backend
+    const byId = new Map()
+    for (const o of simOrders) {
+      if (o && o.idOrden != null) {
+        byId.set(String(o.idOrden), o)
+      }
+    }
+    for (const o of backendOrders) {
+      if (o && o.idOrden != null) {
+        byId.set(String(o.idOrden), o)
+      }
+    }
+
+    const merged = Array.from(byId.values())
     merged.sort((a, b) => {
       const da = new Date(a.fechaOrden || a.fecha || 0).getTime()
       const db = new Date(b.fechaOrden || b.fecha || 0).getTime()
@@ -127,7 +139,23 @@ const formatCurrency = (amount) => {
 
 const showDetails = ref(false)
 const selectedOrder = ref(null)
-const openDetails = (order) => {
+const openDetails = async (order) => {
+  if (!order) return
+
+  // Si la orden ya trae detalles (simulada o ya cargada), abrir directo
+  const hasItems = Array.isArray(order.detalles) || Array.isArray(order.items) || Array.isArray(order.productos)
+  if (!order.sim && !hasItems && order.idOrden != null) {
+    try {
+      const res = await fetch(`http://localhost:3000/api/ordenes/${order.idOrden}`)
+      const data = await res.json()
+      if (res.ok && data && data.detalle) {
+        order = { ...order, detalles: data.detalle }
+      }
+    } catch {
+      // si falla, seguimos mostrando lo que tengamos
+    }
+  }
+
   selectedOrder.value = order
   showDetails.value = true
 }

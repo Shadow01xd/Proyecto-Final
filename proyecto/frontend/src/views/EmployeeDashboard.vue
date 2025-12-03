@@ -1468,7 +1468,13 @@ async function importarDB() {
             <p class="text-sm text-muted-foreground">Opera sobre todas las tablas (productos, usuarios, carritos, órdenes, pagos, etc.).</p>
           </div>
           <div class="flex gap-2">
-            <button @click="exportarDB" :disabled="loading" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Exportar JSON</button>
+            <button
+              @click="exportarDB"
+              :disabled="loading"
+              class="px-4 py-2 rounded-lg font-medium transition text-white bg-blue-600 hover:bg-blue-700 dark:bg-red-600 dark:hover:bg-red-700 disabled:opacity-60"
+            >
+              Exportar JSON
+            </button>
           </div>
         </div>
 
@@ -1503,7 +1509,11 @@ async function importarDB() {
                 <h3 class="text-lg font-semibold">Generar reportes</h3>
                 <p class="text-xs text-muted-foreground">Reporte consolidado de usuarios, órdenes, pagos, productos, etc. Se abre para imprimir/guardar como PDF.</p>
               </div>
-              <button @click="generarReporte" :disabled="loading || !esAdmin" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium disabled:opacity-50">
+              <button
+                @click="generarReporte"
+                :disabled="loading || !esAdmin"
+                class="px-4 py-2 rounded-lg font-medium transition text-white bg-blue-600 hover:bg-blue-700 dark:bg-red-600 dark:hover:bg-red-700 disabled:opacity-50"
+              >
                 Generar PDF
               </button>
             </div>

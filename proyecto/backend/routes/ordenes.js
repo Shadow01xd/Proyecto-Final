@@ -18,8 +18,19 @@ router.get('/usuario/:id', async (req, res) => {
           o.estadoOrden,
           o.totalOrden,
           o.direccionEnvio,
-          o.observaciones
+          o.observaciones,
+          pay.nombreMetodo AS metodoPagoNombre,
+          pay.referenciaPago AS referenciaPago
         FROM Ordenes o
+        OUTER APPLY (
+          SELECT TOP 1
+            mp.nombreMetodo,
+            p.referenciaPago
+          FROM Pagos p
+          INNER JOIN MetodosPago mp ON mp.idMetodoPago = p.idMetodoPago
+          WHERE p.idOrden = o.idOrden
+          ORDER BY p.fechaPago DESC, p.idOrden DESC
+        ) AS pay
         WHERE o.idUsuarioCliente = @idUsuario
         ORDER BY o.fechaOrden DESC
       `);
