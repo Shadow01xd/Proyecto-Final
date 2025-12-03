@@ -72,46 +72,14 @@ const loadOrders = async () => {
       throw new Error(data.error || 'Error al cargar pedidos')
     }
 
-    const backendOrders = data.ordenes || []
-    // Cargar pedidos simulados del localStorage
-    const simKey = `sim_orders_${usuario.value.idUsuario}`
-    let simOrders = []
-    try {
-      simOrders = JSON.parse(localStorage.getItem(simKey) || '[]')
-    } catch {
-      simOrders = []
-    }
-
-    // Limpiar pedidos simulados antiguos que tenían idOrden tipo 'SIM-...'
-    // Nos quedamos solo con los que tienen idOrden numérico o vienen ya de backend
-    const cleanedSimOrders = (Array.isArray(simOrders) ? simOrders : []).filter(o => {
-      if (!o || o.idOrden == null) return false
-      // Si es string y empieza con 'SIM-', descartar (formato viejo)
-      if (typeof o.idOrden === 'string' && o.idOrden.startsWith('SIM-')) return false
-      return true
-    })
-
-    // Fusionar evitando duplicados por idOrden: priorizar órdenes de backend
-    const byId = new Map()
-    for (const o of cleanedSimOrders) {
-      if (o && o.idOrden != null) {
-        byId.set(String(o.idOrden), o)
-      }
-    }
-    for (const o of backendOrders) {
-      if (o && o.idOrden != null) {
-        byId.set(String(o.idOrden), o)
-      }
-    }
-
-    const merged = Array.from(byId.values())
-    merged.sort((a, b) => {
+    const backendOrders = Array.isArray(data.ordenes) ? data.ordenes : []
+    backendOrders.sort((a, b) => {
       const da = new Date(a.fechaOrden || a.fecha || 0).getTime()
       const db = new Date(b.fechaOrden || b.fecha || 0).getTime()
       return db - da
     })
 
-    orders.value = merged
+    orders.value = backendOrders
   } catch (err) {
     error.value = err.message || 'Error al cargar pedidos'
     orders.value = []

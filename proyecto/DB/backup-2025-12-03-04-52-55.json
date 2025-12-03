@@ -1,6 +1,6 @@
 {
-  "exportedAt": "2025-12-03T04:52:55.102Z",
-  "data": {
+  "exportedAt": "2025-12-03T23:45:22.337Z",
+  "tables": {
     "Roles": [
       {
         "idRol": 1,
@@ -77,18 +77,6 @@
         "telefonoUsuario": "60092025",
         "direccionUsuario": "San Francisco GOTERA",
         "fechaRegistro": "2025-11-23T19:44:16.130Z",
-        "estadoUsuario": true
-      },
-      {
-        "idUsuario": 7,
-        "idRol": 3,
-        "nombreUsuario": "prueba",
-        "apellidoUsuario": "a",
-        "emailUsuario": "prueba1@gmail.com",
-        "passwordHash": "$2b$10$0Qdix0J4HSB.IFy9dY6Cte02w9rMfP4aPXWyxFXaDk9FczQEtBJLS",
-        "telefonoUsuario": "7777-8888",
-        "direccionUsuario": "san miguel centro",
-        "fechaRegistro": "2025-11-23T19:58:41.417Z",
         "estadoUsuario": true
       },
       {
@@ -278,6 +266,15 @@
         "emailProveedor": null,
         "direccionProveedor": null,
         "sitioWebProveedor": null
+      },
+      {
+        "idProveedor": 20,
+        "nombreEmpresa": "Nvidia",
+        "nombreContacto": "Personal de nvidia",
+        "telefonoProveedor": "1234-1234",
+        "emailProveedor": "Nvidia@gmail.com",
+        "direccionProveedor": "cerca de mi casa",
+        "sitioWebProveedor": "https://www.nvidia.com/en-in/"
       }
     ],
     "Categorias": [
@@ -352,7 +349,7 @@
         "nombreProducto": "MSI MAG X570 Tomahawk",
         "descripcionProducto": "Compatible con Chipset AM4 de AMD",
         "precioProducto": 250,
-        "stockProducto": 10,
+        "stockProducto": 20,
         "garantiaMeses": 24,
         "skuProducto": "MB-MSI-X570-TOMA",
         "esActivo": true,
@@ -573,7 +570,7 @@
         "nombreProducto": "Intel I7 13700KF",
         "descripcionProducto": "Intel 13th Gen",
         "precioProducto": 280,
-        "stockProducto": 30,
+        "stockProducto": 26,
         "garantiaMeses": 12,
         "skuProducto": "I-7-13700KF",
         "esActivo": true,
@@ -675,7 +672,7 @@
         "nombreProducto": "Trident Z NEO 32GB DDR4",
         "descripcionProducto": "Memorias Ram trident z neo DDR4\n",
         "precioProducto": 75,
-        "stockProducto": 31,
+        "stockProducto": 27,
         "garantiaMeses": 3,
         "skuProducto": "Trident-NEO-32GB-DDR4",
         "esActivo": true,
@@ -709,7 +706,7 @@
         "nombreProducto": "Corsair k70 pro",
         "descripcionProducto": null,
         "precioProducto": 190,
-        "stockProducto": 50,
+        "stockProducto": 47,
         "garantiaMeses": 3,
         "skuProducto": "Corsair-k70",
         "esActivo": true,
@@ -726,7 +723,7 @@
         "nombreProducto": "logitech g502 lightspeed",
         "descripcionProducto": null,
         "precioProducto": 160,
-        "stockProducto": 32,
+        "stockProducto": 29,
         "garantiaMeses": 5,
         "skuProducto": "Logi-G502-LS",
         "esActivo": true,
@@ -743,7 +740,7 @@
         "nombreProducto": "Corsair hs80",
         "descripcionProducto": null,
         "precioProducto": 120,
-        "stockProducto": 60,
+        "stockProducto": 57,
         "garantiaMeses": 3,
         "skuProducto": "Corsair-Hs80",
         "esActivo": true,
@@ -794,7 +791,7 @@
         "nombreProducto": "Kingston SNV3S/1000G 1TB ",
         "descripcionProducto": null,
         "precioProducto": 90,
-        "stockProducto": 50,
+        "stockProducto": 49,
         "garantiaMeses": 3,
         "skuProducto": "Kingstone-SNV3S",
         "esActivo": true,
@@ -811,7 +808,7 @@
         "nombreProducto": "Seagate ssd WD GREEN",
         "descripcionProducto": null,
         "precioProducto": 60,
-        "stockProducto": 50,
+        "stockProducto": 47,
         "garantiaMeses": 3,
         "skuProducto": "Seagate-WD-G",
         "esActivo": true,
@@ -930,7 +927,7 @@
         "nombreProducto": "RTX 5080 MSI",
         "descripcionProducto": null,
         "precioProducto": 1200,
-        "stockProducto": 15,
+        "stockProducto": 11,
         "garantiaMeses": 12,
         "skuProducto": "MSI-RTX-5080",
         "esActivo": true,
@@ -1168,7 +1165,7 @@
         "nombreProducto": "Gigabyte Z790 Eagle AX",
         "descripcionProducto": "Compatible con 13th de intel ",
         "precioProducto": 400,
-        "stockProducto": 40,
+        "stockProducto": 36,
         "garantiaMeses": 3,
         "skuProducto": "Giga-Z7990-Eagle-AX",
         "esActivo": true,
@@ -1253,7 +1250,7 @@
         "nombreProducto": "Corsair 6500X Full Modular",
         "descripcionProducto": null,
         "precioProducto": 350,
-        "stockProducto": 20,
+        "stockProducto": 19,
         "garantiaMeses": 6,
         "skuProducto": "Corsair-6500X-FM",
         "esActivo": true,
@@ -1270,7 +1267,7 @@
         "nombreProducto": "ASUS ROG HYPERION EVA ED",
         "descripcionProducto": null,
         "precioProducto": 1200,
-        "stockProducto": 10,
+        "stockProducto": 7,
         "garantiaMeses": 6,
         "skuProducto": "ASUS-Rog-H-EVA",
         "esActivo": true,
@@ -1338,7 +1335,7 @@
         "nombreProducto": "Odyssey Ark G97NC 4K 165Hz ",
         "descripcionProducto": null,
         "precioProducto": 950,
-        "stockProducto": 12,
+        "stockProducto": 11,
         "garantiaMeses": 12,
         "skuProducto": "Samsung-Odyssey-4K",
         "esActivo": true,
@@ -1355,7 +1352,7 @@
         "nombreProducto": "ASUS ROG Strix XG27UCS 27' 4K UHD 160Hz ",
         "descripcionProducto": null,
         "precioProducto": 680,
-        "stockProducto": 30,
+        "stockProducto": 27,
         "garantiaMeses": 6,
         "skuProducto": "ASUS-ROG-XG27UCS",
         "esActivo": true,
@@ -1389,7 +1386,7 @@
         "nombreProducto": "MSI MAG A-GL 80 PLUS GOLD",
         "descripcionProducto": null,
         "precioProducto": 150,
-        "stockProducto": 30,
+        "stockProducto": 29,
         "garantiaMeses": 6,
         "skuProducto": "MSI-MAG-850",
         "esActivo": true,
@@ -1406,7 +1403,7 @@
         "nombreProducto": "ASUS ROG THOR 1200w platinum",
         "descripcionProducto": null,
         "precioProducto": 450,
-        "stockProducto": 20,
+        "stockProducto": 17,
         "garantiaMeses": 6,
         "skuProducto": "ASUS-ROG-1200",
         "esActivo": true,
@@ -1542,7 +1539,7 @@
         "nombreProducto": "DEEPCOOL ASSASSIN IV",
         "descripcionProducto": null,
         "precioProducto": 170,
-        "stockProducto": 30,
+        "stockProducto": 29,
         "garantiaMeses": 3,
         "skuProducto": "DEC-ASS-IV",
         "esActivo": true,
@@ -1553,185 +1550,32 @@
         "precioOferta": null
       },
       {
-        "idProducto": 72,
-        "idCategoria": 8,
-        "idProveedor": 19,
-        "nombreProducto": "Deepcool AG620 ARGB",
-        "descripcionProducto": null,
-        "precioProducto": 120,
-        "stockProducto": 50,
+        "idProducto": 73,
+        "idCategoria": 2,
+        "idProveedor": 20,
+        "nombreProducto": "RTX 3060",
+        "descripcionProducto": "tarjeta nvidia 3060",
+        "precioProducto": 250,
+        "stockProducto": 10,
         "garantiaMeses": 3,
-        "skuProducto": "DEC-AG620-ARGB",
+        "skuProducto": "RTX-3060",
         "esActivo": true,
-        "imgProducto": "https://cdn.deepcool.com/public/ProductFile/DEEPCOOL/Cooling/CPUAirCoolers/AG620_BK_ARGB_V2/Overview/01.png?fm=webp&q=60",
-        "esOferta": true,
-        "nombreOferta": "Black Friday",
-        "porcentajeDescuento": 20,
-        "precioOferta": 96
+        "imgProducto": "https://donghypc.vn/upload/product/img90f15e81d0aab4766830649aa552-7719.png",
+        "esOferta": false,
+        "nombreOferta": null,
+        "porcentajeDescuento": null,
+        "precioOferta": null
       }
     ],
     "Ordenes": [
       {
-        "idOrden": 1,
-        "idUsuarioCliente": 4,
-        "fechaOrden": "2025-11-01T10:30:00.000Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 979.89,
-        "direccionEnvio": "San Salvador, Col. Escalon",
-        "observaciones": "Compra de GPU y mouse"
-      },
-      {
         "idOrden": 3,
         "idUsuarioCliente": 4,
         "fechaOrden": "2025-11-03T09:10:00.000Z",
-        "estadoOrden": "Enviada",
+        "estadoOrden": "Cancelada",
         "totalOrden": 250,
         "direccionEnvio": "San Salvador, Col. Escalon",
         "observaciones": "Solo placa madre MSI"
-      },
-      {
-        "idOrden": 5,
-        "idUsuarioCliente": 4,
-        "fechaOrden": "2025-11-05T11:05:00.000Z",
-        "estadoOrden": "Cancelada",
-        "totalOrden": 179.9,
-        "direccionEnvio": "San Salvador, Col. Escalon",
-        "observaciones": "Orden cancelada por el cliente"
-      },
-      {
-        "idOrden": 15,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T19:28:24.657Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 250,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 16,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T19:30:11.267Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 250,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 17,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T19:43:05.547Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 179.9,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 18,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T19:51:52.270Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 250,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 19,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T19:52:18.177Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 250,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 20,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T20:01:15.980Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 250,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 21,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T20:03:57.063Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 89.99,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 22,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T20:04:20.673Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 179.9,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 23,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T20:23:21.857Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 250,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 24,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T20:25:00.137Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 89.99,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 25,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T20:40:59.593Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 619.89,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado"
-      },
-      {
-        "idOrden": 27,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T22:51:40.613Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 80.99,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado (finalize)"
-      },
-      {
-        "idOrden": 29,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T22:59:19.807Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 260.89,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado (finalize)"
-      },
-      {
-        "idOrden": 31,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T22:59:46.353Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 450.88,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado (finalize)"
-      },
-      {
-        "idOrden": 33,
-        "idUsuarioCliente": 7,
-        "fechaOrden": "2025-11-30T23:25:58.363Z",
-        "estadoOrden": "Pagada",
-        "totalOrden": 260.89,
-        "direccionEnvio": null,
-        "observaciones": "Pago Povy aprobado (finalize)"
       },
       {
         "idOrden": 35,
@@ -1768,193 +1612,162 @@
         "totalOrden": 60,
         "direccionEnvio": "San Francisco GOTERA",
         "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 39,
+        "idUsuarioCliente": 8,
+        "fechaOrden": "2025-12-02T23:06:43.280Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 170,
+        "direccionEnvio": "San Francisco GOTERA",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 40,
+        "idUsuarioCliente": 8,
+        "fechaOrden": "2025-12-02T23:09:15.920Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 150,
+        "direccionEnvio": "San Francisco GOTERA",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 41,
+        "idUsuarioCliente": 8,
+        "fechaOrden": "2025-12-02T23:13:15.230Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 170,
+        "direccionEnvio": "San Francisco GOTERA",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 42,
+        "idUsuarioCliente": 8,
+        "fechaOrden": "2025-12-02T23:17:57.510Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 200,
+        "direccionEnvio": "San Francisco GOTERA",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 43,
+        "idUsuarioCliente": 1,
+        "fechaOrden": "2025-12-02T23:43:49.870Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 150,
+        "direccionEnvio": "San Miguel, Col. 15 de Septiembre",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 44,
+        "idUsuarioCliente": 1,
+        "fechaOrden": "2025-12-02T23:57:28.097Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 96,
+        "direccionEnvio": "San Miguel, Col. 15 de Septiembre",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 45,
+        "idUsuarioCliente": 1,
+        "fechaOrden": "2025-12-02T23:58:21.840Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 250,
+        "direccionEnvio": "San Miguel, Col. 15 de Septiembre",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 46,
+        "idUsuarioCliente": 1,
+        "fechaOrden": "2025-12-02T23:59:58.020Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 250,
+        "direccionEnvio": "San Miguel, Col. 15 de Septiembre",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 47,
+        "idUsuarioCliente": 1,
+        "fechaOrden": "2025-12-03T00:19:27.403Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 2545,
+        "direccionEnvio": "San Miguel, Col. 15 de Septiembre",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 48,
+        "idUsuarioCliente": 1,
+        "fechaOrden": "2025-12-03T00:20:00.907Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 96,
+        "direccionEnvio": "San Miguel, Col. 15 de Septiembre",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 49,
+        "idUsuarioCliente": 1,
+        "fechaOrden": "2025-12-03T00:21:24.620Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 192,
+        "direccionEnvio": "San Miguel, Col. 15 de Septiembre",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 50,
+        "idUsuarioCliente": 1,
+        "fechaOrden": "2025-12-03T00:25:15.597Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 170,
+        "direccionEnvio": "San Miguel, Col. 15 de Septiembre",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 51,
+        "idUsuarioCliente": 8,
+        "fechaOrden": "2025-12-03T00:39:05.863Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 96,
+        "direccionEnvio": "San Francisco GOTERA",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 52,
+        "idUsuarioCliente": 8,
+        "fechaOrden": "2025-12-03T00:45:53.663Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 950,
+        "direccionEnvio": "San Francisco GOTERA",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 53,
+        "idUsuarioCliente": 8,
+        "fechaOrden": "2025-12-03T01:49:46.860Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 170,
+        "direccionEnvio": "San Francisco GOTERA",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 54,
+        "idUsuarioCliente": 1,
+        "fechaOrden": "2025-12-03T01:52:09.317Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 96,
+        "direccionEnvio": "San Miguel, Col. 15 de Septiembre",
+        "observaciones": "Pago simulado aprobado"
+      },
+      {
+        "idOrden": 55,
+        "idUsuarioCliente": 1,
+        "fechaOrden": "2025-12-03T02:41:10.867Z",
+        "estadoOrden": "Pagada",
+        "totalOrden": 96,
+        "direccionEnvio": "San Miguel, Col. 15 de Septiembre",
+        "observaciones": "Pago simulado aprobado"
       }
     ],
     "DetalleOrden": [
-      {
-        "idDetalleOrden": 1,
-        "idOrden": 1,
-        "idProducto": 2,
-        "cantidad": 1,
-        "precioUnitario": 799.99,
-        "subtotal": 799.99
-      },
-      {
-        "idDetalleOrden": 2,
-        "idOrden": 1,
-        "idProducto": 5,
-        "cantidad": 2,
-        "precioUnitario": 89.99,
-        "subtotal": 179.98
-      },
-      {
-        "idDetalleOrden": 15,
-        "idOrden": 15,
-        "idProducto": 1,
-        "cantidad": 1,
-        "precioUnitario": 250,
-        "subtotal": 250
-      },
-      {
-        "idDetalleOrden": 16,
-        "idOrden": 16,
-        "idProducto": 1,
-        "cantidad": 1,
-        "precioUnitario": 250,
-        "subtotal": 250
-      },
-      {
-        "idDetalleOrden": 17,
-        "idOrden": 17,
-        "idProducto": 4,
-        "cantidad": 1,
-        "precioUnitario": 179.9,
-        "subtotal": 179.9
-      },
-      {
-        "idDetalleOrden": 18,
-        "idOrden": 18,
-        "idProducto": 1,
-        "cantidad": 1,
-        "precioUnitario": 250,
-        "subtotal": 250
-      },
-      {
-        "idDetalleOrden": 19,
-        "idOrden": 19,
-        "idProducto": 1,
-        "cantidad": 1,
-        "precioUnitario": 250,
-        "subtotal": 250
-      },
-      {
-        "idDetalleOrden": 20,
-        "idOrden": 20,
-        "idProducto": 1,
-        "cantidad": 1,
-        "precioUnitario": 250,
-        "subtotal": 250
-      },
-      {
-        "idDetalleOrden": 21,
-        "idOrden": 21,
-        "idProducto": 5,
-        "cantidad": 1,
-        "precioUnitario": 89.99,
-        "subtotal": 89.99
-      },
-      {
-        "idDetalleOrden": 22,
-        "idOrden": 22,
-        "idProducto": 4,
-        "cantidad": 1,
-        "precioUnitario": 179.9,
-        "subtotal": 179.9
-      },
-      {
-        "idDetalleOrden": 23,
-        "idOrden": 23,
-        "idProducto": 1,
-        "cantidad": 1,
-        "precioUnitario": 250,
-        "subtotal": 250
-      },
-      {
-        "idDetalleOrden": 24,
-        "idOrden": 24,
-        "idProducto": 5,
-        "cantidad": 1,
-        "precioUnitario": 89.99,
-        "subtotal": 89.99
-      },
-      {
-        "idDetalleOrden": 25,
-        "idOrden": 25,
-        "idProducto": 4,
-        "cantidad": 1,
-        "precioUnitario": 179.9,
-        "subtotal": 179.9
-      },
-      {
-        "idDetalleOrden": 26,
-        "idOrden": 25,
-        "idProducto": 3,
-        "cantidad": 1,
-        "precioUnitario": 189.99,
-        "subtotal": 189.99
-      },
-      {
-        "idDetalleOrden": 27,
-        "idOrden": 25,
-        "idProducto": 1,
-        "cantidad": 1,
-        "precioUnitario": 250,
-        "subtotal": 250
-      },
-      {
-        "idDetalleOrden": 29,
-        "idOrden": 27,
-        "idProducto": 5,
-        "cantidad": 1,
-        "precioUnitario": 80.99,
-        "subtotal": 80.99
-      },
-      {
-        "idDetalleOrden": 31,
-        "idOrden": 29,
-        "idProducto": 5,
-        "cantidad": 1,
-        "precioUnitario": 80.99,
-        "subtotal": 80.99
-      },
-      {
-        "idDetalleOrden": 32,
-        "idOrden": 29,
-        "idProducto": 4,
-        "cantidad": 1,
-        "precioUnitario": 179.9,
-        "subtotal": 179.9
-      },
-      {
-        "idDetalleOrden": 34,
-        "idOrden": 31,
-        "idProducto": 5,
-        "cantidad": 1,
-        "precioUnitario": 80.99,
-        "subtotal": 80.99
-      },
-      {
-        "idDetalleOrden": 35,
-        "idOrden": 31,
-        "idProducto": 4,
-        "cantidad": 1,
-        "precioUnitario": 179.9,
-        "subtotal": 179.9
-      },
-      {
-        "idDetalleOrden": 36,
-        "idOrden": 31,
-        "idProducto": 3,
-        "cantidad": 1,
-        "precioUnitario": 189.99,
-        "subtotal": 189.99
-      },
-      {
-        "idDetalleOrden": 38,
-        "idOrden": 33,
-        "idProducto": 4,
-        "cantidad": 1,
-        "precioUnitario": 179.9,
-        "subtotal": 179.9
-      },
-      {
-        "idDetalleOrden": 39,
-        "idOrden": 33,
-        "idProducto": 5,
-        "cantidad": 1,
-        "precioUnitario": 80.99,
-        "subtotal": 80.99
-      },
       {
         "idDetalleOrden": 41,
         "idOrden": 35,
@@ -1972,14 +1785,6 @@
         "subtotal": 6000
       },
       {
-        "idDetalleOrden": 43,
-        "idOrden": 37,
-        "idProducto": 72,
-        "cantidad": 1,
-        "precioUnitario": 96,
-        "subtotal": 96
-      },
-      {
         "idDetalleOrden": 44,
         "idOrden": 37,
         "idProducto": 60,
@@ -1994,6 +1799,142 @@
         "cantidad": 1,
         "precioUnitario": 60,
         "subtotal": 60
+      },
+      {
+        "idDetalleOrden": 46,
+        "idOrden": 39,
+        "idProducto": 71,
+        "cantidad": 1,
+        "precioUnitario": 170,
+        "subtotal": 170
+      },
+      {
+        "idDetalleOrden": 47,
+        "idOrden": 40,
+        "idProducto": 70,
+        "cantidad": 1,
+        "precioUnitario": 150,
+        "subtotal": 150
+      },
+      {
+        "idDetalleOrden": 48,
+        "idOrden": 41,
+        "idProducto": 71,
+        "cantidad": 1,
+        "precioUnitario": 170,
+        "subtotal": 170
+      },
+      {
+        "idDetalleOrden": 49,
+        "idOrden": 42,
+        "idProducto": 66,
+        "cantidad": 1,
+        "precioUnitario": 200,
+        "subtotal": 200
+      },
+      {
+        "idDetalleOrden": 50,
+        "idOrden": 43,
+        "idProducto": 70,
+        "cantidad": 1,
+        "precioUnitario": 150,
+        "subtotal": 150
+      },
+      {
+        "idDetalleOrden": 52,
+        "idOrden": 45,
+        "idProducto": 1,
+        "cantidad": 1,
+        "precioUnitario": 250,
+        "subtotal": 250
+      },
+      {
+        "idDetalleOrden": 53,
+        "idOrden": 46,
+        "idProducto": 1,
+        "cantidad": 1,
+        "precioUnitario": 250,
+        "subtotal": 250
+      },
+      {
+        "idDetalleOrden": 54,
+        "idOrden": 47,
+        "idProducto": 49,
+        "cantidad": 1,
+        "precioUnitario": 400,
+        "subtotal": 400
+      },
+      {
+        "idDetalleOrden": 55,
+        "idOrden": 47,
+        "idProducto": 35,
+        "cantidad": 1,
+        "precioUnitario": 1200,
+        "subtotal": 1200
+      },
+      {
+        "idDetalleOrden": 56,
+        "idOrden": 47,
+        "idProducto": 20,
+        "cantidad": 1,
+        "precioUnitario": 75,
+        "subtotal": 75
+      },
+      {
+        "idDetalleOrden": 57,
+        "idOrden": 47,
+        "idProducto": 27,
+        "cantidad": 1,
+        "precioUnitario": 90,
+        "subtotal": 90
+      },
+      {
+        "idDetalleOrden": 58,
+        "idOrden": 47,
+        "idProducto": 14,
+        "cantidad": 1,
+        "precioUnitario": 280,
+        "subtotal": 280
+      },
+      {
+        "idDetalleOrden": 59,
+        "idOrden": 47,
+        "idProducto": 62,
+        "cantidad": 1,
+        "precioUnitario": 150,
+        "subtotal": 150
+      },
+      {
+        "idDetalleOrden": 60,
+        "idOrden": 47,
+        "idProducto": 54,
+        "cantidad": 1,
+        "precioUnitario": 350,
+        "subtotal": 350
+      },
+      {
+        "idDetalleOrden": 63,
+        "idOrden": 50,
+        "idProducto": 71,
+        "cantidad": 1,
+        "precioUnitario": 170,
+        "subtotal": 170
+      },
+      {
+        "idDetalleOrden": 65,
+        "idOrden": 52,
+        "idProducto": 59,
+        "cantidad": 1,
+        "precioUnitario": 950,
+        "subtotal": 950
+      },
+      {
+        "idDetalleOrden": 66,
+        "idOrden": 53,
+        "idProducto": 71,
+        "cantidad": 1,
+        "precioUnitario": 170,
+        "subtotal": 170
       }
     ],
     "Pagos": [
@@ -2028,16 +1969,145 @@
         "fechaPago": "2025-12-02T21:53:17.847Z",
         "montoPago": 60,
         "referenciaPago": "SIM-38"
+      },
+      {
+        "idPago": 25,
+        "idOrden": 39,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-02T23:06:43.283Z",
+        "montoPago": 170,
+        "referenciaPago": "SIM-39"
+      },
+      {
+        "idPago": 26,
+        "idOrden": 40,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-02T23:09:15.923Z",
+        "montoPago": 150,
+        "referenciaPago": "SIM-40"
+      },
+      {
+        "idPago": 27,
+        "idOrden": 41,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-02T23:13:15.230Z",
+        "montoPago": 170,
+        "referenciaPago": "SIM-41"
+      },
+      {
+        "idPago": 28,
+        "idOrden": 42,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-02T23:17:57.510Z",
+        "montoPago": 200,
+        "referenciaPago": "SIM-42"
+      },
+      {
+        "idPago": 29,
+        "idOrden": 43,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-02T23:43:49.873Z",
+        "montoPago": 150,
+        "referenciaPago": "SIM-43"
+      },
+      {
+        "idPago": 30,
+        "idOrden": 44,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-02T23:57:28.100Z",
+        "montoPago": 96,
+        "referenciaPago": "SIM-44"
+      },
+      {
+        "idPago": 31,
+        "idOrden": 45,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-02T23:58:21.843Z",
+        "montoPago": 250,
+        "referenciaPago": "SIM-45"
+      },
+      {
+        "idPago": 32,
+        "idOrden": 46,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-02T23:59:58.023Z",
+        "montoPago": 250,
+        "referenciaPago": "SIM-1764741598006"
+      },
+      {
+        "idPago": 33,
+        "idOrden": 47,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-03T00:19:27.403Z",
+        "montoPago": 2545,
+        "referenciaPago": "SIM-1764742767403"
+      },
+      {
+        "idPago": 34,
+        "idOrden": 48,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-03T00:20:00.907Z",
+        "montoPago": 96,
+        "referenciaPago": "SIM-1764742800906"
+      },
+      {
+        "idPago": 35,
+        "idOrden": 49,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-03T00:21:24.620Z",
+        "montoPago": 192,
+        "referenciaPago": "SIM-1764742884619"
+      },
+      {
+        "idPago": 36,
+        "idOrden": 50,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-03T00:25:15.597Z",
+        "montoPago": 170,
+        "referenciaPago": "SIM-1764743115596"
+      },
+      {
+        "idPago": 37,
+        "idOrden": 51,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-03T00:39:05.863Z",
+        "montoPago": 96,
+        "referenciaPago": "SIM-1764743945862"
+      },
+      {
+        "idPago": 38,
+        "idOrden": 52,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-03T00:45:53.663Z",
+        "montoPago": 950,
+        "referenciaPago": "SIM-1764744353662"
+      },
+      {
+        "idPago": 39,
+        "idOrden": 53,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-03T01:49:46.863Z",
+        "montoPago": 170,
+        "referenciaPago": "SIM-1764748186847"
+      },
+      {
+        "idPago": 40,
+        "idOrden": 54,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-03T01:52:09.317Z",
+        "montoPago": 96,
+        "referenciaPago": "SIM-1764748329318"
+      },
+      {
+        "idPago": 41,
+        "idOrden": 55,
+        "idMetodoPago": 7,
+        "fechaPago": "2025-12-03T02:41:10.867Z",
+        "montoPago": 96,
+        "referenciaPago": "SIM-1764751270864"
       }
     ],
     "Carritos": [
-      {
-        "idCarrito": 1,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-23T21:33:09.710Z",
-        "fechaActualizacion": "2025-11-30T19:28:24.670Z"
-      },
       {
         "idCarrito": 2,
         "idUsuario": 8,
@@ -2058,111 +2128,6 @@
         "estado": true,
         "fechaCreacion": "2025-11-23T23:45:56.627Z",
         "fechaActualizacion": "2025-11-23T23:45:56.627Z"
-      },
-      {
-        "idCarrito": 5,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T19:28:33.863Z",
-        "fechaActualizacion": "2025-11-30T19:30:11.280Z"
-      },
-      {
-        "idCarrito": 6,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T19:30:47.940Z",
-        "fechaActualizacion": "2025-11-30T19:43:05.557Z"
-      },
-      {
-        "idCarrito": 7,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T19:43:25.670Z",
-        "fechaActualizacion": "2025-11-30T19:51:52.277Z"
-      },
-      {
-        "idCarrito": 8,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T19:52:11.780Z",
-        "fechaActualizacion": "2025-11-30T19:52:18.180Z"
-      },
-      {
-        "idCarrito": 9,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T19:54:52.897Z",
-        "fechaActualizacion": "2025-11-30T20:01:15.990Z"
-      },
-      {
-        "idCarrito": 10,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T20:01:31.100Z",
-        "fechaActualizacion": "2025-11-30T20:03:57.070Z"
-      },
-      {
-        "idCarrito": 11,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T20:04:12.287Z",
-        "fechaActualizacion": "2025-11-30T20:04:20.677Z"
-      },
-      {
-        "idCarrito": 12,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T20:05:08.097Z",
-        "fechaActualizacion": "2025-11-30T20:23:21.857Z"
-      },
-      {
-        "idCarrito": 13,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T20:23:30.100Z",
-        "fechaActualizacion": "2025-11-30T20:25:00.140Z"
-      },
-      {
-        "idCarrito": 14,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T20:25:05.030Z",
-        "fechaActualizacion": "2025-11-30T20:40:59.600Z"
-      },
-      {
-        "idCarrito": 15,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T20:42:00.513Z",
-        "fechaActualizacion": "2025-11-30T22:51:40.617Z"
-      },
-      {
-        "idCarrito": 16,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T22:53:14.560Z",
-        "fechaActualizacion": "2025-11-30T22:59:19.810Z"
-      },
-      {
-        "idCarrito": 17,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T22:59:28.913Z",
-        "fechaActualizacion": "2025-11-30T22:59:46.357Z"
-      },
-      {
-        "idCarrito": 18,
-        "idUsuario": 7,
-        "estado": false,
-        "fechaCreacion": "2025-11-30T23:00:26.350Z",
-        "fechaActualizacion": "2025-11-30T23:25:58.370Z"
-      },
-      {
-        "idCarrito": 19,
-        "idUsuario": 7,
-        "estado": true,
-        "fechaCreacion": "2025-11-30T23:26:21.677Z",
-        "fechaActualizacion": "2025-11-30T23:26:21.677Z"
       },
       {
         "idCarrito": 20,
@@ -2188,16 +2153,135 @@
       {
         "idCarrito": 23,
         "idUsuario": 1,
-        "estado": true,
+        "estado": false,
         "fechaCreacion": "2025-12-02T21:50:15.887Z",
-        "fechaActualizacion": "2025-12-02T21:50:15.887Z"
+        "fechaActualizacion": "2025-12-02T23:43:49.873Z"
       },
       {
         "idCarrito": 24,
         "idUsuario": 8,
-        "estado": true,
+        "estado": false,
         "fechaCreacion": "2025-12-02T21:53:17.853Z",
-        "fechaActualizacion": "2025-12-02T21:53:17.853Z"
+        "fechaActualizacion": "2025-12-02T23:06:43.283Z"
+      },
+      {
+        "idCarrito": 25,
+        "idUsuario": 8,
+        "estado": false,
+        "fechaCreacion": "2025-12-02T23:06:43.290Z",
+        "fechaActualizacion": "2025-12-02T23:09:15.923Z"
+      },
+      {
+        "idCarrito": 26,
+        "idUsuario": 8,
+        "estado": false,
+        "fechaCreacion": "2025-12-02T23:09:15.930Z",
+        "fechaActualizacion": "2025-12-02T23:13:15.233Z"
+      },
+      {
+        "idCarrito": 27,
+        "idUsuario": 8,
+        "estado": false,
+        "fechaCreacion": "2025-12-02T23:13:15.277Z",
+        "fechaActualizacion": "2025-12-02T23:17:57.510Z"
+      },
+      {
+        "idCarrito": 28,
+        "idUsuario": 8,
+        "estado": false,
+        "fechaCreacion": "2025-12-02T23:17:57.553Z",
+        "fechaActualizacion": "2025-12-03T00:39:05.863Z"
+      },
+      {
+        "idCarrito": 29,
+        "idUsuario": 1,
+        "estado": false,
+        "fechaCreacion": "2025-12-02T23:43:49.920Z",
+        "fechaActualizacion": "2025-12-02T23:57:28.100Z"
+      },
+      {
+        "idCarrito": 30,
+        "idUsuario": 1,
+        "estado": false,
+        "fechaCreacion": "2025-12-02T23:57:28.143Z",
+        "fechaActualizacion": "2025-12-02T23:58:21.843Z"
+      },
+      {
+        "idCarrito": 31,
+        "idUsuario": 1,
+        "estado": false,
+        "fechaCreacion": "2025-12-02T23:58:21.863Z",
+        "fechaActualizacion": "2025-12-02T23:59:58.023Z"
+      },
+      {
+        "idCarrito": 32,
+        "idUsuario": 1,
+        "estado": false,
+        "fechaCreacion": "2025-12-02T23:59:58.070Z",
+        "fechaActualizacion": "2025-12-03T00:19:27.403Z"
+      },
+      {
+        "idCarrito": 33,
+        "idUsuario": 1,
+        "estado": false,
+        "fechaCreacion": "2025-12-03T00:19:27.453Z",
+        "fechaActualizacion": "2025-12-03T00:20:00.907Z"
+      },
+      {
+        "idCarrito": 34,
+        "idUsuario": 1,
+        "estado": false,
+        "fechaCreacion": "2025-12-03T00:20:00.923Z",
+        "fechaActualizacion": "2025-12-03T00:21:24.620Z"
+      },
+      {
+        "idCarrito": 35,
+        "idUsuario": 1,
+        "estado": false,
+        "fechaCreacion": "2025-12-03T00:21:26.653Z",
+        "fechaActualizacion": "2025-12-03T00:25:15.597Z"
+      },
+      {
+        "idCarrito": 36,
+        "idUsuario": 1,
+        "estado": false,
+        "fechaCreacion": "2025-12-03T00:25:15.610Z",
+        "fechaActualizacion": "2025-12-03T01:52:09.317Z"
+      },
+      {
+        "idCarrito": 37,
+        "idUsuario": 8,
+        "estado": false,
+        "fechaCreacion": "2025-12-03T00:39:05.910Z",
+        "fechaActualizacion": "2025-12-03T00:45:53.663Z"
+      },
+      {
+        "idCarrito": 38,
+        "idUsuario": 8,
+        "estado": false,
+        "fechaCreacion": "2025-12-03T00:45:53.710Z",
+        "fechaActualizacion": "2025-12-03T01:49:46.863Z"
+      },
+      {
+        "idCarrito": 39,
+        "idUsuario": 8,
+        "estado": true,
+        "fechaCreacion": "2025-12-03T01:49:46.907Z",
+        "fechaActualizacion": "2025-12-03T01:49:46.907Z"
+      },
+      {
+        "idCarrito": 40,
+        "idUsuario": 1,
+        "estado": false,
+        "fechaCreacion": "2025-12-03T01:52:09.337Z",
+        "fechaActualizacion": "2025-12-03T02:41:10.867Z"
+      },
+      {
+        "idCarrito": 41,
+        "idUsuario": 1,
+        "estado": true,
+        "fechaCreacion": "2025-12-03T02:41:10.913Z",
+        "fechaActualizacion": "2025-12-03T02:41:10.913Z"
       }
     ],
     "CarritoItems": [],
@@ -2215,6 +2299,20 @@
         "esPredeterminado": false,
         "fechaRegistro": "2025-12-02T21:32:06.520Z",
         "estado": true
+      },
+      {
+        "idMetodoPagoUsuario": 11,
+        "idUsuario": 8,
+        "idMetodoPago": 7,
+        "aliasTarjeta": "Simulada",
+        "titularTarjeta": "Usuario",
+        "ultimos4": "1111",
+        "mesExpiracion": 11,
+        "anioExpiracion": 2026,
+        "tokenPasarela": "eyJjYXJkTnVtYmVyIjoiMTExMTExMTExMTExMTExMSIsImV4cE1vbnRoIjoiMTEiLCJleHBZZWFyIjoiMjYiLCJjdnYiOiIxMTEiLCJzaW0iOnRydWV9",
+        "esPredeterminado": false,
+        "fechaRegistro": "2025-12-02T23:09:15.910Z",
+        "estado": true
       }
     ],
     "NewsletterSubscribers": [
@@ -2222,14 +2320,7 @@
         "idSubscriber": 1,
         "idUsuario": 8,
         "email": "kennethclaros10@gmail.com",
-        "fechaRegistro": "2025-12-01T23:53:22.730Z",
-        "estadoSuscripcion": false
-      },
-      {
-        "idSubscriber": 2,
-        "idUsuario": 7,
-        "email": "prueba1@gmail.com",
-        "fechaRegistro": "2025-12-02T00:15:42.980Z",
+        "fechaRegistro": "2025-12-02T23:08:51.107Z",
         "estadoSuscripcion": true
       }
     ]

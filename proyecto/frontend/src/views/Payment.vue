@@ -273,44 +273,6 @@ async function pagar() {
         return
       }
 
-      // Guardar orden simulada en localStorage para que aparezca en Mis Pedidos
-      try {
-        const now = new Date()
-        const refSim = simData && simData.idOrden ? `SIM-${simData.idOrden}` : `SIM-${now.getTime()}`
-        const detalles = (summaryItems.value || []).map(it => ({
-          nombreProducto: it.nombreProducto,
-          cantidad: Number(it.cantidad) || 1,
-          precioUnitario: Number(it.precioUnitarioEfectivo ?? it.precioUnitarioSnapshot ?? it.precioUnitario ?? 0),
-          subtotal: (Number(it.cantidad) || 1) * Number(it.precioUnitarioEfectivo ?? it.precioUnitarioSnapshot ?? it.precioUnitario ?? 0)
-        }))
-        const simOrder = {
-          idOrden: simData && simData.idOrden ? simData.idOrden : refSim,
-          fechaOrden: now.toISOString(),
-          totalOrden: Number(amount.value) || 0,
-          estadoOrden: 'Pagada',
-          direccionEnvio: address.value || '',
-          observaciones: '',
-          detalles,
-          sim: true,
-          metodoPagoNombre: 'Tarjeta simulada',
-          referenciaPago: refSim
-        }
-        const key = `sim_orders_${idUsuario}`
-        const arr = JSON.parse(localStorage.getItem(key) || '[]')
-        arr.unshift(simOrder)
-        localStorage.setItem(key, JSON.stringify(arr))
-      } catch {}
-
-      // Limpiar carrito tras pago simulado (backend también lo limpia, esto es por consistencia local)
-      try {
-        const uid = getUserId()
-        if (uid) {
-          await fetch(`http://localhost:3000/api/carrito/clear/${uid}`, { method: 'DELETE' })
-        } else {
-          localStorage.setItem('cart', JSON.stringify([]))
-        }
-      } catch {}
-
       success.value = 'Pago aprobado (modo simulado). Orden #' + (simData && simData.idOrden ? simData.idOrden : 'SIM')
       setTimeout(() => router.push('/my-orders'), 700)
       return

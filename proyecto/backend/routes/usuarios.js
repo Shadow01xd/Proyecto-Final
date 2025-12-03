@@ -214,7 +214,22 @@ router.delete('/:id/hard', async (req, res) => {
       .input('idUsuario', id)
       .query('DELETE FROM MetodosPagoUsuario WHERE idUsuario = @idUsuario');
 
-    // 5) Eliminar el usuario
+    // 5) Eliminar carritos e items de carrito asociados al usuario
+    //    Primero los items, luego los carritos, para respetar las FK
+    await pool.request()
+      .input('idUsuario', id)
+      .query(`
+        DELETE FROM CarritoItems
+        WHERE idCarrito IN (
+          SELECT idCarrito FROM Carritos WHERE idUsuario = @idUsuario
+        );
+      `);
+
+    await pool.request()
+      .input('idUsuario', id)
+      .query('DELETE FROM Carritos WHERE idUsuario = @idUsuario');
+
+    // 6) Eliminar el usuario
     await pool.request()
       .input('idUsuario', id)
       .query('DELETE FROM Usuarios WHERE idUsuario = @idUsuario');
