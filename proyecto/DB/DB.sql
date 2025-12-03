@@ -476,6 +476,30 @@ END;
 GO
 
 -- ========================================================
+-- FUNCION 3: fn_GetStockDisponible
+-- Devuelve el stock disponible de un producto (0 si no existe)
+-- ========================================================
+IF OBJECT_ID('dbo.fn_GetStockDisponible', 'FN') IS NOT NULL
+    DROP FUNCTION dbo.fn_GetStockDisponible;
+GO
+CREATE FUNCTION dbo.fn_GetStockDisponible
+(
+    @idProducto INT
+)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @stock INT;
+
+    SELECT TOP 1 @stock = stockProducto
+    FROM Productos
+    WHERE idProducto = @idProducto;
+
+    RETURN ISNULL(@stock, 0);
+END;
+GO
+
+-- ========================================================
 -- VISTA: vw_OrdenesResumen
 -- Resumen de órdenes con datos de cliente y método de pago
 -- ========================================================
@@ -535,6 +559,30 @@ SELECT
 FROM DetalleOrden d
 INNER JOIN Productos p
     ON d.idProducto = p.idProducto;
+GO
+
+-- ========================================================
+-- VISTA 3: vw_ProductosConOferta
+-- Lista los productos que están en oferta con su categoría
+-- ========================================================
+IF OBJECT_ID('dbo.vw_ProductosConOferta', 'V') IS NOT NULL
+    DROP VIEW dbo.vw_ProductosConOferta;
+GO
+CREATE VIEW dbo.vw_ProductosConOferta
+AS
+SELECT
+    p.idProducto,
+    p.nombreProducto,
+    p.skuProducto,
+    p.precioProducto,
+    p.precioOferta,
+    p.porcentajeDescuento,
+    p.esOferta,
+    c.nombreCategoria
+FROM Productos p
+INNER JOIN Categorias c
+    ON p.idCategoria = c.idCategoria
+WHERE p.esOferta = 1;
 GO
 
 -- ========================================================
@@ -726,5 +774,60 @@ BEGIN
     FROM OrdenesFiltradas o
     GROUP BY CONVERT(date, o.fechaOrden)
     ORDER BY fecha;
+END;
+GO
+
+-- ========================================================
+-- PROCEDIMIENTO 3: sp_ReporteProductosMasVendidos
+-- Devuelve los productos más vendidos en un rango de fechas
+-- usando la tabla DetalleOrden (para dashboard de inventario/ventas)
+-- Parámetros:
+--   @fechaInicio -> fecha inicial (incluida)
+--   @fechaFin    -> fecha final (excluida); si es NULL se usa GETDATE()+1
+--   @topN        -> cantidad máxima de productos a devolver
+-- ========================================================
+IF OBJECT_ID('dbo.sp_ReporteProductosMasVendidos', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_ReporteProductosMasVendidos;
+GO
+CREATE PROCEDURE dbo.sp_ReporteProductosMasVendidos
+    @fechaInicio DATETIME,
+    @fechaFin    DATETIME = NULL,
+    @topN        INT = 10
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @fechaInicio IS NULL
+        SET @fechaInicio = '2000-01-01';
+
+    IF @fechaFin IS NULL
+        SET @fechaFin = DATEADD(DAY, 1, GETDATE());
+
+    IF @topN IS NULL OR @topN <= 0
+        SET @topN = 10;
+
+    ;WITH VentasPorProducto AS (
+        SELECT
+            d.idProducto,
+            SUM(d.cantidad) AS totalCantidad,
+            SUM(d.subtotal) AS totalVendido
+        FROM DetalleOrden d
+        INNER JOIN Ordenes o
+            ON d.idOrden = o.idOrden
+        WHERE o.fechaOrden >= @fechaInicio
+          AND o.fechaOrden <  @fechaFin
+          AND o.estadoOrden IN ('Pagada','Enviada')
+        GROUP BY d.idProducto
+    )
+    SELECT TOP (@topN)
+        v.idProducto,
+        p.nombreProducto,
+        p.skuProducto,
+        v.totalCantidad,
+        v.totalVendido
+    FROM VentasPorProducto v
+    INNER JOIN Productos p
+        ON v.idProducto = p.idProducto
+    ORDER BY v.totalCantidad DESC, v.totalVendido DESC;
 END;
 GO

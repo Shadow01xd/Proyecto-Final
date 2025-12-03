@@ -36,7 +36,8 @@ const productForm = ref({
   stockProducto: '',
   garantiaMeses: '',
   skuProducto: '',
-  imgProducto: ''
+  imgProducto: '',
+  esActivo: true
 })
 
 function getUserId() {
@@ -115,6 +116,11 @@ const filteredProductos = computed(() => {
     list = list.filter(p => Number(p.precioProducto) <= max)
   }
 
+  // Para clientes normales, ocultar productos inactivos
+  if (!isStaff.value) {
+    list = list.filter(p => p.esActivo === 1 || p.esActivo === true);
+  }
+
   if (sortBy.value === 'price_asc') {
     list.sort((a, b) => Number(a.precioProducto) - Number(b.precioProducto))
   } else if (sortBy.value === 'price_desc') {
@@ -129,6 +135,10 @@ const filteredProductos = computed(() => {
 const totalProductos = computed(() => filteredProductos.value.length)
 
 const handleAddToCart = (product) => {
+  const stock = Number(product.stockProducto ?? 0)
+  if (!stock || stock <= 0) {
+    return
+  }
   const uid = getUserId()
   const key = uid ? `cart_${uid}` : 'cart'
 
@@ -183,7 +193,8 @@ const resetProductForm = () => {
     stockProducto: '',
     garantiaMeses: '',
     skuProducto: '',
-    imgProducto: ''
+    imgProducto: '',
+    esActivo: true
   }
 }
 
@@ -199,7 +210,8 @@ const abrirProductModal = (producto = null) => {
       stockProducto: producto.stockProducto,
       garantiaMeses: producto.garantiaMeses || '',
       skuProducto: producto.skuProducto,
-      imgProducto: producto.imgProducto || ''
+      imgProducto: producto.imgProducto || '',
+      esActivo: producto.esActivo === 1 || producto.esActivo === true
     }
   } else {
     resetProductForm()
@@ -226,7 +238,8 @@ const guardarProducto = async () => {
       precioProducto: parseFloat(productForm.value.precioProducto),
       stockProducto: parseInt(productForm.value.stockProducto),
       garantiaMeses: parseInt(productForm.value.garantiaMeses) || 0,
-      imgProducto: productForm.value.imgProducto || null
+      imgProducto: productForm.value.imgProducto || null,
+      esActivo: productForm.value.esActivo ? 1 : 0
     }
 
     const response = await fetch(url, {
@@ -266,6 +279,40 @@ const eliminarProducto = async (idProducto) => {
     await loadProductos()
   } catch (e) {
     error.value = e.message || 'Error al desactivar producto'
+  }
+}
+
+const activarProducto = async (producto) => {
+  try {
+    loading.value = true
+    const data = {
+      idCategoria: Number(producto.idCategoria),
+      idProveedor: Number(producto.idProveedor),
+      nombreProducto: producto.nombreProducto,
+      descripcionProducto: producto.descripcionProducto || null,
+      precioProducto: Number(producto.precioProducto),
+      stockProducto: Number(producto.stockProducto),
+      garantiaMeses: Number(producto.garantiaMeses || 0),
+      imgProducto: producto.imgProducto || null,
+      esActivo: 1
+    }
+
+    const response = await fetch(`http://localhost:3000/api/productos/${producto.idProducto}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      throw new Error(result.error || 'No se pudo activar el producto')
+    }
+
+    await loadProductos()
+  } catch (e) {
+    error.value = e.message || 'Error al activar producto'
+  } finally {
+    loading.value = false
   }
 }
 
@@ -490,7 +537,8 @@ onMounted(async () => {
 
                 <div class="flex flex-col items-end gap-1 flex-shrink-0">
                   <button
-                    class="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition transform hover:-translate-y-0.5 hover:shadow-md hover:bg-primary/90"
+                    :disabled="Number(p.stockProducto || 0) <= 0"
+                    class="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition transform hover:-translate-y-0.5 hover:shadow-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                     @click="handleAddToCart(p)"
                   >
                     Agregar al carrito
@@ -504,10 +552,18 @@ onMounted(async () => {
                       Editar
                     </button>
                     <button
+                      v-if="p.esActivo === 1 || p.esActivo === true"
                       class="rounded-md border border-yellow-500 px-2 py-1 text-[11px] font-medium text-yellow-600 hover:bg-yellow-500/10"
                       @click="eliminarProducto(p.idProducto)"
                     >
                       Desactivar
+                    </button>
+                    <button
+                      v-else
+                      class="rounded-md border border-emerald-500 px-2 py-1 text-[11px] font-medium text-emerald-600 hover:bg-emerald-500/10"
+                      @click="activarProducto(p)"
+                    >
+                      Activar
                     </button>
                     <button
                       class="rounded-md border border-red-500 px-2 py-1 text-[11px] font-medium text-red-600 hover:bg-red-500/10"
@@ -560,7 +616,6 @@ onMounted(async () => {
               <input
                 v-model="productForm.skuProducto"
                 required
-                :disabled="!!editingProduct"
                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
               />
             </div>
@@ -614,6 +669,21 @@ onMounted(async () => {
                 required
                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
               />
+            </div>
+
+            <div>
+              <label class="mb-1 block text-xs font-medium text-foreground">Estado</label>
+              <div class="flex items-center gap-2 text-xs">
+                <input
+                  id="producto-activo"
+                  v-model="productForm.esActivo"
+                  type="checkbox"
+                  class="h-4 w-4 rounded border border-border"
+                />
+                <label for="producto-activo" class="cursor-pointer select-none">
+                  Producto activo (visible en catálogo para clientes)
+                </label>
+              </div>
             </div>
 
             <div>

@@ -48,6 +48,34 @@ router.get('/export', async (req, res) => {
   }
 });
 
+// GET /api/admin/reportes/ventas-rango
+// Usa sp_ReporteVentasRango para devolver ventas por día entre dos fechas
+// Query params opcionales: fechaInicio, fechaFin (YYYY-MM-DD)
+router.get('/reportes/ventas-rango', async (req, res) => {
+  try {
+    const { fechaInicio, fechaFin } = req.query || {};
+    const pool = await getPool();
+    const request = pool.request();
+
+    if (fechaInicio) {
+      request.input('fechaInicio', new Date(fechaInicio));
+    } else {
+      request.input('fechaInicio', new Date('2000-01-01'));
+    }
+
+    if (fechaFin) {
+      request.input('fechaFin', new Date(fechaFin));
+    } else {
+      request.input('fechaFin', null);
+    }
+
+    const result = await request.execute('sp_ReporteVentasRango');
+    return res.status(200).json({ ventas: result.recordset });
+  } catch (err) {
+    return res.status(500).json({ error: 'No se pudo obtener el reporte de ventas por rango', details: String((err && err.message) || err) });
+  }
+});
+
 async function withTransaction(pool, fn) {
   const tx = new sql.Transaction(pool);
   await tx.begin();
@@ -150,6 +178,42 @@ router.post('/import', async (req, res) => {
     return res.status(200).json({ message: 'Importación completada', mode });
   } catch (err) {
     return res.status(500).json({ error: 'No se pudo importar la base de datos', details: String((err && err.message) || err) });
+  }
+});
+
+router.get('/reportes/productos-mas-vendidos', async (req, res) => {
+  try {
+    const { fechaInicio, fechaFin, topN } = req.query || {};
+    const pool = await getPool();
+    const request = pool.request();
+
+    // fechaInicio obligatorio lógico, pero si no viene usamos un valor amplio
+    if (fechaInicio) {
+      request.input('fechaInicio', new Date(fechaInicio));
+    } else {
+      request.input('fechaInicio', new Date('2000-01-01'));
+    }
+
+    // fechaFin puede ser null para que el SP use GETDATE()+1
+    if (fechaFin) {
+      request.input('fechaFin', new Date(fechaFin));
+    } else {
+      request.input('fechaFin', null);
+    }
+
+    let top = 10;
+    if (topN) {
+      const parsed = parseInt(topN, 10);
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        top = parsed;
+      }
+    }
+    request.input('topN', top);
+
+    const result = await request.execute('sp_ReporteProductosMasVendidos');
+    return res.status(200).json({ productos: result.recordset });
+  } catch (err) {
+    return res.status(500).json({ error: 'No se pudo obtener el reporte de productos más vendidos', details: String((err && err.message) || err) });
   }
 });
 

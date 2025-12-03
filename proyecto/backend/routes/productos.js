@@ -29,7 +29,6 @@ router.get('/', async (req, res) => {
       FROM Productos p
       INNER JOIN Categorias c ON p.idCategoria = c.idCategoria
       INNER JOIN Proveedores pr ON p.idProveedor = pr.idProveedor
-      WHERE p.esActivo = 1
       ORDER BY p.idProducto DESC
     `);
 
@@ -66,6 +65,51 @@ router.get('/ofertas', async (req, res) => {
   } catch (err) {
     console.error('Error al obtener ofertas:', err);
     res.status(500).json({ error: 'Error al obtener ofertas' });
+  }
+});
+
+// GET /api/productos/ofertas/vista - Obtener productos en oferta usando la vista vw_ProductosConOferta
+router.get('/ofertas/vista', async (req, res) => {
+  try {
+    const pool = await getPool();
+    const result = await pool.request().query(`
+      SELECT
+        v.idProducto,
+        v.nombreProducto,
+        v.skuProducto,
+        v.precioProducto,
+        v.precioOferta,
+        v.porcentajeDescuento,
+        v.esOferta,
+        v.nombreCategoria
+      FROM vw_ProductosConOferta v
+      ORDER BY v.idProducto DESC
+    `);
+    res.json({ productos: result.recordset });
+  } catch (err) {
+    console.error('Error al obtener ofertas desde la vista:', err);
+    res.status(500).json({ error: 'Error al obtener ofertas desde la vista' });
+  }
+});
+
+// GET /api/productos/:id/stock - Obtener stock disponible usando fn_GetStockDisponible
+router.get('/:id/stock', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input('idProducto', Number(id))
+      .query('SELECT dbo.fn_GetStockDisponible(@idProducto) AS stockDisponible');
+
+    const stockDisponible =
+      result.recordset && result.recordset.length
+        ? Number(result.recordset[0].stockDisponible || 0)
+        : 0;
+
+    res.json({ idProducto: Number(id), stockDisponible });
+  } catch (err) {
+    console.error('Error al obtener stock disponible:', err);
+    res.status(500).json({ error: 'Error al obtener stock disponible' });
   }
 });
 

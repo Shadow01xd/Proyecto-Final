@@ -13,12 +13,15 @@ const FEATURED_KEY = 'featured_products_selection'
 const featuredIds = ref([])
 // Modal editor
 const isEditorOpen = ref(false)
+const editorSearch = ref('')
+const editorCategoryFilter = ref('')
 
 function toCard(p) {
   return {
     id: p.idProducto,
     name: p.nombreProducto,
     category: p.nombreCategoria,
+    stock: Number(p.stockProducto ?? 0),
     originalPrice: Number(p.precioProducto || 0),
     offerPrice: p.precioOferta != null ? Number(p.precioOferta) : null,
     discountPct: p.porcentajeDescuento || null,
@@ -29,6 +32,12 @@ function toCard(p) {
     badge: 'Destacado',
     image: p.imgProducto || 'https://via.placeholder.com/400x300?text=Producto'
   }
+}
+
+function canAdd(card) {
+  if (!card) return false
+  const s = Number(card.stock ?? 0)
+  return s > 0
 }
 
 function loadRole() {
@@ -124,6 +133,27 @@ function toggleFeatured(id) {
 }
 const isChecked = id => featuredIds.value.includes(id)
 
+const editorCategories = computed(() => {
+  const set = new Set()
+  for (const p of products.value) {
+    if (p.category) set.add(p.category)
+  }
+  return Array.from(set)
+})
+
+const filteredEditorProducts = computed(() => {
+  const q = (editorSearch.value || '').trim().toLowerCase()
+  const cat = editorCategoryFilter.value
+
+  return products.value.filter(p => {
+    if (cat && p.category !== cat) return false
+    if (!q) return true
+    const name = (p.name || '').toLowerCase()
+    const sku = (p.sku || '').toLowerCase?.() || ''
+    return name.includes(q) || sku.includes(q)
+  })
+})
+
 // Mantener índice válido si cambia el número de slides
 watch(totalSlides, (n) => {
   if (currentSlide.value >= n) currentSlide.value = 0
@@ -154,16 +184,34 @@ watch(totalSlides, (n) => {
         <div class="absolute inset-0 bg-black/50" @click="isEditorOpen = false"></div>
         <div class="absolute inset-0 flex items-center justify-center p-4">
           <div class="w-full max-w-2xl bg-card border border-border rounded-lg shadow-lg">
-            <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-border flex-wrap gap-2">
               <h3 class="font-semibold text-foreground">Editar destacados</h3>
-              <div class="flex items-center gap-3 text-sm text-muted-foreground">
+              <div class="flex items-center gap-3 text-sm text-muted-foreground flex-wrap justify-end">
+                <div class="flex items-center gap-2">
+                  <div class="relative">
+                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">🔍</span>
+                    <input
+                      v-model="editorSearch"
+                      type="text"
+                      placeholder="Buscar por nombre o SKU"
+                      class="pl-7 pr-2 py-1.5 rounded-md border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary w-40 sm:w-56"
+                    />
+                  </div>
+                  <select
+                    v-model="editorCategoryFilter"
+                    class="py-1.5 px-2 rounded-md border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">Todas las categorías</option>
+                    <option v-for="c in editorCategories" :key="c" :value="c">{{ c }}</option>
+                  </select>
+                </div>
                 <span>Seleccionados: {{ featuredIds.length }}/8</span>
                 <button class="h-8 w-8 grid place-items-center rounded-md hover:bg-secondary/40" @click="isEditorOpen = false">✕</button>
               </div>
             </div>
             <div class="p-4 space-y-4">
               <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-72 overflow-auto pr-1">
-                <label v-for="p in products" :key="p.id"
+                <label v-for="p in filteredEditorProducts" :key="p.id"
                   :class="['flex items-center gap-3 p-2 rounded-md border cursor-pointer transition-colors', isChecked(p.id) ? 'bg-secondary/30 border-primary' : 'border-border hover:bg-secondary/40']">
                   <input type="checkbox" class="rounded border-border text-primary focus:ring-primary"
                     :checked="isChecked(p.id)" :disabled="!isChecked(p.id) && maxReached" @change="toggleFeatured(p.id)" />
@@ -230,8 +278,9 @@ watch(totalSlides, (n) => {
                   <span v-if="featuredProducts[0].offerPrice" class="text-lg line-through text-muted-foreground">${{ Number(featuredProducts[0].originalPrice || 0).toFixed(2) }}</span>
                 </p>
                 <button
-                  class="w-full md:w-auto px-6 py-2 rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold"
-                  @click="emit('add-to-cart', featuredProducts[0])">
+                  :disabled="!canAdd(featuredProducts[0])"
+                  class="w-full md:w-auto px-6 py-2 rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="canAdd(featuredProducts[0]) && emit('add-to-cart', featuredProducts[0])">
                   Agregar al carrito
                 </button>
               </div>
@@ -300,8 +349,9 @@ watch(totalSlides, (n) => {
                         <span v-if="p.offerPrice" class="text-lg line-through text-muted-foreground">${{ Number(p.originalPrice || 0).toFixed(2) }}</span>
                       </p>
                       <button
-                        class="w-full md:w-auto px-6 rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2"
-                        @click="emit('add-to-cart', p)">
+                        :disabled="!canAdd(p)"
+                        class="w-full md:w-auto px-6 rounded-md bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        @click="canAdd(p) && emit('add-to-cart', p)">
                         Agregar al carrito
                       </button>
                     </div>
@@ -374,8 +424,9 @@ watch(totalSlides, (n) => {
                 </p>
               </div>
               <button
-                class="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition transform hover:-translate-y-0.5 hover:shadow-md hover:bg-primary/90"
-                @click="emit('add-to-cart', p)"
+                :disabled="!canAdd(p)"
+                class="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition transform hover:-translate-y-0.5 hover:shadow-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="canAdd(p) && emit('add-to-cart', p)"
               >
                 Agregar al carrito
               </button>

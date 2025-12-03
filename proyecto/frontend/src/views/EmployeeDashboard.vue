@@ -38,6 +38,21 @@ const esAdmin = computed(() => {
   return rol === 'ADMIN' || rol === 'ADMINISTRADOR'
 })
 
+// === ORDENES ===
+const ordenes = ref([])
+const selectedOrden = ref(null)
+const showOrdenModal = ref(false)
+const ordenForm = ref({
+  idOrden: null,
+  fechaOrden: '',
+  estadoOrden: '',
+  totalOrden: 0,
+  direccionEnvio: '',
+  observaciones: '',
+  nombreUsuario: '',
+  apellidoUsuario: ''
+})
+
 // === PRODUCTOS ===
 const productos = ref([])
 const categorias = ref([])
@@ -55,7 +70,8 @@ const productForm = ref({
   stockProducto: '',
   garantiaMeses: '',
   skuProducto: '',
-  imgProducto: ''
+  imgProducto: '',
+  esActivo: true
 })
 
 // === USUARIOS ===
@@ -109,6 +125,7 @@ const cargarDatos = async () => {
     cargarCategorias(),
     cargarProveedores(),
     cargarUsuarios(),
+    cargarOrdenes(),
     cargarRoles()
   ])
 }
@@ -120,6 +137,52 @@ const cargarProductos = async () => {
     if (response.ok) productos.value = await response.json()
   } catch (err) {
     console.error('Error al cargar productos:', err)
+  }
+}
+
+const cargarOrdenes = async () => {
+  try {
+    const response = await fetch('http://localhost:3000/api/ordenes')
+    if (response.ok) ordenes.value = await response.json()
+  } catch (err) {
+    console.error('Error al cargar ordenes:', err)
+  }
+}
+
+// Activar producto (pasar de inactivo a activo) desde el dashboard
+const activarProductoDashboard = async (producto) => {
+  try {
+    loading.value = true
+    const data = {
+      idCategoria: Number(producto.idCategoria),
+      idProveedor: Number(producto.idProveedor),
+      nombreProducto: producto.nombreProducto,
+      descripcionProducto: producto.descripcionProducto || null,
+      precioProducto: Number(producto.precioProducto),
+      stockProducto: Number(producto.stockProducto),
+      garantiaMeses: Number(producto.garantiaMeses || 0),
+      imgProducto: producto.imgProducto || null,
+      esActivo: 1
+    }
+
+    const response = await fetch(`http://localhost:3000/api/productos/${producto.idProducto}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      throw new Error(result.error || 'No se pudo activar el producto')
+    }
+
+    success.value = 'Producto activado'
+    await cargarProductos()
+    setTimeout(() => (success.value = ''), 3000)
+  } catch (e) {
+    error.value = e.message || 'Error al activar producto'
+  } finally {
+    loading.value = false
   }
 }
 
@@ -461,7 +524,8 @@ const resetProductForm = () => {
     stockProducto: '',
     garantiaMeses: '',
     skuProducto: '',
-    imgProducto: ''
+    imgProducto: '',
+    esActivo: true
   }
 }
 
@@ -484,7 +548,8 @@ const guardarProducto = async () => {
       precioProducto: parseFloat(productForm.value.precioProducto),
       stockProducto: parseInt(productForm.value.stockProducto),
       garantiaMeses: parseInt(productForm.value.garantiaMeses) || 0,
-      imgProducto: productForm.value.imgProducto || null
+      imgProducto: productForm.value.imgProducto || null,
+      esActivo: productForm.value.esActivo ? 1 : 0
     }
 
     const response = await fetch(url, {
@@ -629,6 +694,29 @@ const eliminarProducto = async (id) => {
     }
   } catch (err) {
     error.value = 'Error al eliminar producto'
+  }
+}
+
+// Eliminar producto definitivamente (borrado físico)
+const eliminarProductoDefinitivo = async (id) => {
+  if (!confirm('Esta acción ELIMINARÁ definitivamente el producto. ¿Continuar?')) return
+
+  try {
+    const response = await fetch(`http://localhost:3000/api/productos/${id}/hard`, {
+      method: 'DELETE'
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(result.error || 'No se pudo eliminar el producto definitivamente')
+    }
+
+    success.value = result.message || 'Producto eliminado definitivamente'
+    await cargarProductos()
+    setTimeout(() => (success.value = ''), 3000)
+  } catch (e) {
+    error.value = e.message || 'Error al eliminar producto definitivamente'
   }
 }
 
@@ -865,6 +953,119 @@ const cerrarSesion = () => {
   router.push('/login')
 }
 
+const abrirOrdenModal = async (orden) => {
+  if (!orden) return
+  try {
+    loading.value = true
+    // Obtener detalle completo por si luego quieres mostrar productos
+    const resp = await fetch(`http://localhost:3000/api/ordenes/${orden.idOrden}`)
+    const data = await resp.json().catch(() => ({}))
+    const o = (data && data.orden) || orden
+
+    selectedOrden.value = o
+    ordenForm.value = {
+      idOrden: o.idOrden,
+      fechaOrden: o.fechaOrden,
+      estadoOrden: o.estadoOrden,
+      totalOrden: Number(o.totalOrden || 0),
+      direccionEnvio: o.direccionEnvio || '',
+      observaciones: o.observaciones || '',
+      nombreUsuario: o.nombreUsuario || orden.nombreUsuario,
+      apellidoUsuario: o.apellidoUsuario || orden.apellidoUsuario
+    }
+    showOrdenModal.value = true
+    error.value = ''
+    success.value = ''
+  } catch (e) {
+    error.value = e.message || 'Error al cargar orden'
+  } finally {
+    loading.value = false
+  }
+}
+
+const guardarOrden = async () => {
+  if (!ordenForm.value.idOrden) return
+  error.value = ''
+  success.value = ''
+  loading.value = true
+
+  try {
+    const body = {
+      estadoOrden: ordenForm.value.estadoOrden,
+      direccionEnvio: ordenForm.value.direccionEnvio,
+      observaciones: ordenForm.value.observaciones
+    }
+
+    const resp = await fetch(`http://localhost:3000/api/ordenes/${ordenForm.value.idOrden}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    const data = await resp.json().catch(() => ({}))
+    if (!resp.ok) throw new Error(data.error || data.message || 'No se pudo actualizar la orden')
+
+    success.value = 'Orden actualizada'
+    await cargarOrdenes()
+    setTimeout(() => { showOrdenModal.value = false; success.value = '' }, 800)
+  } catch (e) {
+    error.value = e.message || 'Error al actualizar orden'
+  } finally {
+    loading.value = false
+  }
+}
+
+const cancelarOrden = async (idOrden) => {
+  if (!confirm('¿Cancelar esta orden? Cambiará su estado a Cancelada.')) return
+  try {
+    const resp = await fetch(`http://localhost:3000/api/ordenes/${idOrden}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estadoOrden: 'Cancelada' })
+    })
+    const data = await resp.json().catch(() => ({}))
+    if (!resp.ok) throw new Error(data.error || data.message || 'No se pudo cancelar la orden')
+    success.value = 'Orden cancelada'
+    await cargarOrdenes()
+    setTimeout(() => (success.value = ''), 1500)
+  } catch (e) {
+    error.value = e.message || 'Error al cancelar orden'
+  }
+}
+
+const aprobarOrden = async (idOrden) => {
+  if (!confirm('¿Aprobar esta orden cancelada y marcarla como Pagada?')) return
+  try {
+    const resp = await fetch(`http://localhost:3000/api/ordenes/${idOrden}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estadoOrden: 'Pagada' })
+    })
+    const data = await resp.json().catch(() => ({}))
+    if (!resp.ok) throw new Error(data.error || data.message || 'No se pudo aprobar la orden')
+    success.value = 'Orden aprobada (Pagada)'
+    await cargarOrdenes()
+    setTimeout(() => (success.value = ''), 1500)
+  } catch (e) {
+    error.value = e.message || 'Error al aprobar orden'
+  }
+}
+
+const eliminarOrdenDefinitiva = async (idOrden) => {
+  if (!confirm('Esta acción ELIMINARÁ definitivamente la orden y su detalle. ¿Continuar?')) return
+  try {
+    const resp = await fetch(`http://localhost:3000/api/ordenes/${idOrden}/hard`, {
+      method: 'DELETE'
+    })
+    const data = await resp.json().catch(() => ({}))
+    if (!resp.ok) throw new Error(data.error || data.message || 'No se pudo eliminar la orden')
+    success.value = data.message || 'Orden eliminada definitivamente'
+    await cargarOrdenes()
+    setTimeout(() => (success.value = ''), 1500)
+  } catch (e) {
+    error.value = e.message || 'Error al eliminar orden'
+  }
+}
+
 async function exportarDB() {
   error.value = ''
   success.value = ''
@@ -983,7 +1184,7 @@ async function importarDB() {
               : 'text-muted-foreground hover:text-foreground'
           ]"
         >
-          📚 Categorías
+          Categorías
         </button>
         <button
           v-if="esAdmin"
@@ -1019,7 +1220,18 @@ async function importarDB() {
               : 'text-muted-foreground hover:text-foreground'
           ]"
         >
-          👨‍💼 Empleados
+          Empleados
+        </button>
+        <button
+          @click="activeTab = 'ordenes'"
+          :class="[
+            'px-4 py-2 font-medium transition -mb-px',
+            activeTab === 'ordenes'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
+        >
+          🧾 Órdenes
         </button>
         <button
           @click="activeTab = 'datos'"
@@ -1154,9 +1366,25 @@ async function importarDB() {
                       ✏️
                     </button>
                     <button
+                      v-if="p.esActivo === 1 || p.esActivo === true"
                       @click="eliminarProducto(p.idProducto)"
-                      class="inline-flex h-8 w-8 items-center justify-center rounded-full text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-800 transition-colors"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full text-yellow-600 bg-yellow-50 hover:bg-yellow-100 hover:text-yellow-800 transition-colors"
                       title="Desactivar producto"
+                    >
+                      ⏸️
+                    </button>
+                    <button
+                      v-else
+                      @click="activarProductoDashboard(p)"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800 transition-colors"
+                      title="Activar producto"
+                    >
+                      ▶️
+                    </button>
+                    <button
+                      @click="eliminarProductoDefinitivo(p.idProducto)"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-800 transition-colors"
+                      title="Eliminar producto definitivamente"
                     >
                       🗑️
                     </button>
@@ -1166,6 +1394,86 @@ async function importarDB() {
               <tr v-if="productos.length === 0">
                 <td colspan="6" class="px-4 py-6 text-center text-sm text-muted-foreground">
                   No hay productos registrados aún.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB: ORDENES -->
+      <div v-if="activeTab === 'ordenes' && !loading" class="bg-card rounded-xl shadow-sm overflow-hidden border border-border mt-6">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold">Gestión de Órdenes</h2>
+            <p class="text-sm text-muted-foreground">Total: {{ ordenes.length }}</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-secondary/50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fecha</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Cliente</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Estado</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Total</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              <tr v-for="o in ordenes" :key="o.idOrden" class="hover:bg-secondary/40">
+                <td class="px-4 py-3 text-sm font-mono">#{{ o.idOrden }}</td>
+                <td class="px-4 py-3 text-sm">{{ new Date(o.fechaOrden).toLocaleString() }}</td>
+                <td class="px-4 py-3 text-sm">{{ o.nombreUsuario }} {{ o.apellidoUsuario }}</td>
+                <td class="px-4 py-3 text-sm">
+                  <span
+                    class="px-2 py-1 rounded-full text-xs font-medium"
+                    :class="{
+                      'bg-yellow-100 text-yellow-700': o.estadoOrden === 'Pendiente',
+                      'bg-green-100 text-green-700': o.estadoOrden === 'Pagada' || o.estadoOrden === 'Enviada',
+                      'bg-red-100 text-red-700': o.estadoOrden === 'Cancelada'
+                    }"
+                  >
+                    {{ o.estadoOrden }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-sm font-semibold text-blue-600">${{ Number(o.totalOrden || 0).toFixed(2) }}</td>
+                <td class="px-4 py-3 text-sm">
+                  <div class="flex items-center gap-2">
+                    <button
+                      @click="abrirOrdenModal(o)"
+                      class="inline-flex h-8 px-3 items-center justify-center rounded-full text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 transition-colors text-xs"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      v-if="o.estadoOrden !== 'Cancelada'"
+                      @click="cancelarOrden(o.idOrden)"
+                      class="inline-flex h-8 px-3 items-center justify-center rounded-full text-yellow-600 bg-yellow-50 hover:bg-yellow-100 hover:text-yellow-800 transition-colors text-xs"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      v-else
+                      @click="aprobarOrden(o.idOrden)"
+                      class="inline-flex h-8 px-3 items-center justify-center rounded-full text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800 transition-colors text-xs"
+                    >
+                      Aprobar
+                    </button>
+                    <button
+                      @click="eliminarOrdenDefinitiva(o.idOrden)"
+                      class="inline-flex h-8 px-3 items-center justify-center rounded-full text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-800 transition-colors text-xs"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="ordenes.length === 0">
+                <td colspan="6" class="px-4 py-6 text-center text-sm text-muted-foreground">
+                  No hay órdenes registradas.
                 </td>
               </tr>
             </tbody>
@@ -1522,6 +1830,94 @@ async function importarDB() {
       </div>
     </main>
 
+    <!-- MODAL: ORDEN -->
+    <div
+      v-if="showOrdenModal && ordenForm.idOrden"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      @click.self="showOrdenModal = false"
+    >
+      <div class="bg-card text-foreground rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-border">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between sticky top-0 bg-card z-10">
+          <h2 class="text-xl font-bold">Editar orden #{{ ordenForm.idOrden }}</h2>
+          <button @click="showOrdenModal = false" class="text-muted-foreground hover:text-foreground text-2xl transition-colors">
+            &times;
+          </button>
+        </div>
+
+        <form @submit.prevent="guardarOrden" class="p-6 space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p class="text-muted-foreground text-xs mb-1">Cliente</p>
+              <p class="font-medium">
+                {{ ordenForm.nombreUsuario }} {{ ordenForm.apellidoUsuario }}
+              </p>
+            </div>
+            <div>
+              <p class="text-muted-foreground text-xs mb-1">Fecha</p>
+              <p class="font-mono">
+                {{ new Date(ordenForm.fechaOrden).toLocaleString() }}
+              </p>
+            </div>
+            <div>
+              <p class="text-muted-foreground text-xs mb-1">Total</p>
+              <p class="font-semibold text-blue-600">
+                ${{ Number(ordenForm.totalOrden || 0).toFixed(2) }}
+              </p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Estado</label>
+              <select
+                v-model="ordenForm.estadoOrden"
+                class="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              >
+                <option value="Pendiente">Pendiente</option>
+                <option value="Pagada">Pagada</option>
+                <option value="Enviada">Enviada</option>
+                <option value="Cancelada">Cancelada</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-sm">
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Dirección de envío</label>
+              <textarea
+                v-model="ordenForm.direccionEnvio"
+                rows="2"
+                class="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              ></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Observaciones</label>
+              <textarea
+                v-model="ordenForm.observaciones"
+                rows="3"
+                class="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3 pt-4">
+            <button
+              type="submit"
+              :disabled="loading"
+              class="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg py-2.5 px-4 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <span v-if="loading" class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+              {{ loading ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+            <button
+              type="button"
+              @click="showOrdenModal = false"
+              class="px-6 py-2.5 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium rounded-lg transition"
+            >
+              Cerrar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- MODAL: PRODUCTO -->
     <div v-if="showProductModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" @click.self="showProductModal = false">
       <div class="bg-card text-foreground rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-border">
@@ -1556,8 +1952,7 @@ async function importarDB() {
               <input 
                 v-model="productForm.skuProducto" 
                 required 
-                :disabled="editingProduct" 
-                class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition disabled:opacity-60 disabled:cursor-not-allowed"
+                class="w-full bg-background border border-border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition"
                 placeholder="Ej: RTX-4080-16G"
               />
             </div>
@@ -1617,7 +2012,22 @@ async function importarDB() {
                 placeholder="0"
               />
             </div>
-            
+
+            <div>
+              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Estado</label>
+              <div class="flex items-center gap-2 text-xs">
+                <input
+                  id="dashboard-producto-activo"
+                  v-model="productForm.esActivo"
+                  type="checkbox"
+                  class="h-4 w-4 rounded border border-border"
+                />
+                <label for="dashboard-producto-activo" class="cursor-pointer select-none">
+                  Producto activo (visible en catálogo y tienda)
+                </label>
+              </div>
+            </div>
+
             <div>
               <label class="block text-sm font-medium text-muted-foreground mb-1.5">Garantía (meses)</label>
               <input 

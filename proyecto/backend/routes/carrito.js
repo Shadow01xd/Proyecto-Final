@@ -83,6 +83,11 @@ router.post('/item', async (req, res) => {
     }
 
     const row = prod.recordset[0];
+    const stock = Number(row.stockProducto ?? 0);
+    if (stock <= 0) {
+      return res.status(400).json({ error: 'Producto sin stock disponible' });
+    }
+
     const ofertaActiva = row.esOferta === 1 || row.esOferta === true;
     const precio = row.precioOferta != null && ofertaActiva
       ? Number(row.precioOferta)
@@ -95,8 +100,13 @@ router.post('/item', async (req, res) => {
       .query('SELECT idCarritoItem, cantidad FROM CarritoItems WHERE idCarrito = @idCarrito AND idProducto = @idProducto');
 
     if (existing.recordset.length > 0) {
-      // Incrementar cantidad
-      const nuevaCantidad = existing.recordset[0].cantidad + cantidad;
+      // Incrementar cantidad respetando stock disponible
+      const cantidadActual = Number(existing.recordset[0].cantidad || 0);
+      const nuevaCantidad = cantidadActual + Number(cantidad);
+      if (nuevaCantidad > stock) {
+        return res.status(400).json({ error: 'No hay stock suficiente para agregar esa cantidad' });
+      }
+
       await pool.request()
         .input('idCarritoItem', existing.recordset[0].idCarritoItem)
         .input('cantidad', nuevaCantidad)
