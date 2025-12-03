@@ -47,122 +47,241 @@ async function sendOrderEmail(pool, { idUsuario, idOrden, total, items, simulado
         const sub = (cant * precio).toFixed(2);
         return `
           <tr>
-            <td style="padding:6px 10px;vertical-align:top;">
-              <div style="font-weight:500;">${nombreProducto}</div>
+            <td style="padding:12px 16px;vertical-align:top;">
+              <div style="font-weight:500;color:#60a5fa;">${nombreProducto}</div>
               ${sku ? `<div style="font-size:11px;color:#9ca3af;margin-top:2px;">SKU: ${sku}</div>` : ""}
             </td>
-            <td style="padding:6px 10px;text-align:right;">${cant}</td>
-            <td style="padding:6px 10px;text-align:right;">$${precio.toFixed(2)}</td>
-            <td style="padding:6px 10px;text-align:right;">$${sub}</td>
+            <td style="padding:12px 16px;text-align:center;color:#e5e7eb;">${cant}</td>
+            <td style="padding:12px 16px;text-align:right;color:#e5e7eb;">$${precio.toFixed(2)}</td>
+            <td style="padding:12px 16px;text-align:right;color:#6ee7b7;">$${sub}</td>
           </tr>
         `;
       })
       .join("");
 
-    const titulo = simulado ? "Confirmación de compra (simulada)" : "Confirmación de compra";
+    const titulo = "Confirmación de compra";
 
-    // HTML mejorado
+    // HTML mejorado con diseño premium
     const html = `
-      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#0b0b0c;color:#e5e7eb;border-radius:16px;border:1px solid #1f2937;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-          <div>
-            <div style="font-size:22px;font-weight:800;color:#60a5fa;letter-spacing:0.03em;">NovaTech Store</div>
-            <div style="font-size:11px;color:#9ca3af;margin-top:4px;">Factura electrónica del pedido #${idOrden}</div>
-          </div>
-          <div style="padding:6px 12px;border-radius:999px;background:${simulado ? "#f59e0b33" : "#10b98133"};color:${simulado ? "#fbbf24" : "#6ee7b7"};font-size:11px;font-weight:600;">
-            ${simulado ? "MODO SIMULADO" : "PAGO CONFIRMADO"}
-          </div>
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;max-width:600px;margin:0 auto;background:#0b0b0c;">
+        <!-- Header con gradiente -->
+        <div style="background:linear-gradient(135deg, #1e3a8a 0%, #60a5fa 100%);padding:32px 24px;text-align:center;border-radius:16px 16px 0 0;">
+          <div style="font-size:28px;font-weight:800;color:#ffffff;letter-spacing:0.05em;margin-bottom:8px;">NovaTech</div>
+          <div style="font-size:13px;color:#bfdbfe;font-weight:500;">Confirmación de Compra</div>
         </div>
 
-        <p style="font-size:14px;color:#e5e7eb;margin:0 0 10px;">Hola <strong>${nombre}</strong>,</p>
-        <p style="font-size:13px;color:#d1d5db;line-height:1.6;margin:0 0 18px;">
-          Gracias por tu compra en <strong>NovaTech Store</strong>. A continuación encontrarás el resumen de tu pedido <strong>#${idOrden}</strong>.
-        </p>
+        <!-- Contenido principal -->
+        <div style="background:#0b0b0c;padding:32px 24px;border-left:1px solid #1f2937;border-right:1px solid #1f2937;">
+          <!-- Mensaje de bienvenida -->
+          <div style="background:#111827;border-left:4px solid #60a5fa;padding:16px 20px;border-radius:8px;margin-bottom:24px;">
+            <p style="font-size:15px;color:#e5e7eb;margin:0 0 8px;font-weight:600;">¡Hola ${nombre}!</p>
+            <p style="font-size:13px;color:#d1d5db;line-height:1.6;margin:0;">
+              Gracias por tu compra. Tu pedido ha sido confirmado y procesado exitosamente.
+            </p>
+          </div>
 
-        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
-          <div style="flex:1 1 180px;padding:10px 12px;border-radius:10px;background:#111827;border:1px solid #1f2937;">
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:2px;">Cliente</div>
-            <div style="font-size:13px;font-weight:500;">${nombre}</div>
+          <!-- Detalles de la orden en tarjetas -->
+          <div style="margin-bottom:24px;">
+            <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;font-weight:600;">Detalles del Pedido</div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div style="background:#111827;padding:16px;border-radius:10px;border:1px solid #1f2937;">
+                <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">Número de Orden</div>
+                <div style="font-size:16px;font-weight:700;color:#60a5fa;">#${idOrden}</div>
+              </div>
+              <div style="background:#111827;padding:16px;border-radius:10px;border:1px solid #1f2937;">
+                <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">Total</div>
+                <div style="font-size:16px;font-weight:700;color:#6ee7b7;">$${Number(total || 0).toFixed(2)}</div>
+              </div>
+            </div>
+
+            <div style="background:#111827;padding:16px;border-radius:10px;border:1px solid #1f2937;">
+              <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">Fecha</div>
+              <div style="font-size:13px;font-weight:500;color:#e5e7eb;">${new Date().toLocaleString("es-SV")}</div>
+            </div>
           </div>
-          <div style="flex:1 1 180px;padding:10px 12px;border-radius:10px;background:#111827;border:1px solid #1f2937;">
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:2px;">Fecha</div>
-            <div style="font-size:13px;font-weight:500;">${new Date().toLocaleString("es-SV")}</div>
+
+          <!-- Tabla de productos con diseño mejorado -->
+          <div style="margin-bottom:24px;">
+            <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;font-weight:600;">Productos</div>
+            
+            <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px;border-radius:10px;overflow:hidden;border:1px solid #1f2937;">
+              <thead>
+                <tr style="background:linear-gradient(180deg, #1f2937 0%, #111827 100%);">
+                  <th style="padding:12px 16px;text-align:left;font-weight:600;color:#e5e7eb;font-size:12px;">Producto</th>
+                  <th style="padding:12px 16px;text-align:center;font-weight:600;color:#e5e7eb;font-size:12px;">Cant.</th>
+                  <th style="padding:12px 16px;text-align:right;font-weight:600;color:#e5e7eb;font-size:12px;">Precio</th>
+                  <th style="padding:12px 16px;text-align:right;font-weight:600;color:#e5e7eb;font-size:12px;">Total</th>
+                </tr>
+              </thead>
+              <tbody style="background:#0b0b0c;">
+                ${lines || '<tr><td colspan="4" style="padding:16px;text-align:center;color:#9ca3af;">Sin productos</td></tr>'}
+              </tbody>
+            </table>
           </div>
-          <div style="flex:1 1 180px;padding:10px 12px;border-radius:10px;background:#111827;border:1px solid #1f2937;">
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:2px;">Total</div>
-            <div style="font-size:15px;font-weight:700;color:#bfdbfe;">$${Number(total || 0).toFixed(2)}</div>
-          </div>
+
+          
+
+        <!-- Footer -->
+        <div style="background:#111827;padding:24px;text-align:center;border-radius:0 0 16px 16px;border:1px solid #1f2937;border-top:none;">
+          <div style="font-size:13px;color:#e5e7eb;font-weight:600;margin-bottom:12px;">¿Necesitas ayuda?</div>
+          <div style="font-size:12px;color:#9ca3af;margin-bottom:16px;">Contáctanos en <a href="mailto:novatech69xd@gmail.com" style="color:#60a5fa;text-decoration:none;">novatech69xd@gmail.com</a></div>
+          <div style="height:1px;background:#1f2937;margin:16px 0;"></div>
+          <div style="font-size:11px;color:#6b7280;">Este es un mensaje automático. Por favor no respondas a este correo.</div>
+          <div style="font-size:10px;color:#4b5563;margin-top:8px;">© 2025 NovaTech Store. Todos los derechos reservados.</div>
         </div>
-
-        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;overflow:hidden;border-radius:10px;border:1px solid #1f2937;">
-          <thead>
-            <tr style="background:#111827;">
-              <th style="padding:8px 10px;text-align:left;font-weight:600;color:#e5e7eb;">Producto</th>
-              <th style="padding:8px 10px;text-align:right;font-weight:600;color:#e5e7eb;">Cant.</th>
-              <th style="padding:8px 10px;text-align:right;font-weight:600;color:#e5e7eb;">Precio</th>
-              <th style="padding:8px 10px;text-align:right;font-weight:600;color:#e5e7eb;">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${lines ||
-              '<tr><td colspan="4" style="padding:10px 10px;text-align:center;color:#9ca3af;background:#020617;">Sin detalle disponible</td></tr>'}
-          </tbody>
-        </table>
-
-        <p style="font-size:11px;color:#9ca3af;margin-top:10px;">Este correo incluye tu factura en formato PDF adjunta. Conserva este mensaje para futuros respaldos.</p>
-        <p style="font-size:11px;color:#6b7280;margin-top:6px;">Este es un mensaje automático. No respondas a este correo.</p>
       </div>
     `;
 
-    // Generar PDF de factura en memoria
-    const doc = new PDFDocument({ margin: 50 });
+    // Generar PDF de factura profesional
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
     const chunks = [];
     doc.on("data", (c) => chunks.push(c));
     const pdfPromise = new Promise((resolve) => {
       doc.on("end", () => resolve(Buffer.concat(chunks)));
     });
 
-    doc.fontSize(18).text("NovaTech Store", { align: "left" });
-    doc.moveDown(0.2);
-    doc.fontSize(11).fillColor("#555555").text("Factura electrónica", { align: "left" });
+    // --- Colores y Fuentes ---
+    const primaryColor = "#2563eb"; // Azul moderno
+    const secondaryColor = "#64748b"; // Gris slate
+    const tableHeaderColor = "#f1f5f9"; // Gris muy claro
+    const black = "#0f172a";
+
+    // --- Encabezado ---
+    // Logo (Texto estilizado)
+    doc
+      .fontSize(24)
+      .font("Helvetica-Bold")
+      .fillColor(primaryColor)
+      .text("NovaTech", 50, 50);
+
+    // Etiqueta FACTURA
+    doc
+      .fontSize(10)
+      .font("Helvetica-Bold")
+      .fillColor(secondaryColor)
+      .text("FACTURA ELECTRÓNICA", 200, 50, { align: "right" });
+
     doc.moveDown();
 
-    doc.fillColor("#000000").fontSize(11);
-    doc.text(`Cliente: ${nombre}`);
-    doc.text(`Pedido #: ${idOrden}`);
-    doc.text(`Fecha: ${new Date().toLocaleString("es-SV")}`);
-    doc.moveDown();
+    // --- Información de la Empresa y Cliente ---
+    const topInfoY = 90;
 
-    // Tabla simple
-    doc.fontSize(11).text("Detalle de productos:");
-    doc.moveDown(0.5);
-    doc.font("Helvetica-Bold");
-    doc.text("Producto", { continued: true, width: 220 });
-    doc.text("Cant.", { continued: true, width: 60, align: "right" });
-    doc.text("Precio", { continued: true, width: 80, align: "right" });
-    doc.text("Subtotal", { width: 80, align: "right" });
-    doc.moveDown(0.2);
-    doc.font("Helvetica");
+    // Columna Izquierda: Emisor
+    doc
+      .fontSize(10)
+      .font("Helvetica-Bold")
+      .fillColor(black)
+      .text("De:", 50, topInfoY)
+      .font("Helvetica")
+      .fillColor(secondaryColor)
+      .text("NovaTech S.A. de C.V.")
+      .text("San Miguel, El Salvador")
+      .text("novatech69xd@gmail.com");
 
-    safeItems.forEach((it) => {
+    // Columna Derecha: Detalles Orden y Cliente
+    doc
+      .font("Helvetica-Bold")
+      .fillColor(black)
+      .text("Para:", 300, topInfoY)
+      .font("Helvetica")
+      .fillColor(secondaryColor)
+      .text(nombre)
+      .text(email)
+      .moveDown(0.5)
+      .font("Helvetica-Bold")
+      .text(`Orden #: ${idOrden}`)
+      .font("Helvetica")
+      .text(`Fecha: ${new Date().toLocaleString("es-SV")}`)
+      .text(`Estado: ${simulado ? "Simulado" : "Pagado"}`);
+
+    doc.moveDown(2);
+
+    // --- Tabla de Productos ---
+    const tableTop = 200;
+    const itemCodeX = 50;
+    const descriptionX = 150; // Movido más a la derecha para darle más espacio al SKU
+    const quantityX = 330;
+    const priceX = 380;
+    const amountX = 460;
+
+    // Encabezados de Tabla
+    doc
+      .rect(50, tableTop, 500, 25)
+      .fill(tableHeaderColor)
+      .stroke();
+
+    doc
+      .fontSize(9)
+      .font("Helvetica-Bold")
+      .fillColor(black)
+      .text("SKU", itemCodeX + 5, tableTop + 8)
+      .text("Producto", descriptionX, tableTop + 8)
+      .text("Cant.", quantityX, tableTop + 8, { width: 40, align: "center" })
+      .text("Precio", priceX, tableTop + 8, { width: 70, align: "right" })
+      .text("Total", amountX, tableTop + 8, { width: 80, align: "right" });
+
+    let y = tableTop + 35;
+
+    doc.font("Helvetica").fontSize(9);
+
+    // Función helper para truncar texto manualmente
+    const truncateText = (text, maxLength = 22) => {
+      if (!text) return "";
+      if (text.length <= maxLength) return text;
+      return text.substring(0, maxLength) + "...";
+    };
+
+    safeItems.forEach((it, i) => {
       const nombreProducto = it.nombreProducto || it.nombre || "Producto";
-      const sku = it.skuProducto || it.sku || "";
+      const nombreTruncado = truncateText(nombreProducto, 22); // Truncar a 22 caracteres
+      const sku = it.skuProducto || it.sku || "-";
       const cant = Number(it.cantidad) || 1;
       const precio = Number(
         it.precioUnitarioEfectivo ?? it.precioUnitarioSnapshot ?? it.precioUnitario ?? 0
       );
       const sub = cant * precio;
-      const lineaTitulo = sku
-        ? `${nombreProducto} (SKU: ${sku})`
-        : nombreProducto;
-      doc.text(lineaTitulo, { continued: true, width: 220 });
-      doc.text(String(cant), { continued: true, width: 60, align: "right" });
-      doc.text(`$${precio.toFixed(2)}`, { continued: true, width: 80, align: "right" });
-      doc.text(`$${sub.toFixed(2)}`, { width: 80, align: "right" });
+
+      // Alternar color de fondo fila
+      if (i % 2 === 1) {
+        doc.rect(50, y - 5, 500, 20).fill("#f8fafc");
+      }
+
+      doc.fillColor(black);
+      doc.text(sku, itemCodeX + 5, y, { width: 100, ellipsis: true }); // SKU más ancho (100px)
+      doc.text(nombreTruncado, descriptionX, y, { width: 160 }); // Nombre truncado manualmente
+      doc.text(String(cant), quantityX, y, { width: 40, align: "center" });
+      doc.text(`$${precio.toFixed(2)}`, priceX, y, { width: 70, align: "right" });
+      doc.text(`$${sub.toFixed(2)}`, amountX, y, { width: 80, align: "right" });
+
+      y += 20;
     });
 
-    doc.moveDown();
-    doc.font("Helvetica-Bold").text(`Total: $${Number(total || 0).toFixed(2)}`, { align: "right" });
+    // Línea separadora final
+    doc
+      .moveTo(50, y + 5)
+      .lineTo(550, y + 5)
+      .strokeColor("#e2e8f0")
+      .stroke();
+
+    // --- Totales ---
+    y += 20;
+    doc
+      .fontSize(10)
+      .font("Helvetica-Bold")
+      .text("Total a Pagar:", 350, y, { width: 100, align: "right" })
+      .fontSize(12)
+      .fillColor(primaryColor)
+      .text(`$${Number(total || 0).toFixed(2)}`, 460, y - 2, { width: 80, align: "right" });
+
+    // --- Pie de Página ---
+    const bottomY = 750;
+    doc
+      .fontSize(8)
+      .font("Helvetica")
+      .fillColor(secondaryColor)
+      .text("Gracias por su compra.", 50, bottomY, { align: "center", width: 500 })
+      .text("Este documento es un comprobante electrónico generado automáticamente.", 50, bottomY + 12, { align: "center", width: 500 });
 
     doc.end();
     const pdfBuffer = await pdfPromise;
@@ -284,8 +403,11 @@ router.post("/checkout", async (req, res) => {
           ci.idProducto,
           ci.cantidad,
           ci.precioUnitario AS precioUnitarioSnapshot,
-          dbo.fn_GetPrecioEfectivo(ci.idProducto) AS precioUnitarioEfectivo
+          dbo.fn_GetPrecioEfectivo(ci.idProducto) AS precioUnitarioEfectivo,
+          p.nombreProducto,
+          p.skuProducto
         FROM CarritoItems ci
+        INNER JOIN Productos p ON p.idProducto = ci.idProducto
         WHERE ci.idCarrito = @idCarrito
       `);
     const items = itemsRes.recordset;
@@ -319,7 +441,7 @@ router.post("/checkout", async (req, res) => {
       try {
         const maybe = Buffer.from(String(stored), "base64").toString("utf8");
         parsed = JSON.parse(maybe);
-      } catch {}
+      } catch { }
 
       if (
         parsed &&
@@ -473,7 +595,7 @@ router.post("/checkout", async (req, res) => {
     }
 
     // Enviar correo de confirmación (usa los items leídos del carrito antes del SP)
-    sendOrderEmail(pool, { idUsuario, idOrden, total: totalFinal, items, simulado: false }).catch(() => {});
+    sendOrderEmail(pool, { idUsuario, idOrden, total: totalFinal, items, simulado: false }).catch(() => { });
 
     return res.json({
       status: "approved",
@@ -516,8 +638,11 @@ router.post("/checkout-sim", async (req, res) => {
           ci.idProducto,
           ci.cantidad,
           ci.precioUnitario AS precioUnitarioSnapshot,
-          dbo.fn_GetPrecioEfectivo(ci.idProducto) AS precioUnitarioEfectivo
+          dbo.fn_GetPrecioEfectivo(ci.idProducto) AS precioUnitarioEfectivo,
+          p.nombreProducto,
+          p.skuProducto
         FROM CarritoItems ci
+        INNER JOIN Productos p ON p.idProducto = ci.idProducto
         WHERE ci.idCarrito = @idCarrito
       `);
     const items = itemsRes.recordset;
@@ -545,7 +670,7 @@ router.post("/checkout-sim", async (req, res) => {
     }
 
     // Enviar correo de confirmación para compra simulada
-    sendOrderEmail(pool, { idUsuario, idOrden, total, items, simulado: true }).catch(() => {});
+    sendOrderEmail(pool, { idUsuario, idOrden, total, items, simulado: true }).catch(() => { });
 
     return res.json({
       status: "approved",
@@ -589,7 +714,15 @@ router.post("/finalize", async (req, res) => {
       .request()
       .input("idCarrito", Number(idCarrito))
       .query(
-        `SELECT idProducto, cantidad, precioUnitario FROM CarritoItems WHERE idCarrito = @idCarrito`
+        `SELECT ci.idProducto,
+                ci.cantidad,
+                ci.precioUnitario AS precioUnitarioSnapshot,
+                dbo.fn_GetPrecioEfectivo(ci.idProducto) AS precioUnitarioEfectivo,
+                p.nombreProducto,
+                p.skuProducto
+         FROM CarritoItems ci
+         INNER JOIN Productos p ON p.idProducto = ci.idProducto
+         WHERE ci.idCarrito = @idCarrito`
       );
     const items = itemsRes.recordset;
     if (!items || items.length === 0) {
@@ -621,7 +754,7 @@ router.post("/finalize", async (req, res) => {
     }
 
     // Enviar correo de confirmación para finalize (Povy)
-    sendOrderEmail(pool, { idUsuario, idOrden, total, items, simulado: false }).catch(() => {});
+    sendOrderEmail(pool, { idUsuario, idOrden, total, items, simulado: false }).catch(() => { });
 
     return res.json({
       status: "approved",
@@ -679,7 +812,7 @@ router.get("/methods/user/:id", async (req, res) => {
         const decoded = Buffer.from(String(r.tokenPasarela || ''), 'base64').toString('utf8');
         const json = JSON.parse(decoded);
         sim = !!json.sim;
-      } catch {}
+      } catch { }
       return { ...r, sim };
     });
     res.json({ methods });
@@ -804,7 +937,7 @@ router.delete("/methods/:idMetodoPagoUsuario", async (req, res) => {
       .request()
       .input("idMetodoPagoUsuario", id)
       .query(`DELETE FROM MetodosPagoUsuario WHERE idMetodoPagoUsuario = @idMetodoPagoUsuario`);
-    const affected = Array.isArray(result.rowsAffected) ? result.rowsAffected.reduce((a,n)=>a+n,0) : 0;
+    const affected = Array.isArray(result.rowsAffected) ? result.rowsAffected.reduce((a, n) => a + n, 0) : 0;
     if (!affected) {
       return res.status(404).json({ error: "Método no encontrado" });
     }
