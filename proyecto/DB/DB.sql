@@ -1,13 +1,14 @@
-﻿IF DB_ID('dbTiendaHardwarePC') IS NOT NULL
-    DROP DATABASE dbTiendaHardwarePC;
-GO
-
+﻿--Proyecto Final DB
+--Creamos la DB
 CREATE DATABASE dbTiendaHardwarePC;
 GO
 
+--usamos la db
 USE dbTiendaHardwarePC;
 GO
 
+
+--creamos las tablas
 -- TABLA: Roles 
 CREATE TABLE Roles (
     idRol INT IDENTITY(1,1) PRIMARY KEY,
@@ -233,24 +234,22 @@ CREATE INDEX IX_CarritoItems_IdCarrito ON CarritoItems (idCarrito);
 CREATE INDEX IX_CarritoItems_IdProducto ON CarritoItems (idProducto);
 GO
 
---INSERTS
+--hacemos INSERTS
 -- ROLES 
 INSERT INTO Roles (nombreRol, descripcionRol)
 VALUES
 ('ADMIN',    'Administrador de la tienda web'),
 ('EMPLEADO', 'Empleado que gestiona pedidos e inventario'),
 ('CLIENTE',  'Cliente que realiza compras en la tienda'),
-('EMPLEADO', 'Empleado ?rea soporte'),
-('CLIENTE',  'Cliente frecuente');
 GO
 
 -- USUARIOS
 INSERT INTO Usuarios (idRol, nombreUsuario, apellidoUsuario, emailUsuario, passwordHash, telefonoUsuario, direccionUsuario)
 VALUES
-(1, 'Miguel ?ngel', 'Hern?ndez Hern?ndez', 'admin@tiendapc.com',    'admin123',   '7777-0001', 'San Miguel, Col. 15 de Septiembre'),
-(2, 'Andrea',       'Zelaya L?pez',        'empleado1@tiendapc.com','HASH_EMPLEADO_1', '7777-0002', 'San Miguel, Centro'),
-(2, 'Jorge',        'Mendoza D?az',        'empleado2@tiendapc.com','HASH_EMPLEADO_2', '7777-0003', 'San Salvador, Col. Miramonte'),
-(3, 'Carlos',       'L?pez Ram?rez',       'carlos@correo.com',     'HASH_CLIENTE_1',  '7777-0004', 'San Salvador, Col. Escal?n'),
+(1, 'Miguel Angel', 'Hernendez Hernendez', 'admin@tiendapc.com',    'admin123',   '7777-0001', 'San Miguel, Col. 15 de Septiembre'),
+(2, 'Andrea',       'Zelaya Lopez',        'empleado1@tiendapc.com','HASH_EMPLEADO_1', '7777-0002', 'San Miguel, Centro'),
+(2, 'Jorge',        'Mendoza Diaz',        'empleado2@tiendapc.com','HASH_EMPLEADO_2', '7777-0003', 'San Salvador, Col. Miramonte'),
+(3, 'Carlos',       'Lopez Ramarez',       'carlos@correo.com',     'HASH_CLIENTE_1',  '7777-0004', 'San Salvador, Col. Escal?n'),
 (3, 'Kenneth',      'Granados Claros',     'kenneth@correo.com',    'HASH_CLIENTE_2',  '7777-0005', 'San Miguel, Reparto Los H?roes');
 GO
 
@@ -269,7 +268,7 @@ INSERT INTO Categorias (nombreCategoria, descripcionCategoria)
 VALUES
 ('Procesadores',     'CPUs para equipos de escritorio y gaming'),
 ('Tarjetas de Video','GPUs dedicadas para gaming y dise?o'),
-('Memoria RAM',      'M?dulos DDR4 y DDR5'),
+('Memoria RAM',      'Modulos DDR4 y DDR5'),
 ('Almacenamiento',   'Unidades SSD, NVMe y HDD'),
 ('Perif?ricos',      'Teclados, mouse, headsets y otros accesorios');
 GO
@@ -285,20 +284,20 @@ GO
 INSERT INTO Productos (idCategoria, idProveedor, nombreProducto, descripcionProducto, precioProducto, stockProducto, garantiaMeses, skuProducto)
 VALUES
 (1, 1, 'MSI MAG X570 Tomahawk',       'Placa madre gaming para Ryzen, chipset X570',           250.00, 10, 24, 'MB-MSI-X570-TOMA'),
-(2, 2, 'GIGABYTE RTX 4070 Ti',        'Tarjeta gr?fica gaming RTX 4070 Ti 12GB GDDR6X',        799.99, 8, 36,  'GPU-GIGA-4070TI'),
+(2, 2, 'GIGABYTE RTX 4070 Ti',        'Tarjeta grafica gaming RTX 4070 Ti 12GB GDDR6X',        799.99, 8, 36,  'GPU-GIGA-4070TI'),
 (3, 4, 'Corsair Vengeance 32GB DDR5', 'Kit 2x16GB DDR5 5600MHz',                               189.99, 20, 24, 'RAM-COR-32GB-DDR5'),
 (4, 5, 'Seagate FireCuda 530 1TB',    'SSD NVMe PCIe Gen4 1TB alta velocidad',                 179.90, 15, 36, 'SSD-SEA-FC530-1TB'),
-(5, 3, 'ASUS ROG Gladius III',        'Mouse gamer ROG con sensor ?ptico de alta precisi?n',   89.99, 25, 12,  'MOU-ASUS-GLADIUS3');
+(5, 3, 'ASUS ROG Gladius III',        'Mouse gamer ROG con sensor Optico de alta precision',   89.99, 25, 12,  'MOU-ASUS-GLADIUS3');
 GO
 
 -- ORDENES 
 INSERT INTO Ordenes (idUsuarioCliente, fechaOrden, estadoOrden, totalOrden, direccionEnvio, observaciones)
 VALUES
-(4, '2025-11-01 10:30:00', 'Pagada',   979.89, 'San Salvador, Col. Escal?n',     'Compra de GPU y mouse'),
-(5, '2025-11-02 15:45:00', 'Pendiente', 439.89, 'San Miguel, Reparto Los H?roes', 'Pendiente de pago con tarjeta'),
-(4, '2025-11-03 09:10:00', 'Enviada',   250.00, 'San Salvador, Col. Escal?n',     'Solo placa madre MSI'),
-(5, '2025-11-04 18:20:00', 'Pagada',    189.99, 'San Miguel, Reparto Los H?roes', 'Compra de RAM DDR5'),
-(4, '2025-11-05 11:05:00', 'Cancelada', 179.90, 'San Salvador, Col. Escal?n',     'Orden cancelada por el cliente');
+(4, '2025-11-01 10:30:00', 'Pagada',   979.89, 'San Salvador, Col. Escalon',     'Compra de GPU y mouse'),
+(5, '2025-11-02 15:45:00', 'Pendiente', 439.89, 'San Miguel, Reparto Los Heroes', 'Pendiente de pago con tarjeta'),
+(4, '2025-11-03 09:10:00', 'Enviada',   250.00, 'San Salvador, Col. Escalon',     'Solo placa madre MSI'),
+(5, '2025-11-04 18:20:00', 'Pagada',    189.99, 'San Miguel, Reparto Los Heroes', 'Compra de RAM DDR5'),
+(4, '2025-11-05 11:05:00', 'Cancelada', 179.90, 'San Salvador, Col. Escalon',     'Orden cancelada por el cliente');
 GO
 
 -- DETALLE ORDEN
@@ -325,11 +324,11 @@ GO
 INSERT INTO MetodosPagoUsuario
 (idUsuario, idMetodoPago, aliasTarjeta, titularTarjeta, ultimos4, mesExpiracion, anioExpiracion, tokenPasarela, esPredeterminado)
 VALUES
-(4, 1, 'Visa personal',       'Carlos L?pez Ram?rez',  '1234', 12, 2028, 'TOK_VISA_1234', 1),
-(4, 2, 'MasterCard trabajo',  'Carlos L?pez Ram?rez',  '5678', 11, 2027, 'TOK_MC_5678',   0),
-(5, 3, 'D?bito ahorro',       'Kenneth Granados',      '4321', 10, 2029, 'TOK_VISA_4321', 1),
+(4, 1, 'Visa personal',       'Carlos Lopez Ramirez',  '1234', 12, 2028, 'TOK_VISA_1234', 1),
+(4, 2, 'MasterCard trabajo',  'Carlos Lopez Ramirez',  '5678', 11, 2027, 'TOK_MC_5678',   0),
+(5, 3, 'Debito ahorro',       'Kenneth Granados',      '4321', 10, 2029, 'TOK_VISA_4321', 1),
 (5, 5, 'Tarjeta internacional','Kenneth Granados',     '9999',  9, 2030, 'TOK_INT_9999',  0),
-(4, 4, 'D?bito secundaria',   'Carlos L?pez Ram?rez',  '2468',  8, 2028, 'TOK_MCDB_2468',0);
+(4, 4, 'Debito secundaria',   'Carlos Lopez Ramirez',  '2468',  8, 2028, 'TOK_MCDB_2468',0);
 GO
 
 --updates y alters
@@ -379,11 +378,10 @@ ADD CONSTRAINT CHK_Productos_PrecioOferta
     CHECK (precioOferta IS NULL OR precioOferta >= 0);
 GO
 
+
+
+--aplicanos funciones
 -- FUNCION: fn_GetPrecioEfectivo
-GO
-IF OBJECT_ID('dbo.fn_GetPrecioEfectivo', 'FN') IS NOT NULL
-    DROP FUNCTION dbo.fn_GetPrecioEfectivo;
-GO
 CREATE FUNCTION dbo.fn_GetPrecioEfectivo
 (
     @idProducto INT
@@ -406,9 +404,6 @@ END;
 GO
 
 -- FUNCION 2: fn_GetTotalOrden
-IF OBJECT_ID('dbo.fn_GetTotalOrden', 'FN') IS NOT NULL
-    DROP FUNCTION dbo.fn_GetTotalOrden;
-GO
 CREATE FUNCTION dbo.fn_GetTotalOrden
 (
     @idOrden INT
@@ -434,9 +429,6 @@ END;
 GO
 
 -- FUNCION 3: fn_GetStockDisponible
-IF OBJECT_ID('dbo.fn_GetStockDisponible', 'FN') IS NOT NULL
-    DROP FUNCTION dbo.fn_GetStockDisponible;
-GO
 CREATE FUNCTION dbo.fn_GetStockDisponible
 (
     @idProducto INT
@@ -454,10 +446,8 @@ BEGIN
 END;
 GO
 
+--aplicamos vistas
 -- VISTA 1: vw_OrdenesResumen
-IF OBJECT_ID('dbo.vw_OrdenesResumen', 'V') IS NOT NULL
-    DROP VIEW dbo.vw_OrdenesResumen;
-GO
 CREATE VIEW dbo.vw_OrdenesResumen
 AS
 SELECT
@@ -490,9 +480,6 @@ LEFT JOIN MetodosPago mp
 GO
 
 -- VISTA 2: vw_DetalleOrdenCompleto
-IF OBJECT_ID('dbo.vw_DetalleOrdenCompleto', 'V') IS NOT NULL
-    DROP VIEW dbo.vw_DetalleOrdenCompleto;
-GO
 CREATE VIEW dbo.vw_DetalleOrdenCompleto
 AS
 SELECT
@@ -511,9 +498,6 @@ INNER JOIN Productos p
 GO
 
 -- VISTA 3: vw_ProductosConOferta
-IF OBJECT_ID('dbo.vw_ProductosConOferta', 'V') IS NOT NULL
-    DROP VIEW dbo.vw_ProductosConOferta;
-GO
 CREATE VIEW dbo.vw_ProductosConOferta
 AS
 SELECT
@@ -531,10 +515,9 @@ INNER JOIN Categorias c
 WHERE p.esOferta = 1;
 GO
 
+
+--aplicamos procedimientos
 -- PROCEDIMIENTO 1: sp_CrearOrdenDesdeCarrito
-IF OBJECT_ID('dbo.sp_CrearOrdenDesdeCarrito', 'P') IS NOT NULL
-    DROP PROCEDURE dbo.sp_CrearOrdenDesdeCarrito;
-GO
 CREATE PROCEDURE dbo.sp_CrearOrdenDesdeCarrito
     @idUsuario      INT,
     @esSimulado    BIT,
@@ -665,9 +648,6 @@ END;
 GO
 
 -- PROCEDIMIENTO 2: sp_ReporteVentasRango
-IF OBJECT_ID('dbo.sp_ReporteVentasRango', 'P') IS NOT NULL
-    DROP PROCEDURE dbo.sp_ReporteVentasRango;
-GO
 CREATE PROCEDURE dbo.sp_ReporteVentasRango
     @fechaInicio DATETIME,
     @fechaFin    DATETIME

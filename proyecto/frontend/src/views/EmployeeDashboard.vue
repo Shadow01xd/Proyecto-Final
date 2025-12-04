@@ -1184,7 +1184,7 @@ async function importarDB() {
               : 'text-muted-foreground hover:text-foreground'
           ]"
         >
-          Categorías
+          📚Categorías
         </button>
         <button
           v-if="esAdmin"
@@ -1220,7 +1220,7 @@ async function importarDB() {
               : 'text-muted-foreground hover:text-foreground'
           ]"
         >
-          Empleados
+          👔 Empleados
         </button>
         <button
           @click="activeTab = 'ordenes'"

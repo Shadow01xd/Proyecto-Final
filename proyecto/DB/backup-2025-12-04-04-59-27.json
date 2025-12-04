@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2025-12-03T23:45:22.337Z",
+  "exportedAt": "2025-12-04T04:59:27.861Z",
   "tables": {
     "Roles": [
       {
@@ -355,9 +355,9 @@
         "esActivo": true,
         "imgProducto": "https://asset.msi.com/resize/image/global/product/product_8_20200326101839_5e7c10ff8509c.png62405b38c58fe0f07fcef2367d8a9ba1/1024.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 2,
@@ -372,9 +372,9 @@
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/a251c4a029e27ad0398af9c3799e4495/Product/33432/Png",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 5,
-        "precioOferta": 759.99
+        "precioOferta": 759.99,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 3,
@@ -389,9 +389,9 @@
         "esActivo": true,
         "imgProducto": "https://assets.corsair.com/image/upload/c_pad,q_auto,h_1024,w_1024,f_auto/products/Memory/vengeance-rgb-ddr5-blk-config/Gallery/Vengeance-RGB-DDR5-2UP-BLACK_01.webp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 4,
@@ -406,9 +406,9 @@
         "esActivo": true,
         "imgProducto": "https://paragongaming.co.uk/wp-content/uploads/2022/10/seagate-firecuda-530-heatsink-left-lo-res_l.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 5,
@@ -423,9 +423,9 @@
         "esActivo": true,
         "imgProducto": "https://www.gigahertz.com.ph/cdn/shop/files/asus-rog-gladius-ii-rgb-aura-gaming-mouse-asus-gigahertz-126585_1024x.webp?v=1721109724",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 10,
-        "precioOferta": 80.99
+        "precioOferta": 80.99,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 6,
@@ -440,9 +440,9 @@
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/ffebdb331cdc6e8eecf7f2b4b42b8232/Product/32793/Png",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 5,
-        "precioOferta": 712.5
+        "precioOferta": 712.5,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 7,
@@ -457,9 +457,9 @@
         "esActivo": true,
         "imgProducto": "https://i5.walmartimages.com/seo/AMD-Ryzen-7-5800X-8-core-16-thread-Desktop-Processor_6991aa07-fda4-4d5c-a327-14f173b49695.0a72219f57b56aacf58bea6a04355e93.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 8,
@@ -474,9 +474,9 @@
         "esActivo": true,
         "imgProducto": "https://media.mipc.com.mx/catalog/product/g/m/gm-43338-m30_2.png?width=270&height=270&store=default&image-type=image",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 20,
-        "precioOferta": 128
+        "precioOferta": 128,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 9,
@@ -491,9 +491,9 @@
         "esActivo": true,
         "imgProducto": "https://logg.api.cygnus.market/static/logg/Global/Procesador%20AMD%20Ryzen%205%207600X%205.3GHz%2032MB%20Zen4%20Gr%C3%A1ficos%20Radeon%20AM5/fe4b623c341d462d9462ce7127bbc8e1.webp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 10,
@@ -508,9 +508,9 @@
         "esActivo": true,
         "imgProducto": "https://cdn.salla.sa/wyYgx/aMQcqhv2AsxFMU9CQC77KmO1wRESudEr52AGSMRY.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 11,
@@ -525,9 +525,9 @@
         "esActivo": true,
         "imgProducto": "https://www.mrpc.com.co/wp-content/uploads/2023/11/10.37.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 12,
@@ -542,9 +542,9 @@
         "esActivo": true,
         "imgProducto": "https://compushopsv.com/cdn/shop/files/Procesador-Intel_C2_AE-Core_E2_84_A2-i5-12400-12TH.png?v=1712940923",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 13,
@@ -559,9 +559,9 @@
         "esActivo": true,
         "imgProducto": "https://logg.api.cygnus.market/static/logg/Global/Procesador_Intel_Core_i5_13400F_4.6GHz_20MB_Raptor_Lake_LGA1700_c_Cooler/13b46ae6ba40462d895a7bc90b18d91c.webp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 14,
@@ -576,9 +576,9 @@
         "esActivo": true,
         "imgProducto": "https://logg.api.cygnus.market/static/logg/Global/Procesador_Intel_Core_i7_13700F_5.2GHz_30MB_Raptor_Lake_LGA1700_c_Cooler/8a99681d6e774b4293a329c04937c065.webp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 15,
@@ -593,9 +593,9 @@
         "esActivo": true,
         "imgProducto": "https://media.lifeinformatica.com/contents/assets/CPINT250/imgs/BX80768265KF-01.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 16,
@@ -610,9 +610,9 @@
         "esActivo": true,
         "imgProducto": "https://media.lifeinformatica.com/contents/assets/CPINT252/imgs/BX80768285K-01_300x300.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 17,
@@ -627,9 +627,9 @@
         "esActivo": true,
         "imgProducto": "https://assets.corsair.com/image/upload/c_pad,q_85,h_1100,w_1100,f_auto/products/Memory/CMH32GX4M2E3200C16W/Gallery/VENGEANCE_RGB_PRO_SL_WHITE_01.webp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 18,
@@ -644,9 +644,9 @@
         "esActivo": true,
         "imgProducto": "https://www.avadirect.com/Pictures/500/16023785_1.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 19,
@@ -661,9 +661,9 @@
         "esActivo": true,
         "imgProducto": "https://www.gskill.com/_upload/images/157890648800.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 20,
@@ -678,9 +678,9 @@
         "esActivo": true,
         "imgProducto": "https://dynaquestpc.com/cdn/shop/products/TridentZNeo.png?v=1590694385&width=640",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 21,
@@ -695,9 +695,9 @@
         "esActivo": true,
         "imgProducto": "https://apizd.zonadigitalsv.com/storage/productos/4kxaeHC0FGIyPTfC7LZ7uR3zxpgbjaiaXzPRT1xI.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 22,
@@ -712,9 +712,9 @@
         "esActivo": true,
         "imgProducto": "https://assets.corsair.com/image/upload/c_pad,q_auto,h_1024,w_1024,f_auto/products/Gaming-Keyboards/CH-9109410-NA/Gallery/K70_RGB_PRO_PBT_01.webp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 23,
@@ -729,9 +729,9 @@
         "esActivo": true,
         "imgProducto": "https://resource.logitechg.com/d_transparent.gif/content/dam/gaming/en/products/g502-lightspeed-gaming-mouse/g502-lightspeed-gallery-1.png",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 20,
-        "precioOferta": 128
+        "precioOferta": 128,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 24,
@@ -746,9 +746,9 @@
         "esActivo": true,
         "imgProducto": "https://assets.corsair.com/image/upload/c_pad,q_auto,h_1024,w_1024,f_auto/products/Gaming-Headsets/CA-9011235-NA/Gallery/HS80_RGB_WIRELESS_BLACK_01.webp",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 20,
-        "precioOferta": 96
+        "precioOferta": 96,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 25,
@@ -763,9 +763,9 @@
         "esActivo": true,
         "imgProducto": "https://images.samsung.com/is/image/samsung/es-ssd-970-evo-pro-mz-v7p1t0bw-frontblack-96180427?$Q90_1248_936_F_PNG$",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 26,
@@ -780,9 +780,9 @@
         "esActivo": true,
         "imgProducto": "https://cdn.sanity.io/images/yqd1zell/production/c7818ec2363e2485bc5b8ff777ff03906fa18956-500x500.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 27,
@@ -797,9 +797,9 @@
         "esActivo": true,
         "imgProducto": "https://www.digitalsolutions.com.sv/cdn/shop/files/Unidad-de-Estado-Solido-Kingston-SNV3S1000G-1TB_1000x.jpg?v=1764003099",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 28,
@@ -814,9 +814,9 @@
         "esActivo": true,
         "imgProducto": "https://shop.sandisk.com/content/dam/store/en-us/assets/products/internal-storage/wd-green-ssd/gallery/480gb/wd-green-ssd-480gb-left.png.thumb.1280.1280.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 29,
@@ -831,9 +831,9 @@
         "esActivo": true,
         "imgProducto": "https://dlcdnwebimgs.asus.com/gain/491a31bb-0d2c-4641-adf3-331143f3b10c/",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 30,
@@ -848,9 +848,9 @@
         "esActivo": true,
         "imgProducto": "https://img-itopya.mncdn.com/cdn/1000/4-2b3263.png",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 5,
-        "precioOferta": 760
+        "precioOferta": 760,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 31,
@@ -865,9 +865,9 @@
         "esActivo": true,
         "imgProducto": "https://prod.scorptec.com.au/35/1039/115802/353460_large.jpg",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 5,
-        "precioOferta": 665
+        "precioOferta": 665,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 32,
@@ -882,9 +882,9 @@
         "esActivo": true,
         "imgProducto": "https://asset.msi.com/resize/image/global/product/product_17374383365c2b37a6a41ecbf2d5d1f047570073a3.png62405b38c58fe0f07fcef2367d8a9ba1/600.png",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 3,
-        "precioOferta": 665
+        "precioOferta": 665,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 33,
@@ -899,9 +899,9 @@
         "esActivo": true,
         "imgProducto": "https://www.asrock.com/Graphics-Card/photo/Radeon%20RX%209070%20Challenger%2016GB(M1).png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 34,
@@ -916,9 +916,9 @@
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/918bf934ae9575c91d460df75eb479e5/Product/43901",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 35,
@@ -933,9 +933,9 @@
         "esActivo": true,
         "imgProducto": "https://www.pcbuilds.sv/web/image/product.template/142/image_1024?unique=ce591a2",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 36,
@@ -950,9 +950,9 @@
         "esActivo": true,
         "imgProducto": "https://cdn.inet.se/product/688x386/5412905_0.jpg",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 37,
@@ -967,9 +967,9 @@
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/465fecec656269ca28ac31a5d76e2957/Product/28895/Png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 38,
@@ -984,9 +984,9 @@
         "esActivo": true,
         "imgProducto": "https://asset.msi.com/resize/image/global/product/product_16093853844ee7866a719db5745fa37a680e9dd834.png62405b38c58fe0f07fcef2367d8a9ba1/1024.png",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 20,
-        "precioOferta": 144
+        "precioOferta": 144,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 39,
@@ -1001,9 +1001,9 @@
         "esActivo": true,
         "imgProducto": "https://reset.net.co/wp-content/uploads/2021/08/Board_Asus_ROG_Strix_B550-E_Gaming_WIFI_Ryzen_DDR4.webp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 40,
@@ -1018,9 +1018,9 @@
         "esActivo": true,
         "imgProducto": "https://img.overclockers.co.uk/media/image/MB16MAK_218717.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 41,
@@ -1035,9 +1035,9 @@
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/327633a3fd314d8736f31fd9106f2124/Product/32062/Png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 42,
@@ -1052,9 +1052,9 @@
         "esActivo": true,
         "imgProducto": "https://gzhls.at/pix/1d/2e/1d2e3d1b59c41f3a-n.webp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 43,
@@ -1069,9 +1069,9 @@
         "esActivo": true,
         "imgProducto": "https://prod.scorptec.com.au/19/1178/113342/336804_large.jpg",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 44,
@@ -1086,9 +1086,9 @@
         "esActivo": true,
         "imgProducto": "https://asrock.com/mb/photo/X670E%20Taichi(M1).png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 45,
@@ -1103,9 +1103,9 @@
         "esActivo": true,
         "imgProducto": "https://prod.scorptec.com.au/19/1178/113340/336709_large.jpg",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 46,
@@ -1120,9 +1120,9 @@
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/9bd932624b1a074aee0397c9ded72e69/Product/42074",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 47,
@@ -1137,9 +1137,9 @@
         "esActivo": true,
         "imgProducto": "https://media.solotodo.com/media/products/1973351_picture_1730220882.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 48,
@@ -1154,9 +1154,9 @@
         "esActivo": true,
         "imgProducto": "https://img-itopya.mncdn.com/cdn/1000/z790-gaming-plus-wifi-503b82.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 49,
@@ -1171,9 +1171,9 @@
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/f21833fd8c9539bab3a268b668494b73/Product/39396/Png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 50,
@@ -1188,9 +1188,9 @@
         "esActivo": true,
         "imgProducto": "https://static.gigabyte.com/StaticFile/Image/Global/3dd84bb95e76cbcd4a67b05fb03f9e33/Product/30050/Png",
         "esOferta": true,
-        "nombreOferta": null,
         "porcentajeDescuento": 5,
-        "precioOferta": 285
+        "precioOferta": 285,
+        "nombreOferta": null
       },
       {
         "idProducto": 51,
@@ -1205,9 +1205,9 @@
         "esActivo": true,
         "imgProducto": "https://nzxt.com/cdn/shop/files/Case_H9FlowRGB_WH_Carousel_Hero_EN_2202aec0-0844-4933-9edb-e7a26749e10c.png?v=1762528243",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 52,
@@ -1222,9 +1222,9 @@
         "esActivo": true,
         "imgProducto": "https://store974.com/cdn/shop/products/nzxt-h710i-atx-mid-tower-case-blackred-279397.png?v=1589406030",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 20,
-        "precioOferta": 104
+        "precioOferta": 104,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 53,
@@ -1239,9 +1239,9 @@
         "esActivo": true,
         "imgProducto": "https://assets.corsair.com/image/upload/c_pad,q_auto,h_1024,w_1024,f_auto/products/Cases/base-4000d-airflow-config/Gallery/4000D_AF_WHITE_01.webp",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 20,
-        "precioOferta": 144
+        "precioOferta": 144,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 54,
@@ -1256,9 +1256,9 @@
         "esActivo": true,
         "imgProducto": "https://assets.corsair.com/image/upload/c_pad,q_auto,h_1024,w_1024,f_auto/products/Cases/6500X/CC-9011284-WW/6500X_WHITE_BAMBOO_01.webp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 55,
@@ -1273,9 +1273,9 @@
         "esActivo": true,
         "imgProducto": "https://dlcdnwebimgs.asus.com/gain/90DC80EB-628D-4732-8054-B5A70B38FB2F/w260/fwebp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 56,
@@ -1290,9 +1290,9 @@
         "esActivo": true,
         "imgProducto": "https://i0.wp.com/www.aslanstoreuy.com/wp-content/uploads/2022/04/Monitor-Gamer-AORUS-FI27Q-27-1ms-165Hz-Aslan-6.png?fit=600%2C600&ssl=1",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 57,
@@ -1307,9 +1307,9 @@
         "esActivo": true,
         "imgProducto": "https://apizd.zonadigitalsv.com/storage/productos/77uFVOAt9afsDYO7ubYRVKg1CwQxP1mKrmftnbhQ.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 58,
@@ -1324,9 +1324,9 @@
         "esActivo": true,
         "imgProducto": "https://pcbuilderqatar.com/cdn/shop/files/asus-tuf-gaming-vg27aq3a-27-2k-180hz-fast-ips-1ms-gtg-gaming-monitor-pc-builder-qatar-best-pc-gaming-store-in-qatar-2.webp?v=1717714868&width=2400",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 59,
@@ -1341,9 +1341,9 @@
         "esActivo": true,
         "imgProducto": "https://images.samsung.com/is/image/samsung/p6pim/latin/ls55cg970nnxgo/gallery/latin-odyssey-ark-g97nc-ls55cg970nnxgo-545228146?$Q90_1248_936_F_PNG$",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 60,
@@ -1358,9 +1358,9 @@
         "esActivo": true,
         "imgProducto": "https://product.hstatic.net/200000837185/product/h732__5__11505df42413430aa941f27b6b773e1d_master.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 61,
@@ -1375,9 +1375,9 @@
         "esActivo": true,
         "imgProducto": "https://images.evga.com/products/gallery/png/220-GA-0850-X1_LG_1.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 62,
@@ -1392,9 +1392,9 @@
         "esActivo": true,
         "imgProducto": "https://www.invidcomputers.com/images/000000000041387449394product-5-20200826101957-5f45c6cd34d8e.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 63,
@@ -1409,9 +1409,9 @@
         "esActivo": true,
         "imgProducto": "https://images-cdn.ubuy.co.in/667a094dc5589e5e05260f1d-asus-rog-thor-platinum-1200w-power.jpg",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 64,
@@ -1426,9 +1426,9 @@
         "esActivo": true,
         "imgProducto": "https://logg.api.cygnus.market/static/logg/Global/Fuente_CORSAIR_RM750e_750W_Gold_Full_Modular_ATX_3.1_PCIe_5.1_12V_2x6/fad9b136c5e34c5f986f1347ac6dc4c0.webp",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 20,
-        "precioOferta": 96
+        "precioOferta": 96,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 65,
@@ -1443,9 +1443,9 @@
         "esActivo": true,
         "imgProducto": "https://ddtech.mx/assets/uploads/ba22f7e2f0bf8527f32fc98ade5720fd.png",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 20,
-        "precioOferta": 96
+        "precioOferta": 96,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 66,
@@ -1460,9 +1460,9 @@
         "esActivo": true,
         "imgProducto": "https://nzxt.com/cdn/shop/files/01_kraken_black_fp-fans_360.png?v=1762528090",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 67,
@@ -1477,9 +1477,9 @@
         "esActivo": true,
         "imgProducto": "https://assets.corsair.com/image/upload/c_pad,q_auto,h_1024,w_1024,f_auto/products/Liquid-Cooling/titan-rx-lcd/Gallery/CW-9061023-WW/CW-9061023-WW_01.webp",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 68,
@@ -1494,9 +1494,9 @@
         "esActivo": true,
         "imgProducto": "https://dlcdnwebimgs.asus.com/gain/BA550C8D-83E5-4796-9430-EFA04AB2AF17",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 69,
@@ -1511,9 +1511,9 @@
         "esActivo": true,
         "imgProducto": "https://asset.msi.com/resize/image/global/product/product_0_20200709150730_5f06c232bd845.png62405b38c58fe0f07fcef2367d8a9ba1/600.png",
         "esOferta": true,
-        "nombreOferta": "Black Friday",
         "porcentajeDescuento": 20,
-        "precioOferta": 96
+        "precioOferta": 96,
+        "nombreOferta": "Black Friday"
       },
       {
         "idProducto": 70,
@@ -1528,9 +1528,9 @@
         "esActivo": true,
         "imgProducto": "https://www.jumbo-computer.com/cdn/shop/files/2000_ea31d8fb-ef2b-4321-a299-363860d24884_800x.webp?v=1709183549",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 71,
@@ -1545,26 +1545,26 @@
         "esActivo": true,
         "imgProducto": "https://apizd.zonadigitalsv.com/storage/productos/EQrx227AEI9tA8J77sNaEwbP890v6me1u95iVNPO.png",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       },
       {
         "idProducto": 73,
         "idCategoria": 2,
         "idProveedor": 20,
-        "nombreProducto": "RTX 3060",
+        "nombreProducto": "RTX 3060 ti",
         "descripcionProducto": "tarjeta nvidia 3060",
         "precioProducto": 250,
         "stockProducto": 10,
         "garantiaMeses": 3,
         "skuProducto": "RTX-3060",
         "esActivo": true,
-        "imgProducto": "https://donghypc.vn/upload/product/img90f15e81d0aab4766830649aa552-7719.png",
+        "imgProducto": "https://relay-bl-in-records.sgp1.cdn.digitaloceanspaces.com/GameNation/EA_3862",
         "esOferta": false,
-        "nombreOferta": null,
         "porcentajeDescuento": null,
-        "precioOferta": null
+        "precioOferta": null,
+        "nombreOferta": null
       }
     ],
     "Ordenes": [

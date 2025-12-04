@@ -229,7 +229,12 @@ router.delete('/:id/hard', async (req, res) => {
       .input('idUsuario', id)
       .query('DELETE FROM Carritos WHERE idUsuario = @idUsuario');
 
-    // 6) Eliminar el usuario
+    // 6) Eliminar suscripciones de newsletter asociadas al usuario
+    await pool.request()
+      .input('idUsuario', id)
+      .query('DELETE FROM NewsletterSubscribers WHERE idUsuario = @idUsuario');
+
+    // 7) Eliminar el usuario
     await pool.request()
       .input('idUsuario', id)
       .query('DELETE FROM Usuarios WHERE idUsuario = @idUsuario');
