@@ -246,7 +246,7 @@ GO
 -- USUARIOS
 INSERT INTO Usuarios (idRol, nombreUsuario, apellidoUsuario, emailUsuario, passwordHash, telefonoUsuario, direccionUsuario)
 VALUES
-(1, 'Miguel Angel', 'Hernendez Hernendez', 'admin@tiendapc.com',    'admin123',   '7777-0001', 'San Miguel, Col. 15 de Septiembre'),
+(1, 'Miguel Angel', 'Hernandez Hernandez', 'admin@tiendapc.com',    'admin123',   '7777-0001', 'San Miguel, Col. 15 de Septiembre'),
 (2, 'Andrea',       'Zelaya Lopez',        'empleado1@tiendapc.com','HASH_EMPLEADO_1', '7777-0002', 'San Miguel, Centro'),
 (2, 'Jorge',        'Mendoza Diaz',        'empleado2@tiendapc.com','HASH_EMPLEADO_2', '7777-0003', 'San Salvador, Col. Miramonte'),
 (3, 'Carlos',       'Lopez Ramarez',       'carlos@correo.com',     'HASH_CLIENTE_1',  '7777-0004', 'San Salvador, Col. Escal?n'),
@@ -256,9 +256,9 @@ GO
 -- PROVEEDORES 
 INSERT INTO Proveedores (nombreEmpresa, nombreContacto, telefonoProveedor, emailProveedor, direccionProveedor, sitioWebProveedor)
 VALUES
-('MSI',       'Contacto MSI',      '2200-1001', 'ventas@msi.com',       'Taiw?n, oficinas regionales', 'https://www.msi.com'),
-('GIGABYTE',  'Contacto Gigabyte', '2200-1002', 'sales@gigabyte.com',   'Taiw?n, oficinas regionales', 'https://www.gigabyte.com'),
-('ASUS',      'Contacto Asus',     '2200-1003', 'channel@asus.com',     'Taiw?n, oficinas regionales', 'https://www.asus.com'),
+('MSI',       'Contacto MSI',      '2200-1001', 'ventas@msi.com',       'Taiwan, oficinas regionales', 'https://www.msi.com'),
+('GIGABYTE',  'Contacto Gigabyte', '2200-1002', 'sales@gigabyte.com',   'Taiwan, oficinas regionales', 'https://www.gigabyte.com'),
+('ASUS',      'Contacto Asus',     '2200-1003', 'channel@asus.com',     'Taiwan, oficinas regionales', 'https://www.asus.com'),
 ('Corsair',   'Contacto Corsair',  '2200-1004', 'partners@corsair.com', 'USA, oficinas regionales',    'https://www.corsair.com'),
 ('Seagate',   'Contacto Seagate',  '2200-1005', 'sales@seagate.com',    'USA, oficinas regionales',    'https://www.seagate.com');
 GO
@@ -273,7 +273,7 @@ VALUES
 ('Perif?ricos',      'Teclados, mouse, headsets y otros accesorios');
 GO
 
--- M?TODOS DE PAGO 
+-- METODOS DE PAGO 
 INSERT INTO MetodosPago (nombreMetodo, descripcionMetodo)
 VALUES
 ('Tarjeta povy',       'Pago con tarjeta de povy sandbox'),
